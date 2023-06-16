@@ -1,20 +1,20 @@
 package org.example.api_request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
+@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SendMessage {
+    @NonNull
     @JsonProperty("chat_id")
-    private Integer chatId;
+    private String chatId;
+
     @JsonProperty("message_thread_id")
     private Integer messageThreadId;
+
     @JsonProperty("text")
     private String text;
+
 }

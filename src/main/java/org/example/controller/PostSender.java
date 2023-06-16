@@ -1,72 +1,77 @@
 package org.example.controller;
 
-import org.example.api_request.InputFile;
-import org.example.configuration.ApiBotConfiguration;
+import org.example.api_request.SendAnimation;
+import org.example.api_request.SendAudio;
+import org.example.api_request.SendMessage;
+import org.example.api_object.Message;
+import org.example.configuration.BotInfo;
+import org.example.end_point.EndPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.File;
-
 @Controller
 public class PostSender {
-    private final RestTemplate restTemplate;
-    private final ApiBotConfiguration apiConfiguration;
+    private final WebClient client;
 
     @Autowired
-    public PostSender(RestTemplate restTemplate,
-                      ApiBotConfiguration apiConfiguration) {
-        this.restTemplate = restTemplate;
-        this.apiConfiguration = apiConfiguration;
+    public PostSender(WebClient client) {
+        this.client = client;
     }
 
-    public void execute(Object object) {
-        String endPoint = object.getClass().getSimpleName().toLowerCase();
-        String url = apiConfiguration.getUrl() + endPoint;
+    public Message execute(SendMessage sendMessage) {
+        String url = BotInfo.GET_URL() + EndPoint.SEND_MESSAGE.getPath();
 
-        MultipartBodyBuilder builder1 = new MultipartBodyBuilder();
-        builder1.part("audio", new File("/Users/vicary/desktop/test.mp3"));
-
-
-        WebClient.Builder builder = WebClient.builder();
-        String e = builder.build()
+        return client
                 .post()
                 .uri(url)
-                .bodyValue(object)
+                .bodyValue(sendMessage)
                 .retrieve()
-                .bodyToMono(String.class)
+                .bodyToMono(Message.class)
                 .block();
-        System.out.println(e);
-        //restTemplate.postForEntity(url, object, object.getClass());
     }
 
-    public void executeAnimation() {
-        String endPoint = "sendAnimation";
-        String url = apiConfiguration.getUrl() + endPoint;
-        System.out.println(endPoint);
-        Integer chat_id = 1935527130;
+    public Message execute(SendAudio sendAudio) {
+        String url = BotInfo.GET_URL() + EndPoint.SEND_AUDIO.getPath();
+        String chat_id = sendAudio.getChatId();
 
-        File file = new File("/Users/vicary/desktop/nailsing.gif");
-        InputFile inputFile = new InputFile("MUZA", file);
+        FileSystemResource fileToSend = new FileSystemResource(sendAudio.getAudio().getFile());
 
-        WebClient webClient = WebClient.create();
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("chat_id", chat_id);
+        builder.part("audio", fileToSend);
 
-        MultipartBodyBuilder multipartBodyBuilder = new MultipartBodyBuilder();
-        multipartBodyBuilder.part("chat_id", chat_id);
-        multipartBodyBuilder.part("animation", new FileSystemResource(inputFile.getFile()));
-        System.out.println(multipartBodyBuilder.build());
-        String response = webClient.post()
+        return client
+                .post()
                 .uri(url)
                 .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(multipartBodyBuilder.build()))
+                .body(BodyInserters.fromMultipartData(builder.build()))
                 .retrieve()
-                .bodyToMono(String.class)
+                .bodyToMono(Message.class)
                 .block();
-        System.out.println(response);
+    }
+
+    public Message execute(SendAnimation sendAnimation) {
+        String url = BotInfo.GET_URL() + EndPoint.SEND_ANIMATION.getPath();
+        String chat_id = sendAnimation.getChatId();
+
+        FileSystemResource fileToSend = new FileSystemResource(sendAnimation.getAnimation().getFile());
+
+        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        builder.part("chat_id", chat_id);
+        builder.part("animation", fileToSend);
+
+        return client
+                .post()
+                .uri(url)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(BodyInserters.fromMultipartData(builder.build()))
+                .retrieve()
+                .bodyToMono(Message.class)
+                .block();
     }
 }

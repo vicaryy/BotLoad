@@ -8,9 +8,9 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class SendAudio {
+public class SendAnimation {
     @JsonProperty("chat_id")
     private String chatId;
-    @JsonProperty("audio")
-    private InputFile audio;
+    @JsonProperty("animation")
+    private InputFile animation;
 }

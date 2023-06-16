@@ -1,14 +1,11 @@
-package org.example.api_response;
+package org.example.api_object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class Update implements ApiResponseObject{
+@Getter
+@ToString
+public class Update implements ApiObject {
     @JsonProperty("update_id")
     private Integer updateId;
     @JsonProperty("message")
@@ -39,4 +36,10 @@ public class Update implements ApiResponseObject{
 //    private ChatMemberUpdated chatMember;
 //    @JsonProperty("chat_join_request")
 //    private ChatJoinRequest chatJoinRequest;
+
+    private Update(){}
+
+    public String getChatId() {
+        return message.getChat().getId().toString();
+    }
 }

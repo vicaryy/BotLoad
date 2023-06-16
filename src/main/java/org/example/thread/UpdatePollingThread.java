@@ -1,29 +1,27 @@
 package org.example.thread;
 
-import org.example.api_response.ApiResponse;
-import org.example.api_response.Update;
-import org.example.configuration.ApiBotConfiguration;
+import org.example.api_object.ApiResponse;
+import org.example.api_object.Update;
+import org.example.configuration.BotInfo;
 import org.example.end_point.EndPoint;
 import org.example.service.UpdatePollingService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import javax.xml.datatype.Duration;
 
 @Component
 public class UpdatePollingThread implements Runnable {
     private final UpdatePollingService updatePollingService;
-    private final ApiBotConfiguration apiBotConfiguration;
-    private final RestTemplate restTemplate;
+    private final WebClient client;
     private final Thread thread;
 
     @Autowired
     public UpdatePollingThread(UpdatePollingService updatePollingService,
-                               ApiBotConfiguration apiBotConfiguration,
-                               RestTemplate restTemplate) {
+                               WebClient client) {
         this.updatePollingService = updatePollingService;
-        this.apiBotConfiguration = apiBotConfiguration;
-        this.restTemplate = restTemplate;
+        this.client = client;
 
         this.thread = new Thread(this);
         thread.start();
@@ -46,14 +44,31 @@ public class UpdatePollingThread implements Runnable {
     }
 
     public Update pollUpdate() {
-        String pollUrl = apiBotConfiguration.getUrl() + EndPoint.GET_UPDATES.getPath() + "-1";
-        ResponseEntity<ApiResponse> entity = restTemplate.getForEntity(pollUrl, ApiResponse.class);
-        if (entity.getBody().getResult().isEmpty()) {
+        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + "-1";
+
+        ApiResponse response = client
+                .get()
+                .uri(pollUrl)
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .block();
+
+        System.out.println("siema");
+
+        if (response.getResult().isEmpty())
             return null;
-        }
-        Update update = entity.getBody().getResult().get(0);
-        String deletePollUrl = apiBotConfiguration.getUrl() + EndPoint.GET_UPDATES.getPath() + (update.getUpdateId() + 1);
-        restTemplate.getForEntity(deletePollUrl, ApiResponse.class);
+
+        Update update = response.getResult().get(0);
+        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + (update.getUpdateId() + 1);
+
+        client.get()
+                .uri(deletePollUrl)
+                .retrieve()
+                .bodyToMono(ApiResponse.class)
+                .block();
+
+        System.out.println("robie");
+
         return update;
     }
 }
