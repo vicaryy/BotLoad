@@ -1,13 +1,18 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 import org.example.api_object.message.MessageEntity;
 
 import java.util.List;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultDocument implements InlineQueryResult {
     /**
      * Represents a link to a file. By default, this file will be sent by the user with an optional caption.
@@ -18,43 +23,43 @@ public class InlineQueryResultDocument implements InlineQueryResult {
     private final String type = "document";
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("title")
-    public String title;
+    private String title;
 
     @JsonProperty("caption")
-    public String caption;
+    private String caption;
 
     @JsonProperty("parse_mode")
-    public String parseMode;
+    private String parseMode;
 
     @JsonProperty("caption_entities")
-    public List<MessageEntity> captionEntities;
+    private List<MessageEntity> captionEntities;
 
     @JsonProperty("document_url")
-    public String documentUrl;
+    private String documentUrl;
 
     @JsonProperty("mime_type")
-    public String mimeType;
+    private String mimeType;
 
     @JsonProperty("description")
-    public String description;
+    private String description;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     @JsonProperty("thumbnail_url")
-    public String thumbnailUrl;
+    private String thumbnailUrl;
 
     @JsonProperty("thumbnail_width")
-    public Integer thumbnailWidth;
+    private Integer thumbnailWidth;
 
     @JsonProperty("thumbnail_height")
-    public Integer thumbnailHeight;
+    private Integer thumbnailHeight;
 
     private InlineQueryResultDocument() {
     }

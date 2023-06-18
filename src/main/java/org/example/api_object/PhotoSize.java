@@ -1,9 +1,13 @@
 package org.example.api_object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class PhotoSize implements ApiObject {
     @JsonProperty("file_id")
     private String fileId;

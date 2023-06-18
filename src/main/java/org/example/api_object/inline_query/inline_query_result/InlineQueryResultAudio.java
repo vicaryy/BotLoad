@@ -1,13 +1,18 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 import org.example.api_object.message.MessageEntity;
 
 import java.util.List;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultAudio implements InlineQueryResult {
     /**
      * Represents a link to an MP3 audio file. By default, this audio file will be sent by the user. Alternatively,
@@ -17,34 +22,34 @@ public class InlineQueryResultAudio implements InlineQueryResult {
     private final String type = "audio";
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("audio_url")
-    public String audioUrl;
+    private String audioUrl;
 
     @JsonProperty("title")
-    public String title;
+    private String title;
 
     @JsonProperty("caption")
-    public String caption;
+    private String caption;
 
     @JsonProperty("parse_mode")
-    public String parseMode;
+    private String parseMode;
 
     @JsonProperty("caption_entities")
-    public List<MessageEntity> captionEntities;
+    private List<MessageEntity> captionEntities;
 
     @JsonProperty("performer")
-    public String performer;
+    private String performer;
 
     @JsonProperty("audio_duration")
-    public Integer audioDuration;
+    private Integer audioDuration;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     private InlineQueryResultAudio() {
     }

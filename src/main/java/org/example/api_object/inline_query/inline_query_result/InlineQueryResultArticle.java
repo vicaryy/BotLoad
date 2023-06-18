@@ -1,46 +1,51 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultArticle implements InlineQueryResult {
     /**
      * Represents a link to an article or web page.
      */
     @JsonProperty("type")
-    public String type;
+    private String type;
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("title")
-    public String title;
+    private String title;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("url")
-    public String url;
+    private String url;
 
     @JsonProperty("hide_url")
-    public Boolean hideUrl;
+    private Boolean hideUrl;
 
     @JsonProperty("description")
-    public String description;
+    private String description;
 
     @JsonProperty("thumbnail_url")
-    public String thumbnailUrl;
+    private String thumbnailUrl;
 
     @JsonProperty("thumbnail_width")
-    public Integer thumbnailWidth;
+    private Integer thumbnailWidth;
 
     @JsonProperty("thumbnail_height")
-    public Integer thumbnailHeight;
+    private Integer thumbnailHeight;
 
     private InlineQueryResultArticle() {
     }

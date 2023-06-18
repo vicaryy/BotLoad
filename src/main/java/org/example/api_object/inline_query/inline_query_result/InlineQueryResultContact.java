@@ -1,10 +1,15 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultContact implements InlineQueryResult {
     /**
      * Represents a contact with a phone number. By default, this contact will be sent by the user.
@@ -14,34 +19,34 @@ public class InlineQueryResultContact implements InlineQueryResult {
     private final String type = "contact";
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("phone_number")
-    public String phoneNumber;
+    private String phoneNumber;
 
     @JsonProperty("first_name")
-    public String firstName;
+    private String firstName;
 
     @JsonProperty("last_name")
-    public String lastName;
+    private String lastName;
 
     @JsonProperty("vcard")
-    public String vcard;
+    private String vcard;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     @JsonProperty("thumbnail_url")
-    public String thumbnailUrl;
+    private String thumbnailUrl;
 
     @JsonProperty("thumbnail_width")
-    public Integer thumbnailWidth;
+    private Integer thumbnailWidth;
 
     @JsonProperty("thumbnail_height")
-    public Integer thumbnailHeight;
+    private Integer thumbnailHeight;
 
     private InlineQueryResultContact() {
     }

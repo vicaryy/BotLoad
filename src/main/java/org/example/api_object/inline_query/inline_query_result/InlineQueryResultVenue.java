@@ -1,10 +1,15 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultVenue implements InlineQueryResult {
     /**
      * Represents a venue. By default, the venue will be sent by the user.
@@ -14,46 +19,46 @@ public class InlineQueryResultVenue implements InlineQueryResult {
     private final String type = "venue";
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("latitude")
-    public Float latitude;
+    private Float latitude;
 
     @JsonProperty("longitude")
-    public Float longitude;
+    private Float longitude;
 
     @JsonProperty("title")
-    public String title;
+    private String title;
 
     @JsonProperty("address")
-    public String address;
+    private String address;
 
     @JsonProperty("foursquare_id")
-    public String foursquareId;
+    private String foursquareId;
 
     @JsonProperty("foursquare_type")
-    public String foursquareType;
+    private String foursquareType;
 
     @JsonProperty("google_place_id")
-    public String googlePlaceId;
+    private String googlePlaceId;
 
     @JsonProperty("google_place_type")
-    public String googlePlaceType;
+    private String googlePlaceType;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     @JsonProperty("thumbnail_url")
-    public String thumbnailUrl;
+    private String thumbnailUrl;
 
     @JsonProperty("thumbnail_width")
-    public Integer thumbnailWidth;
+    private Integer thumbnailWidth;
 
     @JsonProperty("thumbnail_height")
-    public Integer thumbnailHeight;
+    private Integer thumbnailHeight;
 
     private InlineQueryResultVenue() {
     }

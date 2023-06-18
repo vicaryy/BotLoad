@@ -1,20 +1,28 @@
 package org.example.api_object.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.example.api_object.*;
 import org.example.api_object.chat.Chat;
 import org.example.api_object.chat.ChatShared;
 import org.example.api_object.forum_topic.*;
+import org.example.api_object.games.Game;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 import org.example.api_object.other.*;
+import org.example.api_object.payments.Invoice;
+import org.example.api_object.payments.SuccessfulPayment;
 import org.example.api_object.poll.Poll;
 import org.example.api_object.stickers.Sticker;
+import org.example.api_object.telegram_passport.PassportData;
 import org.example.api_object.video.*;
 
 import java.util.List;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class Message implements ApiObject {
     @JsonProperty("message_id")
     private Integer messageId;
@@ -228,8 +236,6 @@ public class Message implements ApiObject {
 
     @JsonProperty("inline_keyboard_markup")
     private InlineKeyboardMarkup inlineKeyboardMarkup;
-
-
 
 
     private Message() {

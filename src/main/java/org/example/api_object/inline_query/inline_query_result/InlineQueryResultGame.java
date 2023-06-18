@@ -1,10 +1,14 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultGame implements InlineQueryResult {
     /**
      * Represents a Game.
@@ -13,13 +17,13 @@ public class InlineQueryResultGame implements InlineQueryResult {
     private final String type = "game";
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("game_short_name")
-    public String gameShortName;
+    private String gameShortName;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     private InlineQueryResultGame() {
     }

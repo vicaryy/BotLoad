@@ -1,59 +1,64 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 import org.example.api_object.message.MessageEntity;
 
 import java.util.List;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultGif implements InlineQueryResult {
     /**
      * Represents a link to an animated GIF file. By default, this animated GIF file will be sent by the user
      * with optional caption. Alternatively, you can use input_message_content to send a message with the specified content instead of the animation.
      */
     @JsonProperty("type")
-    public String type;
+    private String type;
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("gif_url")
-    public String gifUrl;
+    private String gifUrl;
 
     @JsonProperty("gif_width")
-    public Integer gifWidth;
+    private Integer gifWidth;
 
     @JsonProperty("gif_height")
-    public Integer gifHeight;
+    private Integer gifHeight;
 
     @JsonProperty("gif_duration")
-    public Integer gifDuration;
+    private Integer gifDuration;
 
     @JsonProperty("thumbnail_url")
-    public String thumbnailUrl;
+    private String thumbnailUrl;
 
     @JsonProperty("thumbnail_mime_type")
-    public String thumbnailMimeType;
+    private String thumbnailMimeType;
 
     @JsonProperty("title")
-    public String title;
+    private String title;
 
     @JsonProperty("caption")
-    public String caption;
+    private String caption;
 
     @JsonProperty("parse_mode")
-    public String parseMode;
+    private String parseMode;
 
     @JsonProperty("caption_entities")
-    public List<MessageEntity> captionEntities;
+    private List<MessageEntity> captionEntities;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     private InlineQueryResultGif() {
     }

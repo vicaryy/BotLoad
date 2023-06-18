@@ -1,8 +1,7 @@
 package org.example.controller;
 
-import org.example.api_request.SendAnimation;
-import org.example.api_request.SendAudio;
-import org.example.api_request.SendMessage;
+import org.example.api_object.User;
+import org.example.api_request.*;
 import org.example.api_object.message.Message;
 import org.example.configuration.BotInfo;
 import org.example.end_point.EndPoint;
@@ -73,5 +72,11 @@ public class PostController {
                 .retrieve()
                 .bodyToMono(Message.class)
                 .block();
+    }
+
+    public <T> T executeMethod(ApiRequest apiRequest) {
+        T returnObject = apiRequest.returnObject();
+
+        return returnObject;
     }
 }

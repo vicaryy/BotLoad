@@ -1,11 +1,16 @@
 package org.example.api_object.keyboard;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.example.api_object.ApiObject;
-import org.example.api_object.keyboard.KeyboardButton;
+
+import java.util.List;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class ReplyKeyboardMarkup implements ApiObject {
     @JsonProperty("keyboard")
     private List<List<KeyboardButton>> keyboard;

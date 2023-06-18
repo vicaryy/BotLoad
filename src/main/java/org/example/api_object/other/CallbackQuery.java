@@ -1,12 +1,16 @@
 package org.example.api_object.other;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 import org.example.api_object.ApiObject;
 import org.example.api_object.User;
 import org.example.api_object.message.Message;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class CallbackQuery implements ApiObject {
     @JsonProperty("id")
     private String id;

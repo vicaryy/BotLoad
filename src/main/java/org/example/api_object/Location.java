@@ -1,9 +1,13 @@
 package org.example.api_object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class Location implements ApiObject {
     @JsonProperty("longitude")
     private Float longitude;

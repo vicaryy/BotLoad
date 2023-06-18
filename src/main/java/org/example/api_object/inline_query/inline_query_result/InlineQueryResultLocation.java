@@ -1,10 +1,15 @@
 package org.example.api_object.inline_query.inline_query_result;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
+import org.example.api_object.inline_query.input_message_content.InputMessageContent;
 import org.example.api_object.keyboard.InlineKeyboardMarkup;
 
 @Getter
+@ToString
+@EqualsAndHashCode
 public class InlineQueryResultLocation implements InlineQueryResult {
     /**
      * Represents a location on a map. By default, the location will be sent by the user.
@@ -14,43 +19,43 @@ public class InlineQueryResultLocation implements InlineQueryResult {
     private final String type = "location";
 
     @JsonProperty("id")
-    public String id;
+    private String id;
 
     @JsonProperty("latitude")
-    public float latitude;
+    private float latitude;
 
     @JsonProperty("longitude")
-    public float longitude;
+    private float longitude;
 
     @JsonProperty("title")
-    public String title;
+    private String title;
 
     @JsonProperty("horizontal_accuracy")
-    public Float horizontalAccuracy;
+    private Float horizontalAccuracy;
 
     @JsonProperty("live_period")
-    public Integer livePeriod;
+    private Integer livePeriod;
 
     @JsonProperty("heading")
-    public Integer heading;
+    private Integer heading;
 
     @JsonProperty("proximity_alert_radius")
-    public Integer proximityAlertRadius;
+    private Integer proximityAlertRadius;
 
     @JsonProperty("reply_markup")
-    public InlineKeyboardMarkup replyMarkup;
+    private InlineKeyboardMarkup replyMarkup;
 
     @JsonProperty("input_message_content")
-    public InputMessageContent inputMessageContent;
+    private InputMessageContent inputMessageContent;
 
     @JsonProperty("thumbnail_url")
-    public String thumbnailUrl;
+    private String thumbnailUrl;
 
     @JsonProperty("thumbnail_width")
-    public Integer thumbnailWidth;
+    private Integer thumbnailWidth;
 
     @JsonProperty("thumbnail_height")
-    public Integer thumbnailHeight;
+    private Integer thumbnailHeight;
 
     private InlineQueryResultLocation() {
     }
