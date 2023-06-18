@@ -3,7 +3,7 @@ package org.example.api_object.chat.chat_member;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import org.example.api_object.ApiObject;
-import org.example.api_object.Chat;
+import org.example.api_object.chat.Chat;
 import org.example.api_object.User;
 import org.example.api_object.chat.ChatInviteLink;
 

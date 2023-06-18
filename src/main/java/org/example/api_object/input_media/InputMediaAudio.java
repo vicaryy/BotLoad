@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-import org.example.api_object.MessageEntity;
+import org.example.api_object.message.MessageEntity;
 import org.example.api_request.InputFile;
 
 import java.util.List;

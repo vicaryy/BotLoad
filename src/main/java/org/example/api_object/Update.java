@@ -2,6 +2,7 @@ package org.example.api_object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.example.api_object.message.Message;
 
 @Getter
 @ToString

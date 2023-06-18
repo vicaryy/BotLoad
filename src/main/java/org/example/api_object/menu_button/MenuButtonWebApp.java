@@ -2,7 +2,7 @@ package org.example.api_object.menu_button;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
-import org.example.api_object.WebAppInfo;
+import org.example.api_object.other.WebAppInfo;
 
 @Getter
 public class MenuButtonWebApp implements MenuButton {

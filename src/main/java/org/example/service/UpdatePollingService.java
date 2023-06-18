@@ -4,10 +4,8 @@ import org.example.api_object.input_media.InputMediaPhoto;
 import org.example.api_request.InputFile;
 import org.example.api_request.SendAnimation;
 import org.example.api_request.SendAudio;
-import org.example.api_object.User;
-import org.example.api_request.SendMessage;
 import org.example.api_object.Update;
-import org.example.controller.PostSender;
+import org.example.controller.PostController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,10 +13,10 @@ import java.io.File;
 
 @Service
 public class UpdatePollingService {
-    private final PostSender sender;
+    private final PostController sender;
 
     @Autowired
-    public UpdatePollingService(PostSender sender) {
+    public UpdatePollingService(PostController sender) {
         this.sender = sender;
     }
 

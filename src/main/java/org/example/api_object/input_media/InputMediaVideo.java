@@ -2,7 +2,7 @@ package org.example.api_object.input_media;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-import org.example.api_object.MessageEntity;
+import org.example.api_object.message.MessageEntity;
 import org.example.api_request.InputFile;
 
 import java.util.List;
