@@ -8,6 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @Service
 public class UpdatePollingService {
@@ -21,34 +24,18 @@ public class UpdatePollingService {
     public void updateReceiver(Update update) {
         String chatId = update.getChatId();
 
-        System.out.println(update);
+//        System.out.println(update);
 
-        //SendMessage sendMessage = SendMessage.builder().chatId("123").build();
-
-
-
-        SendMessage message1 = SendMessage.builder()
+        SendMessage sendMessage = SendMessage.builder()
                 .chatId(chatId)
-                .text(update.getMessage().getText())
+                .text("*siema*")
                 .build();
-//
-//        SendMessage message2 = SendMessage.builder()
-//                .chatId(chatId)
-//                .text("spadaka")
-//                .build();
+        sendMessage.setParseModeOnMarkdownV2();
 
-//        File someAudio = new File("/Users/vicary/desktop/test.mp3");
-//        SendAudio audio = SendAudio.builder()
-//                .chatId(chatId)
-//                .audio(new InputFile("MUZYKA", someAudio))
-//                .build();
 
-        //SendAnimation animation = new SendAnimation(chatId, new InputFile("animation", new File("/Users/vicary/desktop/nailsing.gif")));
-
-        sender.execute(message1);
         GetMe getMe = new GetMe();
-        InputFile inputFile = sender.executeMethod(getMe);
-        System.out.println(inputFile);
-        //sender.execute(audio);
+        User user = sender.sendRequest(getMe);
+        System.out.println(user);
+
     }
 }

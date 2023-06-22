@@ -37,8 +37,8 @@ public class Chat implements ApiObject {
     @JsonProperty("photo")
     private ChatPhoto photo;
 
-    @JsonProperty("active_usernames")
-    private List<String> activeUsernames;
+//    @JsonProperty("active_usernames")
+//    private List<String> activeUsernames;
 
     @JsonProperty("emoji_status_custom_emoji_id")
     private String emojiStatusCustomEmojiId;

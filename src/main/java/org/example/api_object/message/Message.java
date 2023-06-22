@@ -1,9 +1,7 @@
 package org.example.api_object.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.*;
 import org.example.api_object.chat.Chat;
 import org.example.api_object.chat.ChatShared;
@@ -20,9 +18,9 @@ import org.example.api_object.video.*;
 
 import java.util.List;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
 public class Message implements ApiObject {
     @JsonProperty("message_id")
     private Integer messageId;
@@ -87,8 +85,8 @@ public class Message implements ApiObject {
     @JsonProperty("text")
     private String text;
 
-    @JsonProperty("entities")
-    private List<MessageEntity> entities;
+//    @JsonProperty("entities")
+//    private List<MessageEntity> entities;
 
     @JsonProperty("animation")
     private Animation animation;
@@ -99,8 +97,8 @@ public class Message implements ApiObject {
     @JsonProperty("document")
     private Document document;
 
-    @JsonProperty("photo")
-    private List<PhotoSize> photo;
+//    @JsonProperty("photo")
+//    private List<PhotoSize> photo;
 
     @JsonProperty("sticker")
     private Sticker sticker;
@@ -117,8 +115,8 @@ public class Message implements ApiObject {
     @JsonProperty("caption")
     private String caption;
 
-    @JsonProperty("caption_entities")
-    private List<MessageEntity> captionEntities;
+//    @JsonProperty("caption_entities")
+//    private List<MessageEntity> captionEntities;
 
     @JsonProperty("has_media_spoiler")
     private Boolean hasMediaSpoiler;
@@ -141,8 +139,8 @@ public class Message implements ApiObject {
     @JsonProperty("location")
     private Location location;
 
-    @JsonProperty("new_chat_members")
-    private List<User> newChatMembers;
+//    @JsonProperty("new_chat_members")
+//    private List<User> newChatMembers;
 
     @JsonProperty("left_chat_member")
     private User leftChatMember;
@@ -150,8 +148,8 @@ public class Message implements ApiObject {
     @JsonProperty("new_chat_title")
     private String newChatTitle;
 
-    @JsonProperty("new_chat_photo")
-    private List<PhotoSize> newChatPhoto;
+//    @JsonProperty("new_chat_photo")
+//    private List<PhotoSize> newChatPhoto;
 
     @JsonProperty("delete_chat_photo")
     private Boolean deleteChatPhoto;
@@ -236,8 +234,4 @@ public class Message implements ApiObject {
 
     @JsonProperty("inline_keyboard_markup")
     private InlineKeyboardMarkup inlineKeyboardMarkup;
-
-
-    private Message() {
-    }
 }

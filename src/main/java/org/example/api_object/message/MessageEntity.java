@@ -1,16 +1,16 @@
 package org.example.api_object.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.ApiObject;
 import org.example.api_object.User;
+import org.example.api_request.Validation;
 
-@Getter
-@ToString
-@EqualsAndHashCode
-public class MessageEntity implements ApiObject {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MessageEntity implements ApiObject, Validation {
     @JsonProperty("type")
     private String type;
 
@@ -32,7 +32,9 @@ public class MessageEntity implements ApiObject {
     @JsonProperty("custom_emoji_id")
     private String customEmojiId;
 
-    private MessageEntity() {
+    @Override
+    public void checkValidation() {
+        if (this.type == null || this.offset == null || this.length == null)
+            throw new IllegalArgumentException("Type, offset and length cannot be null.");
     }
-
 }

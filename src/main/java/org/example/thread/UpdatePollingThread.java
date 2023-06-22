@@ -1,15 +1,14 @@
 package org.example.thread;
 
-import org.example.api_object.ApiResponse;
+import org.example.api_object.UpdateResponse;
 import org.example.api_object.Update;
 import org.example.configuration.BotInfo;
 import org.example.end_point.EndPoint;
 import org.example.service.UpdatePollingService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import javax.xml.datatype.Duration;
 
 @Component
 public class UpdatePollingThread implements Runnable {
@@ -46,29 +45,26 @@ public class UpdatePollingThread implements Runnable {
     public Update pollUpdate() {
         String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + "-1";
 
-        ApiResponse response = client
+        UpdateResponse response = client
                 .get()
                 .uri(pollUrl)
                 .retrieve()
-                .bodyToMono(ApiResponse.class)
+                .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
+                })
                 .block();
-
-        System.out.println("siema");
 
         if (response.getResult().isEmpty())
             return null;
 
-        Update update = response.getResult().get(0);
+        Update update = (Update) response.getResult().get(0);
+
         String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + (update.getUpdateId() + 1);
 
         client.get()
                 .uri(deletePollUrl)
                 .retrieve()
-                .bodyToMono(ApiResponse.class)
+                .bodyToMono(UpdateResponse.class)
                 .block();
-
-        System.out.println("robie");
-
         return update;
     }
 }

@@ -4,8 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.controller.PostController;
 
 import java.io.File;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -25,9 +27,13 @@ public class InputFile {
     private boolean isThumbnail;
 
     public void isValid() {
-        if(fileId == null || file == null)
+        if (fileId == null && file == null)
             throw new IllegalArgumentException("Both fileId and file cannot be null.");
-        if(isThumbnail && file == null)
+        if (isThumbnail && file == null)
             throw new IllegalArgumentException("Thumbnail must be new file.");
+        if (fileId != null && file == null) {
+            if (!PostController.isFileIdExist(this.fileId))
+                throw new IllegalArgumentException("FileId does not exist on Telegram server.");
+        }
     }
 }

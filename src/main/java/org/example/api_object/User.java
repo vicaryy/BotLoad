@@ -8,7 +8,7 @@ import lombok.*;
 @EqualsAndHashCode
 public class User implements ApiObject {
     @JsonProperty("id")
-    private Integer id;
+    private Long id;
 
     @JsonProperty("is_bot")
     private Boolean isBot;
@@ -40,6 +40,6 @@ public class User implements ApiObject {
     @JsonProperty("supports_inline_queries")
     private boolean supportsInlineQueries;
 
-    private User() {
+    public User() {
     }
 }

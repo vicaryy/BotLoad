@@ -1,9 +1,27 @@
 package org.example.api_request;
 
-public class GetMe implements ApiRequest {
+import org.example.api_object.User;
+import org.example.end_point.EndPoint;
+
+public class GetMe implements ApiRequest<User> {
+    /**
+     * A simple method for testing your bot's authentication token. Requires no parameters. Returns basic information about the bot in form of a User object.
+     * @return User class.
+     */
+    @Override
+    public User getReturnObject() {
+        return new User();
+    }
 
     @Override
-    public <T> T returnObject() {
-        return (T) new InputFile();
+    public String getEndPoint() {
+        return EndPoint.GET_ME.getPath();
+    }
+
+    @Override
+    public void checkValidation() {
+        /**
+         * Nothing to see here.
+         */
     }
 }

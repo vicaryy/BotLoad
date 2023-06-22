@@ -1,6 +1,5 @@
 package org.example;
 
-import org.example.configuration.BotInfo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -8,6 +7,5 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class Main {
     public static void main(String[] args) {
         SpringApplication.run(Main.class, args);
-        System.out.println(BotInfo.GET_URL());
     }
 }
