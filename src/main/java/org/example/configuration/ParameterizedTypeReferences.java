@@ -1,5 +1,6 @@
 package org.example.configuration;
 
+import org.example.api_object.File;
 import org.example.api_object.RequestResponse;
 import org.example.api_object.User;
 import org.example.api_object.message.Message;
@@ -10,18 +11,20 @@ import java.util.HashMap;
 
 @Configuration
 public class ParameterizedTypeReferences {
-    private final HashMap<Class, ParameterizedTypeReference> TYPES = new HashMap<>();
+    private final HashMap<Class, ParameterizedTypeReference> types = new HashMap<>();
 
     ParameterizedTypeReferences() {
-        TYPES.put(Message.class, new ParameterizedTypeReference<RequestResponse<Message>>() {
+        types.put(Message.class, new ParameterizedTypeReference<RequestResponse<Message>>() {
         });
-        TYPES.put(User.class, new ParameterizedTypeReference<RequestResponse<User>>() {
+        types.put(User.class, new ParameterizedTypeReference<RequestResponse<User>>() {
         });
-        TYPES.put(Boolean.class, new ParameterizedTypeReference<RequestResponse<Boolean>>() {
+        types.put(Boolean.class, new ParameterizedTypeReference<RequestResponse<Boolean>>() {
+        });
+        types.put(File.class, new ParameterizedTypeReference<RequestResponse<File>>() {
         });
     }
 
     public ParameterizedTypeReference get(Class clazz) {
-        return TYPES.get(clazz);
+        return types.get(clazz);
     }
 }

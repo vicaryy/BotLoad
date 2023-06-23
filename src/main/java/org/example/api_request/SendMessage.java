@@ -14,7 +14,7 @@ import java.util.List;
 @Builder
 public class SendMessage implements ApiRequest<Message> {
     /**
-     * Use this method to send text messages. On success, the sent Message is returned.
+     * Use this method to send text messages. On success, the send Message is returned.
      *
      * @param chatId                 Unique identifier for the target chat or username of the target channel (in the format @channelusername).
      * @param messageThreadId        Unique identifier for the target message thread (topic) of the forum; for forum supergroups only.
@@ -74,6 +74,9 @@ public class SendMessage implements ApiRequest<Message> {
 
     @Override
     public void checkValidation() {
+        if(chatId.isEmpty()) throw new IllegalArgumentException("chatId cannot be empty.");
+        if(text.isEmpty()) throw new IllegalArgumentException("text cannot be empty.");
+
         if (parseMode == null)
             parseMode = "";
 

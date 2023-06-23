@@ -1,8 +1,11 @@
 package org.example.api_request;
 
+import lombok.Data;
+import lombok.NonNull;
 import org.example.api_object.User;
 import org.example.end_point.EndPoint;
 
+@Data
 public class GetMe implements ApiRequest<User> {
     /**
      * A simple method for testing your bot's authentication token. Requires no parameters. Returns basic information about the bot in form of a User object.

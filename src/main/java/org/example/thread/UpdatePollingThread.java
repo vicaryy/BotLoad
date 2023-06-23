@@ -29,7 +29,12 @@ public class UpdatePollingThread implements Runnable {
     @Override
     public void run() {
         while (true) {
-            Update update = pollUpdate();
+            Update update = null;
+            try {
+                update = pollUpdate();
+            } catch (Exception e) {
+                System.out.println("Connection lost.");
+            }
             if (update != null)
                 updatePollingService.updateReceiver(update);
 
@@ -42,7 +47,7 @@ public class UpdatePollingThread implements Runnable {
         }
     }
 
-    public Update pollUpdate() {
+    public Update pollUpdate() throws Exception {
         String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + "-1";
 
         UpdateResponse response = client

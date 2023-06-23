@@ -3,10 +3,11 @@ package org.example.end_point;
 public enum EndPoint {
     GET_UPDATES("/getUpdates?offset="),
     GET_ME("/getMe"),
+    GET_FILE("/getFile"),
     LOG_OUT("/logOut"),
     CLOSE("/close"),
     SEND_MESSAGE("/sendMessage"),
-    FORWARD_MESSAGES("/forwardMessage"),
+    FORWARD_MESSAGE("/forwardMessage"),
     COPY_MESSAGE("/copyMessage"),
     SEND_PHOTO("/sendPhoto"),
     SEND_AUDIO("/sendAudio"),
