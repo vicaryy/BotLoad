@@ -1,6 +1,5 @@
 package org.example.service;
 
-import lombok.NonNull;
 import org.example.api_object.User;
 import org.example.api_object.message.Message;
 import org.example.api_request.*;
@@ -34,21 +33,23 @@ public class UpdatePollingService {
 //
 //        sender.sendRequest(sendMessage);
 
-        InputFile audioFile = InputFile.builder()
-                .file(new File("/Users/vicary/desktop/test.mp3"))
+        InputFile videoFile = InputFile.builder()
+                .file(new File("/Users/vicary/desktop/realshort.mp4"))
+                //.fileId("AAMCBAADGQEAAgKGZI8gZ2xNMC25_JxSRL84jlb8ox0AAhoOAAJ1ZIBQs22yjNpUGH4BAAdtAAMvBA")
                 .build();
 
         InputFile thumbnailFile = InputFile.builder()
                 .file(new File("/Users/vicary/desktop/logo.jpeg"))
                 .build();
 
-        SendAudio sendAudio = new SendAudio(chatId, audioFile);
-        sendAudio.setThumbnail(thumbnailFile);
-
+        SendVideo sendVideo = SendVideo.builder()
+                .chatId(chatId)
+                .video(videoFile)
+                .build();
 
         Message message1 = null;
         try {
-            message1 = sender.sendRequest(sendAudio);
+            message1 = sender.sendRequest(sendVideo);
         } catch (Exception e) {
             e.printStackTrace();
         }

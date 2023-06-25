@@ -7,7 +7,6 @@ import org.example.api_request.*;
 import org.example.configuration.BotInfo;
 import org.example.configuration.ParameterizedTypeReferences;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -15,7 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.function.Consumer;
+import java.util.NoSuchElementException;
 
 @Controller
 public class PostController {
@@ -27,6 +26,20 @@ public class PostController {
                           ParameterizedTypeReferences typeReferences) {
         this.client = client;
         this.typeReferences = typeReferences;
+    }
+
+    public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws Exception {
+        request.checkValidation();
+        String url = BotInfo.GET_URL() + request.getEndPoint();
+
+        RequestResponse response = (RequestResponse) client
+                .post()
+                .uri(url)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(typeReferences.get(request.getReturnObject().getClass()))
+                .block();
+        return (ReturnObject) response.getResult();
     }
 
     public Message sendRequest(SendPhoto sendPhoto) throws Exception {
@@ -64,16 +77,7 @@ public class PostController {
         if (sendPhoto.getAllowSendingWithoutReply() != null)
             bodyBuilder.part("allow_sending_without_reply", sendPhoto.getAllowSendingWithoutReply());
 
-        RequestResponse response = client
-                .post()
-                .uri(url)
-                .contentType(MediaType.MULTIPART_FORM_DATA)
-                .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<RequestResponse<Message>>() {
-                })
-                .block();
-        return (Message) response.getResult();
+        return sendRequest(url, bodyBuilder);
     }
 
     public Message sendRequest(SendAudio sendAudio) throws Exception {
@@ -120,35 +124,168 @@ public class PostController {
         if (sendAudio.getAllowSendingWithoutReply() != null)
             bodyBuilder.part("allow_sending_without_reply", sendAudio.getAllowSendingWithoutReply());
 
-        RequestResponse response = client
+        return sendRequest(url, bodyBuilder);
+    }
+
+    public Message sendRequest(SendDocument sendDocument) throws Exception {
+        sendDocument.checkValidation();
+        String url = BotInfo.GET_URL() + sendDocument.getEndPoint();
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+
+        bodyBuilder.part("chat_id", sendDocument.getChatId());
+
+        if (sendDocument.getMessageThreadId() != null)
+            bodyBuilder.part("message_thread_id", sendDocument.getMessageThreadId());
+
+        inputFile(sendDocument.getDocument(), bodyBuilder, sendDocument.getMethodName());
+
+        if (sendDocument.getThumbnail() != null)
+            inputFile(sendDocument.getThumbnail(), bodyBuilder, "thumbnail");
+
+        if (sendDocument.getCaption() != null)
+            bodyBuilder.part("caption", sendDocument.getCaption());
+
+        bodyBuilder.part("parse_mode", sendDocument.getParseMode());
+
+        if (sendDocument.getParseMode().equals("") && sendDocument.getCaptionEntities() != null)
+            bodyBuilder.part("caption_entities", sendDocument.getCaptionEntities());
+
+        if (sendDocument.getDisableContentTypeDetection() != null)
+            bodyBuilder.part("disable_content_type_detection", sendDocument.getDisableContentTypeDetection());
+
+        if (sendDocument.getDisableNotification() != null)
+            bodyBuilder.part("disable_notification", sendDocument.getDisableNotification());
+
+        if (sendDocument.getProtectContent() != null)
+            bodyBuilder.part("protect_content", sendDocument.getProtectContent());
+
+        if (sendDocument.getReplyToMessageId() != null)
+            bodyBuilder.part("reply_to_message_id", sendDocument.getReplyToMessageId());
+
+        if (sendDocument.getAllowSendingWithoutReply() != null)
+            bodyBuilder.part("allow_sending_without_reply", sendDocument.getAllowSendingWithoutReply());
+
+        return sendRequest(url, bodyBuilder);
+    }
+
+    public Message sendRequest(SendVideo sendVideo) throws Exception {
+        sendVideo.checkValidation();
+        String url = BotInfo.GET_URL() + sendVideo.getEndPoint();
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+
+        bodyBuilder.part("chat_id", sendVideo.getChatId());
+
+        if (sendVideo.getMessageThreadId() != null)
+            bodyBuilder.part("message_thread_id", sendVideo.getMessageThreadId());
+
+        inputFile(sendVideo.getVideo(), bodyBuilder, sendVideo.getMethodName());
+
+        if (sendVideo.getDuration() != null)
+            bodyBuilder.part("duration", sendVideo.getDuration());
+
+        if (sendVideo.getWidth() != null)
+            bodyBuilder.part("width", sendVideo.getWidth());
+
+        if (sendVideo.getHeight() != null)
+            bodyBuilder.part("height", sendVideo.getHeight());
+
+        if (sendVideo.getThumbnail() != null)
+            inputFile(sendVideo.getThumbnail(), bodyBuilder, "thumbnail");
+
+        if (sendVideo.getCaption() != null)
+            bodyBuilder.part("caption", sendVideo.getCaption());
+
+        bodyBuilder.part("parse_mode", sendVideo.getParseMode());
+
+        if (sendVideo.getParseMode().equals("") && sendVideo.getCaptionEntities() != null)
+            bodyBuilder.part("caption_entities", sendVideo.getCaptionEntities());
+
+        if (sendVideo.getHasSpoiler() != null)
+            bodyBuilder.part("has_spoiler", sendVideo.getHasSpoiler());
+
+        if (sendVideo.getSupportsStreaming() != null)
+            bodyBuilder.part("supports_streaming", sendVideo.getSupportsStreaming());
+
+        if (sendVideo.getDisableNotification() != null)
+            bodyBuilder.part("disable_notification", sendVideo.getDisableNotification());
+
+        if (sendVideo.getProtectContent() != null)
+            bodyBuilder.part("protect_content", sendVideo.getProtectContent());
+
+        if (sendVideo.getReplyToMessageId() != null)
+            bodyBuilder.part("reply_to_message_id", sendVideo.getReplyToMessageId());
+
+        if (sendVideo.getAllowSendingWithoutReply() != null)
+            bodyBuilder.part("allow_sending_without_reply", sendVideo.getAllowSendingWithoutReply());
+
+        return sendRequest(url, bodyBuilder);
+    }
+
+    public Message sendRequest(SendAnimation sendAnimation) throws Exception {
+        sendAnimation.checkValidation();
+        String url = BotInfo.GET_URL() + sendAnimation.getEndPoint();
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+
+        bodyBuilder.part("chat_id", sendAnimation.getChatId());
+
+        if (sendAnimation.getMessageThreadId() != null)
+            bodyBuilder.part("message_thread_id", sendAnimation.getMessageThreadId());
+
+        inputFile(sendAnimation.getAnimation(), bodyBuilder, sendAnimation.getMethodName());
+
+        if (sendAnimation.getDuration() != null)
+            bodyBuilder.part("duration", sendAnimation.getDuration());
+
+        if (sendAnimation.getWidth() != null)
+            bodyBuilder.part("width", sendAnimation.getWidth());
+
+        if (sendAnimation.getHeight() != null)
+            bodyBuilder.part("height", sendAnimation.getHeight());
+
+        if (sendAnimation.getThumbnail() != null)
+            inputFile(sendAnimation.getThumbnail(), bodyBuilder, "thumbnail");
+
+        if (sendAnimation.getCaption() != null)
+            bodyBuilder.part("caption", sendAnimation.getCaption());
+
+        bodyBuilder.part("parse_mode", sendAnimation.getParseMode());
+
+        if (sendAnimation.getParseMode().equals("") && sendAnimation.getCaptionEntities() != null)
+            bodyBuilder.part("caption_entities", sendAnimation.getCaptionEntities());
+
+        if (sendAnimation.getHasSpoiler() != null)
+            bodyBuilder.part("has_spoiler", sendAnimation.getHasSpoiler());
+
+        if (sendAnimation.getDisableNotification() != null)
+            bodyBuilder.part("disable_notification", sendAnimation.getDisableNotification());
+
+        if (sendAnimation.getProtectContent() != null)
+            bodyBuilder.part("protect_content", sendAnimation.getProtectContent());
+
+        if (sendAnimation.getReplyToMessageId() != null)
+            bodyBuilder.part("reply_to_message_id", sendAnimation.getReplyToMessageId());
+
+        if (sendAnimation.getAllowSendingWithoutReply() != null)
+            bodyBuilder.part("allow_sending_without_reply", sendAnimation.getAllowSendingWithoutReply());
+
+        return sendRequest(url, bodyBuilder);
+    }
+
+
+
+
+    private Message sendRequest(String url, MultipartBodyBuilder bodyBuilder) {
+        RequestResponse response = (RequestResponse) client
                 .post()
                 .uri(url)
-                .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<RequestResponse<Message>>() {
-                })
+                .bodyToMono(typeReferences.get(Message.class))
                 .block();
         return (Message) response.getResult();
     }
 
-
-    public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws Exception {
-        request.checkValidation();
-        String url = BotInfo.GET_URL() + request.getEndPoint();
-
-        RequestResponse response = (RequestResponse) client
-                .post()
-                .uri(url)
-                .bodyValue(request)
-                .retrieve()
-                .bodyToMono(typeReferences.get(request.getReturnObject().getClass()))
-                .block();
-        return (ReturnObject) response.getResult();
-    }
-
-
-    public void inputFile(InputFile inputFile, MultipartBodyBuilder bodyBuilder, String methodName) {
+    private void inputFile(InputFile inputFile, MultipartBodyBuilder bodyBuilder, String methodName) {
         inputFile.checkValidation(methodName);
         String fileId = inputFile.getFileId();
 
@@ -160,16 +297,23 @@ public class PostController {
             } catch (Exception e) {
             }
             if (file != null) {
+                System.out.println(file.getFilePath());
                 bodyBuilder.part(methodName, fileId);
                 return;
             } else
                 throw new IllegalArgumentException("fileId: " + fileId + " does not exists on Telegram server.");
         }
 
+        if (inputFile.getFile() == null)
+            throw new NoSuchElementException("File cannot be null if fileId does not exists on Telegram server.");
+
+        if (!inputFile.getFile().exists())
+            throw new NoSuchElementException("File does not exist. \nFile path: " + inputFile.getFile().getPath());
+
         java.io.File file = inputFile.getFile();
         if (file != null) {
             FileSystemResource fileSystemResource = new FileSystemResource(file);
-            bodyBuilder.part(methodName, fileSystemResource);
+            bodyBuilder.part(methodName, fileSystemResource, MediaType.MULTIPART_FORM_DATA);
         }
     }
 }

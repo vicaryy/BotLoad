@@ -91,6 +91,14 @@ public class SendAudio implements ApiRequest<Message> {
 //    @JsonProperty("reply_markup")
 //    private Object replyMarkup;
 
+    public void setParseModeOnMarkdownV2() {
+        parseMode = "MarkdownV2";
+    }
+
+    public void setParseModeOnHTML() {
+        parseMode = "HTML";
+    }
+
     @Override
     public Message getReturnObject() {
         return new Message();
