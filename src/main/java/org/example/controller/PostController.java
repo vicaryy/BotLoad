@@ -2,6 +2,7 @@ package org.example.controller;
 
 import org.example.api_object.File;
 import org.example.api_object.RequestResponse;
+import org.example.api_object.RequestResponseList;
 import org.example.api_object.message.Message;
 import org.example.api_request.*;
 import org.example.configuration.BotInfo;
@@ -33,6 +34,20 @@ public class PostController {
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
         RequestResponse response = (RequestResponse) client
+                .post()
+                .uri(url)
+                .bodyValue(request)
+                .retrieve()
+                .bodyToMono(typeReferences.get(request.getReturnObject().getClass()))
+                .block();
+        return (ReturnObject) response.getResult();
+    }
+
+    public <Request extends ApiRequestList<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws Exception {
+        request.checkValidation();
+        String url = BotInfo.GET_URL() + request.getEndPoint();
+
+        RequestResponseList response = (RequestResponseList) client
                 .post()
                 .uri(url)
                 .bodyValue(request)
@@ -271,13 +286,86 @@ public class PostController {
         return sendRequest(url, bodyBuilder);
     }
 
+    public Message sendRequest(SendVoice sendVoice) throws Exception {
+        sendVoice.checkValidation();
+        String url = BotInfo.GET_URL() + sendVoice.getEndPoint();
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
+        bodyBuilder.part("chat_id", sendVoice.getChatId());
+
+        if (sendVoice.getMessageThreadId() != null)
+            bodyBuilder.part("message_thread_id", sendVoice.getMessageThreadId());
+
+        inputFile(sendVoice.getVoice(), bodyBuilder, sendVoice.getMethodName());
+
+        if (sendVoice.getCaption() != null)
+            bodyBuilder.part("caption", sendVoice.getCaption());
+
+        bodyBuilder.part("parse_mode", sendVoice.getParseMode());
+
+        if (sendVoice.getParseMode().equals("") && sendVoice.getCaptionEntities() != null)
+            bodyBuilder.part("caption_entities", sendVoice.getCaptionEntities());
+
+        if (sendVoice.getDuration() != null)
+            bodyBuilder.part("duration", sendVoice.getDuration());
+
+        if (sendVoice.getDisableNotification() != null)
+            bodyBuilder.part("disable_notification", sendVoice.getDisableNotification());
+
+        if (sendVoice.getProtectContent() != null)
+            bodyBuilder.part("protect_content", sendVoice.getProtectContent());
+
+        if (sendVoice.getReplyToMessageId() != null)
+            bodyBuilder.part("reply_to_message_id", sendVoice.getReplyToMessageId());
+
+        if (sendVoice.getAllowSendingWithoutReply() != null)
+            bodyBuilder.part("allow_sending_without_reply", sendVoice.getAllowSendingWithoutReply());
+
+        return sendRequest(url, bodyBuilder);
+    }
+
+    public Message sendRequest(SendVideoNote sendVideoNote) throws Exception {
+        sendVideoNote.checkValidation();
+        String url = BotInfo.GET_URL() + sendVideoNote.getEndPoint();
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+
+        bodyBuilder.part("chat_id", sendVideoNote.getChatId());
+
+        if (sendVideoNote.getMessageThreadId() != null)
+            bodyBuilder.part("message_thread_id", sendVideoNote.getMessageThreadId());
+
+        inputFile(sendVideoNote.getVideoNote(), bodyBuilder, sendVideoNote.getMethodName());
+
+        if (sendVideoNote.getDuration() != null)
+            bodyBuilder.part("duration", sendVideoNote.getDuration());
+
+        if (sendVideoNote.getLength() != null)
+            bodyBuilder.part("length", sendVideoNote.getLength());
+
+        if (sendVideoNote.getThumbnail() != null)
+            inputFile(sendVideoNote.getThumbnail(), bodyBuilder, "thumbnail");
+
+        if (sendVideoNote.getDisableNotification() != null)
+            bodyBuilder.part("disable_notification", sendVideoNote.getDisableNotification());
+
+        if (sendVideoNote.getProtectContent() != null)
+            bodyBuilder.part("protect_content", sendVideoNote.getProtectContent());
+
+        if (sendVideoNote.getReplyToMessageId() != null)
+            bodyBuilder.part("reply_to_message_id", sendVideoNote.getReplyToMessageId());
+
+        if (sendVideoNote.getAllowSendingWithoutReply() != null)
+            bodyBuilder.part("allow_sending_without_reply", sendVideoNote.getAllowSendingWithoutReply());
+
+        return sendRequest(url, bodyBuilder);
+    }
 
 
     private Message sendRequest(String url, MultipartBodyBuilder bodyBuilder) {
         RequestResponse response = (RequestResponse) client
                 .post()
                 .uri(url)
+                .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(BodyInserters.fromMultipartData(bodyBuilder.build()))
                 .retrieve()
                 .bodyToMono(typeReferences.get(Message.class))
@@ -313,7 +401,7 @@ public class PostController {
         java.io.File file = inputFile.getFile();
         if (file != null) {
             FileSystemResource fileSystemResource = new FileSystemResource(file);
-            bodyBuilder.part(methodName, fileSystemResource, MediaType.MULTIPART_FORM_DATA);
+            bodyBuilder.part(methodName, fileSystemResource);
         }
     }
 }

@@ -1,6 +1,10 @@
 package org.example.service;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import org.example.api_object.User;
+import org.example.api_object.input_media.InputMediaDocument;
 import org.example.api_object.message.Message;
 import org.example.api_request.*;
 import org.example.api_object.Update;
@@ -9,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UpdatePollingService {
@@ -33,8 +39,8 @@ public class UpdatePollingService {
 //
 //        sender.sendRequest(sendMessage);
 
-        InputFile videoFile = InputFile.builder()
-                .file(new File("/Users/vicary/desktop/realshort.mp4"))
+        InputFile voiceFile = InputFile.builder()
+                .file(new File("/Users/vicary/desktop/combo_16.ogg"))
                 //.fileId("AAMCBAADGQEAAgKGZI8gZ2xNMC25_JxSRL84jlb8ox0AAhoOAAJ1ZIBQs22yjNpUGH4BAAdtAAMvBA")
                 .build();
 
@@ -42,22 +48,18 @@ public class UpdatePollingService {
                 .file(new File("/Users/vicary/desktop/logo.jpeg"))
                 .build();
 
-        SendVideo sendVideo = SendVideo.builder()
-                .chatId(chatId)
-                .video(videoFile)
-                .build();
+        List<InputMediaDocument> media = new ArrayList<>();
+
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         Message message1 = null;
         try {
-            message1 = sender.sendRequest(sendVideo);
+            message1 = sender.sendRequest(sendVoice);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println(message1);
 
-//        GetMe getMe = new GetMe();
-//        User user = sender.sendRequest(getMe);
-//        System.out.println(user);
-
+        System.out.println(gson.toJson(message1));
     }
 }

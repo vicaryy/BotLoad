@@ -14,7 +14,9 @@ public enum EndPoint {
     SEND_DOCUMENT("/sendDocument"),
     SEND_VIDEO("/sendVideo"),
     SEND_ANIMATION("/sendAnimation"),
-    SEND_VOICE("/sendVoice");
+    SEND_VOICE("/sendVoice"),
+    SEND_VIDEO_NOTE("/sendVideoNote"),
+    SEND_MEDIA_GROUP("/sendMediaGroup");
 
     private final String path;
 

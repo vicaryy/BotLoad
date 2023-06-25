@@ -53,13 +53,25 @@ public class InputFile implements ApiObject {
             else if (methodName.equals("video"))
                 videoValidation(fileName);
 
+            else if (methodName.equals("animation"))
+                animationValidation(fileName);
+
+            else if (methodName.equals("voice"))
+                voiceValidation(fileName);
+
             else if (methodName.equals("thumbnail"))
                 thumbnailValidation(fileName);
         }
     }
 
+
+    private void photoValidation(String fileName) {
+        if (!fileName.endsWith(".jpg") && !fileName.endsWith(".jpeg") && !fileName.endsWith(".png"))
+            throw new IllegalArgumentException("Wrong file extension for photo. \nFile name: " + fileName);
+    }
+
     private void videoValidation(String fileName) {
-        if (!fileName.endsWith(".mp4"))
+        if (!fileName.endsWith(".mp4") && !fileName.endsWith(".avi"))
             throw new IllegalArgumentException("Wrong file extension for audio. \nFile name: " + fileName);
     }
 
@@ -68,9 +80,14 @@ public class InputFile implements ApiObject {
             throw new IllegalArgumentException("Wrong file extension for video. \nFile name: " + fileName);
     }
 
-    private void photoValidation(String fileName) {
-        if (!fileName.endsWith(".jpg") && !fileName.endsWith(".jpeg") && !fileName.endsWith(".png"))
-            throw new IllegalArgumentException("Wrong file extension for photo. \nFile name: " + fileName);
+    private void animationValidation(String fileName) {
+        if (!fileName.endsWith(".gif") && !fileName.endsWith(".mp4"))
+            throw new IllegalArgumentException("Wrong file extension for animation. \nFile name: " + fileName);
+    }
+
+    private void voiceValidation(String fileName) {
+        if (!fileName.endsWith(".ogg"))
+            throw new IllegalArgumentException("Wrong file extension for voice. \nFile name: " + fileName);
     }
 
     private void thumbnailValidation(String fileName) {
