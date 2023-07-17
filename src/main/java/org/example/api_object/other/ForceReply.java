@@ -1,15 +1,15 @@
 package org.example.api_object.other;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.ApiObject;
+import org.example.api_object.keyboard.ReplyMarkup;
 
-@Getter
-@ToString
-@EqualsAndHashCode
-public class ForceReply implements ApiObject {
+@Data
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ForceReply implements ApiObject, ReplyMarkup {
     @JsonProperty("force_reply")
     private Boolean forceReply;
 
@@ -18,7 +18,4 @@ public class ForceReply implements ApiObject {
 
     @JsonProperty("selective")
     private Boolean selective;
-
-    private ForceReply() {
-    }
 }

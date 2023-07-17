@@ -1,15 +1,13 @@
 package org.example.api_object.chat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.ApiObject;
 import org.example.api_object.User;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChatInviteLink implements ApiObject {
     @JsonProperty("invite_link")
     private String inviteLink;
@@ -37,7 +35,4 @@ public class ChatInviteLink implements ApiObject {
 
     @JsonProperty("pending_join_request_count")
     private Integer pendingJoinRequestCount;
-
-    private ChatInviteLink() {
-    }
 }

@@ -77,6 +77,15 @@ public class SendVoice implements ApiRequest<Message> {
 //    @JsonProperty("reply_markup")                 //NVM
 //    private Object replyMarkup;
 
+    public void setParseModeOnMarkdownV2() {
+        parseMode = "MarkdownV2";
+    }
+    public void setParseModeOnMarkdown() {
+        parseMode = "Markdown";
+    }
+    public void setParseModeOnHTML() {
+        parseMode = "HTML";
+    }
     @Override
     public Message getReturnObject() {
         return new Message();
@@ -94,7 +103,7 @@ public class SendVoice implements ApiRequest<Message> {
         if (parseMode == null)
             parseMode = "";
 
-        if (!parseMode.equals("HTML") && !parseMode.equals("MarkdownV2") && !parseMode.equals(""))
+        if (!parseMode.equals("HTML") && !parseMode.equals("MarkdownV2") && !parseMode.equals("Markdown") && !parseMode.equals(""))
             throw new IllegalArgumentException("ParseMode: \"" + parseMode + "\" does not exist.");
 
         if (!parseMode.equals("") && (captionEntities != null && !captionEntities.isEmpty()))

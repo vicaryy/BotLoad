@@ -1,17 +1,16 @@
 package org.example.api_object.keyboard;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.ApiObject;
 
 import java.util.List;
 
-@Getter
-@ToString
-@EqualsAndHashCode
-public class ReplyKeyboardMarkup implements ApiObject {
+@Data
+@RequiredArgsConstructor
+@AllArgsConstructor
+@Builder
+public class ReplyKeyboardMarkup implements ApiObject, ReplyMarkup {
     @JsonProperty("keyboard")
     private List<List<KeyboardButton>> keyboard;
 
@@ -29,6 +28,4 @@ public class ReplyKeyboardMarkup implements ApiObject {
 
     @JsonProperty("selective")
     private Boolean selective;
-
-    private ReplyKeyboardMarkup(){}
 }

@@ -94,7 +94,9 @@ public class SendAudio implements ApiRequest<Message> {
     public void setParseModeOnMarkdownV2() {
         parseMode = "MarkdownV2";
     }
-
+    public void setParseModeOnMarkdown() {
+        parseMode = "Markdown";
+    }
     public void setParseModeOnHTML() {
         parseMode = "HTML";
     }
@@ -116,7 +118,7 @@ public class SendAudio implements ApiRequest<Message> {
         if (parseMode == null)
             parseMode = "";
 
-        if (!parseMode.equals("HTML") && !parseMode.equals("MarkdownV2") && !parseMode.equals(""))
+        if (!parseMode.equals("HTML") && !parseMode.equals("MarkdownV2") && !parseMode.equals("Markdown") && !parseMode.equals(""))
             throw new IllegalArgumentException("ParseMode: \"" + parseMode + "\" does not exist.");
 
         if (!parseMode.equals("") && (captionEntities != null && !captionEntities.isEmpty()))
