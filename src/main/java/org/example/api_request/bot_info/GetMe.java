@@ -1,8 +1,9 @@
-package org.example.api_request;
+package org.example.api_request.bot_info;
 
 import lombok.Data;
 import lombok.NonNull;
 import org.example.api_object.User;
+import org.example.api_request.ApiRequest;
 import org.example.end_point.EndPoint;
 
 @Data

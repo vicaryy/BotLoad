@@ -1,9 +1,10 @@
-package org.example.api_request;
+package org.example.api_request.send;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.example.api_object.input_media.InputMedia;
 import org.example.api_object.message.Message;
+import org.example.api_request.ApiRequestList;
 import org.example.end_point.EndPoint;
 
 import java.util.List;

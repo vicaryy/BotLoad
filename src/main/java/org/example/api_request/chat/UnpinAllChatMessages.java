@@ -7,23 +7,18 @@ import org.example.end_point.EndPoint;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
-public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
+public class UnpinAllChatMessages implements ApiRequest<Boolean> {
     /**
-     * Use this method to approve a chat join request.
-     * The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
+     * Use this method to clear the list of pinned messages in a chat.
+     * If the chat is not a private chat, the bot must be an administrator in the chat
+     * and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
      *
-     * @param chatId  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-     * @param userId  Unique identifier of the target user
+     * @param chatId Unique identifier for the target chat or username of the target channel (in the format @channelusername)
      */
     @NonNull
     @JsonProperty("chat_id")
     private String chatId;
-
-    @NonNull
-    @JsonProperty("user_id")
-    private Integer userId;
 
     @Override
     public Boolean getReturnObject() {
@@ -32,7 +27,7 @@ public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
 
     @Override
     public String getEndPoint() {
-        return EndPoint.APPROVE_CHAT_JOIN_REQUEST.getPath();
+        return EndPoint.UNPIN_ALL_CHAT_MESSAGES.getPath();
     }
 
     @Override

@@ -7,23 +7,23 @@ import org.example.end_point.EndPoint;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
-public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
+public class SetChatTitle implements ApiRequest<Boolean> {
     /**
-     * Use this method to approve a chat join request.
-     * The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
+     * Use this method to change the title of a chat.
+     * Titles can't be changed for private chats.
+     * The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
      *
-     * @param chatId  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-     * @param userId  Unique identifier of the target user
+     * @param chatId Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     * @param title  New chat title, 1-128 characters
      */
     @NonNull
     @JsonProperty("chat_id")
     private String chatId;
 
     @NonNull
-    @JsonProperty("user_id")
-    private Integer userId;
+    @JsonProperty("title")
+    private String title;
 
     @Override
     public Boolean getReturnObject() {
@@ -32,7 +32,7 @@ public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
 
     @Override
     public String getEndPoint() {
-        return EndPoint.APPROVE_CHAT_JOIN_REQUEST.getPath();
+        return EndPoint.SET_CHAT_TITLE.getPath();
     }
 
     @Override

@@ -1,9 +1,10 @@
-package org.example.api_request;
+package org.example.api_request.send;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.example.api_object.keyboard.ReplyMarkup;
 import org.example.api_object.message.Message;
+import org.example.api_request.ApiRequest;
 import org.example.end_point.EndPoint;
 
 @Data

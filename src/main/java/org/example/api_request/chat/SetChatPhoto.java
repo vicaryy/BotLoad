@@ -3,27 +3,27 @@ package org.example.api_request.chat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.example.api_request.ApiRequest;
+import org.example.api_request.InputFile;
 import org.example.end_point.EndPoint;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
-public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
+public class SetChatPhoto implements ApiRequest<Boolean> {
     /**
-     * Use this method to approve a chat join request.
-     * The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
+     * Use this method to set a new profile photo for the chat.
+     * Photos can't be changed for private chats. The bot must be an administrator in the chat for this to work
+     * and must have the appropriate administrator rights.
      *
-     * @param chatId  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-     * @param userId  Unique identifier of the target user
+     * @param chatId Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+     * @param photo  New chat photo, uploaded using multipart/form-data
      */
     @NonNull
     @JsonProperty("chat_id")
     private String chatId;
 
     @NonNull
-    @JsonProperty("user_id")
-    private Integer userId;
+    private InputFile photo;
 
     @Override
     public Boolean getReturnObject() {
@@ -32,7 +32,7 @@ public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
 
     @Override
     public String getEndPoint() {
-        return EndPoint.APPROVE_CHAT_JOIN_REQUEST.getPath();
+        return EndPoint.SET_CHAT_PHOTO.getPath();
     }
 
     @Override

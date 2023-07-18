@@ -7,23 +7,16 @@ import org.example.end_point.EndPoint;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
-public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
+public class LeaveChat implements ApiRequest<Boolean> {
     /**
-     * Use this method to approve a chat join request.
-     * The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
+     * Use this method for your bot to leave a group, supergroup or channel.
      *
-     * @param chatId  Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-     * @param userId  Unique identifier of the target user
+     * @param chatId Unique identifier for the target chat or username of the target supergroup or channel (in the format @channelusername)
      */
     @NonNull
     @JsonProperty("chat_id")
     private String chatId;
-
-    @NonNull
-    @JsonProperty("user_id")
-    private Integer userId;
 
     @Override
     public Boolean getReturnObject() {
@@ -32,7 +25,7 @@ public class ApproveChatJoinRequest implements ApiRequest<Boolean> {
 
     @Override
     public String getEndPoint() {
-        return EndPoint.APPROVE_CHAT_JOIN_REQUEST.getPath();
+        return EndPoint.LEAVE_CHAT.getPath();
     }
 
     @Override

@@ -5,6 +5,7 @@ import org.example.api_object.RequestResponse;
 import org.example.api_object.RequestResponseList;
 import org.example.api_object.message.Message;
 import org.example.api_request.*;
+import org.example.api_request.send.*;
 import org.example.configuration.BotInfo;
 import org.example.configuration.ParameterizedTypeReferences;
 import org.springframework.beans.factory.annotation.Autowired;

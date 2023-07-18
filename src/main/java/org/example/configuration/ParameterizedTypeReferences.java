@@ -24,6 +24,8 @@ public class ParameterizedTypeReferences {
         });
         types.put(String.class, new ParameterizedTypeReference<RequestResponse<String>>() {
         });
+        types.put(Integer.class, new ParameterizedTypeReference<RequestResponse<Integer>>() {
+        });
         types.put(File.class, new ParameterizedTypeReference<RequestResponse<File>>() {
         });
         types.put(UserProfilePhotos.class, new ParameterizedTypeReference<RequestResponse<UserProfilePhotos>>() {
