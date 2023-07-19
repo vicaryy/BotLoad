@@ -61,6 +61,9 @@ public class InputFile implements ApiObject {
 
             else if (methodName.equals("thumbnail"))
                 thumbnailValidation(fileName);
+
+            else if (methodName.equals("sticker"))
+                stickerValidation(fileName);
         }
     }
 
@@ -107,5 +110,10 @@ public class InputFile implements ApiObject {
                         " \nImage height: " + thumbnail.getHeight());
         } catch (Exception e) {
         }
+    }
+
+    private void stickerValidation(String fileName) {
+        if (!fileName.endsWith(".webp") && !fileName.endsWith(".tgs") && !fileName.endsWith(".webm"))
+            throw new IllegalArgumentException("Wrong file extension for sticker. \nFile name: " + fileName);
     }
 }

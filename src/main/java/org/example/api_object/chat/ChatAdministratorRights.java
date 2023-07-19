@@ -1,14 +1,14 @@
 package org.example.api_object.chat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.ApiObject;
 
 @Getter
 @ToString
 @EqualsAndHashCode
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChatAdministratorRights implements ApiObject {
     @JsonProperty("is_anonymous")
     private Boolean isAnonymous;
@@ -45,7 +45,4 @@ public class ChatAdministratorRights implements ApiObject {
 
     @JsonProperty("can_manage_topics")
     private Boolean canManageTopics;
-
-    private ChatAdministratorRights() {
-    }
 }

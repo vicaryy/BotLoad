@@ -361,6 +361,36 @@ public class PostController {
         return sendRequest(url, bodyBuilder);
     }
 
+    public Message sendSticker(SendSticker sendSticker) throws Exception {
+        sendSticker.checkValidation();
+        String url = BotInfo.GET_URL() + sendSticker.getEndPoint();
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+
+        bodyBuilder.part("chat_id", sendSticker.getChatId());
+
+        if (sendSticker.getMessageThreadId() != null)
+            bodyBuilder.part("message_thread_id", sendSticker.getMessageThreadId());
+
+        inputFile(sendSticker.getSticker(), bodyBuilder, sendSticker.getMethodName());
+
+        if (sendSticker.getEmoji() != null)
+            bodyBuilder.part("duration", sendSticker.getEmoji());
+
+        if (sendSticker.getDisableNotification() != null)
+            bodyBuilder.part("disable_notification", sendSticker.getDisableNotification());
+
+        if (sendSticker.getProtectContent() != null)
+            bodyBuilder.part("protect_content", sendSticker.getProtectContent());
+
+        if (sendSticker.getReplyToMessageId() != null)
+            bodyBuilder.part("reply_to_message_id", sendSticker.getReplyToMessageId());
+
+        if (sendSticker.getAllowSendingWithoutReply() != null)
+            bodyBuilder.part("allow_sending_without_reply", sendSticker.getAllowSendingWithoutReply());
+
+        return sendRequest(url, bodyBuilder);
+    }
+
 
     private Message sendRequest(String url, MultipartBodyBuilder bodyBuilder) {
         RequestResponse response = (RequestResponse) client

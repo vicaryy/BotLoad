@@ -1,15 +1,13 @@
 package org.example.api_object.inline_query;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.example.api_object.ApiObject;
 import org.example.api_object.other.WebAppInfo;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class InlineQueryResultsButton implements ApiObject {
     /**
      * This object represents a button to be shown above inline query results. You must use exactly one of the optional fields.
@@ -22,7 +20,4 @@ public class InlineQueryResultsButton implements ApiObject {
 
     @JsonProperty("start_parameter")
     public String startParameter;
-
-    private InlineQueryResultsButton() {
-    }
 }

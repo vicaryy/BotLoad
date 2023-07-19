@@ -3,6 +3,7 @@ package org.example.api_object.stickers;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.example.api_object.ApiObject;
 import org.example.api_object.File;
@@ -11,6 +12,7 @@ import org.example.api_object.PhotoSize;
 @Getter
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
 public class Sticker implements ApiObject {
     /**
      * This object represents a sticker
@@ -59,7 +61,4 @@ public class Sticker implements ApiObject {
 
     @JsonProperty("file_size")
     private Integer fileSize;
-
-    private Sticker() {
-    }
 }

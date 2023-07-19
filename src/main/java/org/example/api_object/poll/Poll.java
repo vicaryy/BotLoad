@@ -3,6 +3,7 @@ package org.example.api_object.poll;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.example.api_object.ApiObject;
 import org.example.api_object.message.MessageEntity;
@@ -12,6 +13,7 @@ import java.util.List;
 @Getter
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
 public class Poll implements ApiObject {
     @JsonProperty("id")
     private String id;
@@ -51,7 +53,4 @@ public class Poll implements ApiObject {
 
     @JsonProperty("close_date")
     private Integer closeDate;
-
-    private Poll() {
-    }
 }

@@ -3,6 +3,7 @@ package org.example.api_object.stickers;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.example.api_object.ApiObject;
 import org.example.api_object.PhotoSize;
@@ -12,6 +13,7 @@ import java.util.List;
 @Getter
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
 public class StickerSet implements ApiObject {
     /**
      * This object represents a sticker set.
@@ -36,7 +38,4 @@ public class StickerSet implements ApiObject {
 
     @JsonProperty("thumbnail")
     private PhotoSize thumbnail;
-
-    private StickerSet() {
-    }
 }
