@@ -8,7 +8,6 @@ import org.example.end_point.EndPoint;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
 public class RevokeChatInviteLink implements ApiRequest<ChatInviteLink> {
     /**

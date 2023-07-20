@@ -20,8 +20,8 @@ public class GetForumTopicIconStickers implements ApiRequestList<Sticker> {
      */
 
     @Override
-    public List<Sticker> getReturnObject() {
-        return new ArrayList<>();
+    public Sticker getReturnObject() {
+        return new Sticker();
     }
 
     @Override

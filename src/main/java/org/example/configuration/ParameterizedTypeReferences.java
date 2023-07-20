@@ -6,6 +6,7 @@ import org.example.api_object.User;
 import org.example.api_object.bot.BotShortDescription;
 import org.example.api_object.chat.ChatAdministratorRights;
 import org.example.api_object.chat.ChatInviteLink;
+import org.example.api_object.games.GameHighScore;
 import org.example.api_object.inline_query.SentWebAppMessage;
 import org.example.api_object.message.Message;
 import org.example.api_object.other.UserProfilePhotos;
@@ -46,6 +47,8 @@ public class ParameterizedTypeReferences {
         types.put(StickerSet.class, new ParameterizedTypeReference<RequestResponse<StickerSet>>() {
         });
         types.put(SentWebAppMessage.class, new ParameterizedTypeReference<RequestResponse<SentWebAppMessage>>() {
+        });
+        types.put(GameHighScore.class, new ParameterizedTypeReference<RequestResponse<GameHighScore>>() {
         });
     }
 

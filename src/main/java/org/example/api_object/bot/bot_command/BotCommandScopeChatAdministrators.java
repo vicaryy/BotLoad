@@ -5,7 +5,6 @@ import lombok.*;
 
 @Data
 @NoArgsConstructor
-@RequiredArgsConstructor
 public class BotCommandScopeChatAdministrators implements BotCommandScope {
     @JsonProperty("type")
     private final String type = "chat_administrators";

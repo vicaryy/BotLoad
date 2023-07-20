@@ -52,8 +52,8 @@ public class GetMyCommands implements ApiRequestList<BotCommand> {
         scope = new BotCommandScopeChatMember();
     }
     @Override
-    public List<BotCommand> getReturnObject() {
-        return new ArrayList<>();
+    public BotCommand getReturnObject() {
+        return new BotCommand();
     }
 
     @Override

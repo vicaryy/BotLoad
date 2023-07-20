@@ -9,7 +9,7 @@ import org.example.end_point.EndPoint;
 import java.util.List;
 
 @Data
-@NoArgsConstructor
+@RequiredArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SetMyCommands implements ApiRequest<Boolean> {
@@ -34,24 +34,31 @@ public class SetMyCommands implements ApiRequest<Boolean> {
     public void setScopeOnDefault() {
         scope = new BotCommandScopeDefault();
     }
+
     public void setScopeOnAllPrivateChats() {
         scope = new BotCommandScopeAllPrivateChats();
     }
+
     public void setScopeOnAllGroupChats() {
         scope = new BotCommandScopeAllGroupChats();
     }
+
     public void setScopeOnAllChatAdministrators() {
         scope = new BotCommandScopeAllChatAdministrators();
     }
+
     public void setScopeOnChat() {
         scope = new BotCommandScopeChat();
     }
+
     public void setScopeOnChatAdministrators() {
         scope = new BotCommandScopeChatAdministrators();
     }
+
     public void setScopeOnChatMember() {
         scope = new BotCommandScopeChatMember();
     }
+
     @Override
     public Boolean getReturnObject() {
         return true;
@@ -66,6 +73,14 @@ public class SetMyCommands implements ApiRequest<Boolean> {
     public void checkValidation() {
         if (commands.isEmpty()) throw new IllegalArgumentException("commands list cannot be null or empty.");
 
-        if(scope == null) scope = new BotCommandScopeDefault();
+        if(languageCode == null) languageCode = "";
+
+        if (scope == null) scope = new BotCommandScopeDefault();
+
+        for (BotCommand bot : commands) {
+            bot.setCommand(bot.getCommand().toLowerCase());
+            String command = bot.getCommand();
+            if (!command.startsWith("/")) bot.setCommand("/" + bot.getCommand());
+        }
     }
 }

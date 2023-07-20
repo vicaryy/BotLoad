@@ -37,5 +37,6 @@ public class SetMyName implements ApiRequest<Boolean> {
 
     @Override
     public void checkValidation() {
+        if(languageCode == null) languageCode = "";
     }
 }

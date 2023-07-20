@@ -3,12 +3,14 @@ package org.example.api_object.games;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.example.api_object.User;
 
 @Getter
 @ToString
 @EqualsAndHashCode
+@NoArgsConstructor
 public class GameHighScore {
     /**
      * Represents one row of the high scores table for a game.
@@ -25,7 +27,4 @@ public class GameHighScore {
 
     @JsonProperty("score")
     private Integer score;
-
-    private GameHighScore() {
-    }
 }

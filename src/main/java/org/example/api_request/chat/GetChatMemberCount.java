@@ -7,7 +7,6 @@ import org.example.end_point.EndPoint;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
 public class GetChatMemberCount implements ApiRequest<Integer> {
     /**

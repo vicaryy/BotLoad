@@ -2,6 +2,7 @@ package org.example.api_request.chat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
+import org.example.api_object.User;
 import org.example.api_object.chat.chat_member.ChatMember;
 import org.example.api_request.ApiRequestList;
 import org.example.end_point.EndPoint;
@@ -11,7 +12,6 @@ import java.util.List;
 
 @Data
 @RequiredArgsConstructor
-@AllArgsConstructor
 @Builder
 public class GetChatAdministrators implements ApiRequestList<ChatMember> {
     /**
@@ -24,8 +24,21 @@ public class GetChatAdministrators implements ApiRequestList<ChatMember> {
     private String chatId;
 
     @Override
-    public List<ChatMember> getReturnObject() {
-        return new ArrayList<>();
+    public ChatMember getReturnObject() {
+
+        //TODO - WILL NOT WORK CUH
+
+        return new ChatMember() {
+            @Override
+            public String getStatus() {
+                return null;
+            }
+
+            @Override
+            public User getUser() {
+                return null;
+            }
+        };
     }
 
     @Override

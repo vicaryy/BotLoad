@@ -93,6 +93,10 @@ public enum EndPoint {
     CREATE_INVOICE_LINK("createInvoiceLink"),
     ANSWER_SHIPPING_QUERY("answerShippingQuery"),
     ANSWER_PRE_CHECKOUT_QUERY("/answerPreCheckoutQuery"),
+    SET_PASSPORT_DATA_ERRORS("/setPassportDataErrors"),
+    SEND_GAME("/sendGame"),
+    SET_GAME_SCORE("/setGameScore"),
+    GET_GAME_HIGH_SCORES("/getGameHighScores"),
     SEND_LOCATION("/sendLocation");
 
     private final String path;
