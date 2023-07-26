@@ -1,4 +1,4 @@
-package org.example.thread;
+package org.example.service.thread;
 
 import org.example.api_object.UpdateResponse;
 import org.example.api_object.Update;
@@ -7,10 +7,11 @@ import org.example.end_point.EndPoint;
 import org.example.service.UpdatePollingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-@Component
+@Service
 public class UpdatePollingThread implements Runnable {
     private final UpdatePollingService updatePollingService;
     private final WebClient client;

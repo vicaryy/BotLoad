@@ -1,13 +1,22 @@
 package org.example.service.mapper;
 
+import lombok.RequiredArgsConstructor;
+import org.example.DataTime;
 import org.example.api_object.Update;
 import org.example.entity.MessageEntity;
+import org.example.service.dto.MessageEntityResponse;
 import org.springframework.stereotype.Component;
 
-import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Component
+@RequiredArgsConstructor
 public class MessageMapper {
+
+    private final DataTime dataTime;
     public MessageEntity map(Update update) {
         String chatId = update.getChatId();
         String userId = update.getMessage().getFrom().getId().toString();
@@ -60,7 +69,32 @@ public class MessageMapper {
                 .isAnimation(isAnimation)
                 .isVideo(isVideo)
                 .fileId(fileId)
-                .messageDate(OffsetDateTime.now())
+                .messageDate(dataTime.now())
                 .build();
+    }
+
+    public MessageEntityResponse map(MessageEntity messageEntity) {
+        return MessageEntityResponse.builder()
+                .messageId(messageEntity.getMessageId())
+                .chatId(messageEntity.getChatId())
+                .userId(messageEntity.getUserId())
+                .userFirstname(messageEntity.getUserFirstname())
+                .userNick(messageEntity.getUserNick())
+                .nationality(messageEntity.getNationality())
+                .message(messageEntity.getMessage())
+                .isDocument(messageEntity.getIsDocument())
+                .isPhoto(messageEntity.getIsPhoto())
+                .isAudio(messageEntity.getIsAudio())
+                .isAnimation(messageEntity.getIsAnimation())
+                .isVideo(messageEntity.getIsVideo())
+                .fileId(messageEntity.getFileId())
+                .messageDate(messageEntity.getMessageDate())
+                .build();
+    }
+
+    public List<MessageEntityResponse> map(List<MessageEntity> messageEntityList) {
+        return messageEntityList.stream()
+                .map(this::map)
+                .collect(Collectors.toList());
     }
 }

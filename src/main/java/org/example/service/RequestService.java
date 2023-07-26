@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.service;
 
 import org.example.api_object.File;
 import org.example.api_object.RequestResponse;
@@ -13,18 +13,19 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.util.NoSuchElementException;
 
-@Controller
-public class PostController {
+@Service
+public class RequestService {
     private final WebClient client;
     private final ParameterizedTypeReferences typeReferences;
 
     @Autowired
-    public PostController(WebClient client,
+    public RequestService(WebClient client,
                           ParameterizedTypeReferences typeReferences) {
         this.client = client;
         this.typeReferences = typeReferences;
