@@ -1,7 +1,8 @@
 package org.example.end_point;
 
 public enum EndPoint {
-    GET_UPDATES("/getUpdates?offset="),
+    GET_UPDATES("/getUpdates"),
+    GET_UPDATES_OFFSET("/getUpdates?offset="),
     GET_ME("/getMe"),
     GET_FILE("/getFile"),
     LOG_OUT("/logOut"),

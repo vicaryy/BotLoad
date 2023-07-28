@@ -9,6 +9,9 @@ import org.example.service.RequestService;
 import org.example.service.youtube.YoutubeDownloader;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class YoutubeResponse {
@@ -16,46 +19,78 @@ public class YoutubeResponse {
     private final RequestService requestService;
 
     public void response(Update update) {
-        String text = update.getMessage().getText();
-        String[] textArray = text.trim().split(" ");
-        String link = textArray[0];
-        String extension = "mp3";
         String chatId = update.getChatId();
-        for (int i = 0; i < textArray.length; i++)
-            if (i == 1) {
-                extension = textArray[1].toLowerCase();
-                break;
-            }
+        String text = update.getMessage().getText();
+
+        String youtubeLink = getLink(text);
+        String extension = getExtension(text);
+        String videoId = getVideoId(youtubeLink);
+
+        System.out.println("Youtube link: " + youtubeLink);
+        System.out.println("Extension: " + extension);
+        System.out.println("videoId: " + videoId);
 
         if (extension.equals("mp3"))
-            sendMp3(link, chatId);
+            sendMp3(videoId, chatId);
         else if (extension.equals("mp4"))
-            sendMp4(link, chatId);
+            sendMp4(youtubeLink, chatId);
         else if (extension.equals("m4a"))
-            sendM4a(link, chatId);
+            sendM4a(youtubeLink, chatId);
     }
 
+    private String getLink(String text) {
+        String[] textArray = text.trim().split(" ");
+        return textArray[0];
+    }
 
+    private String getExtension(String text) {
+        String[] textArray = text.trim().split(" ");
+        if (textArray.length > 1)
+            return textArray[1].toLowerCase();
+        return "mp3";
+    }
 
-    private void sendMp3(String link, String chatId) {
-        InputFile mp3 = youtubeDownloader.getMp3(link);
+    public String getVideoId(String youtubeLink) {
+        StringBuffer sb = new StringBuffer();
+        if (youtubeLink.startsWith("https://www.youtube.com/watch?v=")) {
+            youtubeLink = youtubeLink.substring(32);
+            for (char s : youtubeLink.toCharArray()) {
+                if (s == '&')
+                    break;
+                sb.append(s);
+            }
+        } else if (youtubeLink.startsWith("https://youtu.be/")) {
+            youtubeLink = youtubeLink.substring(17);
+            for (char s : youtubeLink.toCharArray()) {
+                if (s == '&')
+                    break;
+                sb.append(s);
+            }
+        }
+        return sb.toString();
+    }
 
-        if (mp3 != null) {
+    private void sendMp3(String videoId, String chatId) {
+        List<InputFile> inputFiles = youtubeDownloader.getMp3(videoId);
+
+        if (!inputFiles.isEmpty()) {
             SendAudio sendAudio = SendAudio.builder()
                     .chatId(chatId)
-                    .audio(mp3)
+                    .audio(inputFiles.get(0))
                     .build();
-
-            String mp3Name = mp3.getFile().getName();
+            if (inputFiles.size() > 1)
+                sendAudio.setThumbnail(inputFiles.get(1));
 
             try {
                 System.out.printf("\n[send] Sending file to chatId: %s", chatId);
                 requestService.sendRequest(sendAudio);
-                System.out.printf("\n[send] File sent successfully.\n", mp3Name);
+                System.out.printf("\n[send] File sent successfully.\n");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            youtubeDownloader.deleteFile(mp3);
+            youtubeDownloader.deleteFile(inputFiles.get(0));
+            if (inputFiles.size() > 1)
+                youtubeDownloader.deleteFile(inputFiles.get(1));
         }
     }
 

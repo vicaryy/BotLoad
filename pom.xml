@@ -81,6 +81,14 @@
             <version>2.10.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <version>4.1.96.Final</version>
+            <classifier>osx-aarch_64</classifier>
+        </dependency>
+
+
         <!--        <dependency>-->
         <!--            <groupId>com.h2database</groupId>-->
         <!--            <artifactId>h2</artifactId>-->

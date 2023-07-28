@@ -7,6 +7,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class YoutubeDownloader {
@@ -17,23 +19,35 @@ public class YoutubeDownloader {
     private final String audioQuality = "--audio-quality";
     private final String quality = "0";
     private final String commandPath = "-o";
-    private final String path = "/Users/vicary/desktop/folder";
-    private final String fileName = "/%(title)s.%(ext)s";
+    private final String path = "/Users/vicary/desktop/folder/";
+    private final String fileName = "%(title)s.%(ext)s";
+    private final String thumbnailLink = "https://i.ytimg.com/vi/";
+    private final String thumbnailType = "/mqdefault.jpg";
+    private final String youtubeLink = "https://youtu.be/";
+    private final String embedThumbnail = "--embed-thumbnail";
 
-    public InputFile getMp3(String link) {
-        String newMp3Path = null;
 
+    public List<InputFile> getMp3(String videoId) {
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(commandName, fileExtension, commandFormat, format, commandPath, path + fileName, link);
+        Process process;
+        InputStream inputStream;
+        InputStreamReader inputStreamReader;
+        BufferedReader br;
+        List<InputFile> inputFiles = new ArrayList<>();
+        String newMp3Path = null;
+        String newThumbnailPath = null;
+        String thumbnailName = null;
+
+        processBuilder.command(commandName, fileExtension, commandFormat, format, embedThumbnail, commandPath, path + fileName, youtubeLink + videoId);
 
         try {
-            Process process = processBuilder.start();
-            InputStream inputStream = process.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bf = new BufferedReader(inputStreamReader);
+            process = processBuilder.start();
+            inputStream = process.getInputStream();
+            inputStreamReader = new InputStreamReader(inputStream);
+            br = new BufferedReader(inputStreamReader);
 
             String line;
-            while ((line = bf.readLine()) != null) {
+            while ((line = br.readLine()) != null) {
                 System.out.println(line);
                 if (line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/"))
                     newMp3Path = line.substring(28);
@@ -43,19 +57,45 @@ public class YoutubeDownloader {
         }
 
         if (newMp3Path != null) {
-            InputFile audio = InputFile.builder()
+            inputFiles.add(InputFile.builder()
                     .file(new File(newMp3Path))
-                    .build();
-            return audio;
+                    .build());
+            thumbnailName = inputFiles.get(0).getFile().getName() + "_thumbnail.jpg";
         }
-        return null;
+
+
+        processBuilder.command(commandName, commandPath, path + thumbnailName, thumbnailLink + videoId + thumbnailType);
+        try {
+            process = processBuilder.start();
+            inputStream = process.getInputStream();
+            inputStreamReader = new InputStreamReader(inputStream);
+            br = new BufferedReader(inputStreamReader);
+
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                if (line.equals("[download] Destination: /Users/vicary/desktop/folder/" + thumbnailName))
+                    newThumbnailPath = "/Users/vicary/desktop/folder/" + thumbnailName;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (newThumbnailPath != null && newMp3Path != null) {
+            inputFiles.add(InputFile.builder()
+                    .file(new File(newThumbnailPath))
+                    .isThumbnail(true)
+                    .build());
+        }
+        return inputFiles;
     }
 
-    public InputFile getMp4(String link) {
+
+    public InputFile getMp4(String videoId) {
         String newMp4Path = null;
 
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(commandName,"-f", "worst[ext=mp4]", commandPath, path + fileName, link);
+        processBuilder.command(commandName, "-f", "worst[ext=mp4]", commandPath, path + fileName, youtubeLink + videoId);
 
         try {
             Process process = processBuilder.start();
@@ -83,11 +123,11 @@ public class YoutubeDownloader {
         return null;
     }
 
-    public InputFile getM4a(String link) {
+    public InputFile getM4a(String videoId) {
         String newM4aPath = null;
 
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(commandName,"-f", "m4a", commandPath, path + fileName, link);
+        processBuilder.command(commandName, "-f", "m4a", commandPath, path + fileName, youtubeLink + videoId);
 
         try {
             Process process = processBuilder.start();

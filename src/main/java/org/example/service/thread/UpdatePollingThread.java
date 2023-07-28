@@ -7,15 +7,21 @@ import org.example.end_point.EndPoint;
 import org.example.service.UpdatePollingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class UpdatePollingThread implements Runnable {
     private final UpdatePollingService updatePollingService;
     private final WebClient client;
     private final Thread thread;
+    private final ExecutorService executorService;
+    private List<Update> updates;
 
     @Autowired
     public UpdatePollingThread(UpdatePollingService updatePollingService,
@@ -25,22 +31,29 @@ public class UpdatePollingThread implements Runnable {
 
         this.thread = new Thread(this);
         thread.start();
+        executorService = Executors.newCachedThreadPool();
     }
 
     @Override
     public void run() {
+        try {
+            Thread.sleep(3000);
+        } catch (Exception e) {
+        }
+
         while (true) {
-            Update update = null;
             try {
-                update = pollUpdate();
+                updates = getUpdates();
             } catch (Exception e) {
                 System.out.println("Connection lost.");
             }
-            if (update != null)
-                updatePollingService.updateReceiver(update);
+            if (updates != null) {
+                for (Update update : updates)
+                    executorService.execute(() -> updatePollingService.updateReceiver(update));
+            }
 
             try {
-                Thread.sleep(1000);
+                Thread.sleep(3000);
             } catch (Exception e) {
                 System.out.println("Something goes wrong.");
             }
@@ -48,8 +61,8 @@ public class UpdatePollingThread implements Runnable {
         }
     }
 
-    public Update pollUpdate() throws Exception {
-        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + "-1";
+    public List<Update> getUpdates() throws Exception {
+        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
 
         UpdateResponse response = client
                 .get()
@@ -62,15 +75,15 @@ public class UpdatePollingThread implements Runnable {
         if (response.getResult().isEmpty())
             return null;
 
-        Update update = (Update) response.getResult().get(0);
+        int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
 
-        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath() + (update.getUpdateId() + 1);
+        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
 
         client.get()
                 .uri(deletePollUrl)
                 .retrieve()
                 .bodyToMono(UpdateResponse.class)
                 .block();
-        return update;
+        return response.getResult();
     }
 }
