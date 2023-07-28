@@ -163,7 +163,7 @@ public class YoutubeDownloader {
 
         try {
             processBuilder.start();
-            System.out.printf("Deleting original file %s/%s\n", path, fileName);
+            System.out.printf("Deleting original file %s%s\n", path, fileName);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
