@@ -19,7 +19,6 @@ public class UpdatePollingService {
 
     public void updateReceiver(Update update) {
         messageEntityService.save(update);
-        System.out.println(update);
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         System.out.println(gson.toJson(update));
 

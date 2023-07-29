@@ -7,8 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class YoutubeDownloader {
@@ -25,69 +24,118 @@ public class YoutubeDownloader {
     private final String thumbnailType = "/mqdefault.jpg";
     private final String youtubeLink = "https://youtu.be/";
     private final String embedThumbnail = "--embed-thumbnail";
+    private final String maxFileSize = "--max-filesize";
+    private final String fileSize = "45M";
+    private final String mp3Extension = "mp3";
 
 
-    public List<InputFile> getMp3(String videoId) {
+    public YouTubeFile getMp3(String youtubeId) {
         ProcessBuilder processBuilder = new ProcessBuilder();
-        Process process;
-        InputStream inputStream;
-        InputStreamReader inputStreamReader;
-        BufferedReader br;
-        List<InputFile> inputFiles = new ArrayList<>();
-        String newMp3Path = null;
-        String newThumbnailPath = null;
-        String thumbnailName = null;
 
-        processBuilder.command(commandName, fileExtension, commandFormat, format, embedThumbnail, commandPath, path + fileName, youtubeLink + videoId);
+        String mp3Path = null;
+        String fileSize = null;
 
+        processBuilder.command(commandName, fileExtension, commandFormat, format, embedThumbnail, maxFileSize, this.fileSize, commandPath, path + fileName, youtubeLink + youtubeId);
         try {
-            process = processBuilder.start();
-            inputStream = process.getInputStream();
-            inputStreamReader = new InputStreamReader(inputStream);
-            br = new BufferedReader(inputStreamReader);
+            Process process = processBuilder.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
             while ((line = br.readLine()) != null) {
                 System.out.println(line);
-                if (line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/"))
-                    newMp3Path = line.substring(28);
+                if (fileSize == null) {
+                    fileSize = getFileSize(line);
+                    if (fileSize != null && !checkFileSize(fileSize))
+                        process.destroy();
+                }
+                if (mp3Path == null)
+                    mp3Path = getMp3Path(line);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (newMp3Path != null) {
-            inputFiles.add(InputFile.builder()
-                    .file(new File(newMp3Path))
-                    .build());
-            thumbnailName = inputFiles.get(0).getFile().getName() + "_thumbnail.jpg";
+        if (mp3Path != null) {
+            return YouTubeFile.builder()
+                    .youtubeId(youtubeId)
+                    .file(InputFile.builder()
+                            .file(new File(mp3Path))
+                            .build())
+                    .extension(mp3Extension)
+                    .size(fileSize)
+                    .build();
         }
+        System.out.println("File size: " + fileSize);
+        return null;
+    }
 
+    public InputFile getThumbnail(String videoId) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        final String thumbnailName = generateUniqueName() + ".jpg";
+        String thumbnailPath = null;
 
         processBuilder.command(commandName, commandPath, path + thumbnailName, thumbnailLink + videoId + thumbnailType);
         try {
-            process = processBuilder.start();
-            inputStream = process.getInputStream();
-            inputStreamReader = new InputStreamReader(inputStream);
-            br = new BufferedReader(inputStreamReader);
+            Process process = processBuilder.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
             String line;
             while ((line = br.readLine()) != null) {
                 System.out.println(line);
                 if (line.equals("[download] Destination: /Users/vicary/desktop/folder/" + thumbnailName))
-                    newThumbnailPath = "/Users/vicary/desktop/folder/" + thumbnailName;
+                    thumbnailPath = "/Users/vicary/desktop/folder/" + thumbnailName;
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        if (newThumbnailPath != null && newMp3Path != null) {
-            inputFiles.add(InputFile.builder()
-                    .file(new File(newThumbnailPath))
+        if (thumbnailPath != null) {
+            return InputFile.builder()
+                    .file(new File(thumbnailPath))
                     .isThumbnail(true)
-                    .build());
+                    .build();
         }
-        return inputFiles;
+        return null;
+    }
+
+    private boolean checkFileSize(String fileSize) {
+        if (!fileSize.endsWith("MiB") && !fileSize.endsWith("KiB"))
+            return false;
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(0);
+        for (char c : fileSize.toCharArray()) {
+            if (c == '.')
+                break;
+            sb.append(c);
+        }
+        return Integer.parseInt(sb.toString()) <= 45;
+    }
+
+    private String getMp3Path(String line) {
+        if (line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/"))
+            return line.substring(28);
+        return null;
+    }
+
+    private String generateUniqueName() {
+        final StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.setLength(0);
+        for (int i = 0; i < 10; i++)
+            stringBuilder.append(ThreadLocalRandom.current().nextInt(0, 10));
+
+        return stringBuilder.toString();
+    }
+
+    public String getFileSize(String line) {
+        if (line.contains("[download]")) {
+            String[] s = line.split(" ");
+            for (String a : s)
+                if (a.contains("MiB") || a.contains("KiB"))
+                    return a;
+        }
+        return null;
     }
 
 

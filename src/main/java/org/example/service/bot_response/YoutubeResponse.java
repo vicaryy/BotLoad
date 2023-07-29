@@ -1,22 +1,28 @@
 package org.example.service.bot_response;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.RequiredArgsConstructor;
 import org.example.api_object.Update;
+import org.example.api_object.message.Message;
 import org.example.api_request.InputFile;
 import org.example.api_request.send.SendAudio;
 import org.example.api_request.send.SendDocument;
+import org.example.entity.YoutubeFileEntity;
+import org.example.repository.YoutubeFileEntityRepository;
 import org.example.service.RequestService;
+import org.example.service.mapper.YouTubeFileMapper;
+import org.example.service.youtube.YouTubeFile;
 import org.example.service.youtube.YoutubeDownloader;
 import org.springframework.stereotype.Service;
-
-import java.io.File;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class YoutubeResponse {
     private final YoutubeDownloader youtubeDownloader;
     private final RequestService requestService;
+    private final YoutubeFileEntityRepository repository;
+    private final YouTubeFileMapper mapper;
 
     public void response(Update update) {
         String chatId = update.getChatId();
@@ -71,27 +77,48 @@ public class YoutubeResponse {
     }
 
     private void sendMp3(String videoId, String chatId) {
-        List<InputFile> inputFiles = youtubeDownloader.getMp3(videoId);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        YouTubeFile youTubeFile = youtubeDownloader.getMp3(videoId);
+        Message message = null;
 
-        if (!inputFiles.isEmpty()) {
+        if (youTubeFile != null) {
+            youTubeFile.setThumbnail(youtubeDownloader.getThumbnail(videoId));
+
             SendAudio sendAudio = SendAudio.builder()
                     .chatId(chatId)
-                    .audio(inputFiles.get(0))
+                    .audio(youTubeFile.getFile())
+                    .thumbnail(youTubeFile.getThumbnail())
                     .build();
-            if (inputFiles.size() > 1)
-                sendAudio.setThumbnail(inputFiles.get(1));
 
             try {
                 System.out.printf("\n[send] Sending file to chatId: %s", chatId);
-                requestService.sendRequest(sendAudio);
+                message = requestService.sendRequest(sendAudio);
                 System.out.printf("\n[send] File sent successfully.\n");
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            youtubeDownloader.deleteFile(inputFiles.get(0));
-            if (inputFiles.size() > 1)
-                youtubeDownloader.deleteFile(inputFiles.get(1));
+            youtubeDownloader.deleteFile(youTubeFile.getFile());
+            if (youTubeFile.getThumbnail() != null)
+                youtubeDownloader.deleteFile(youTubeFile.getThumbnail());
         }
+
+        if(message != null) {
+            youTubeFile.setFileId(message.getAudio().getFileId());
+            youTubeFile.setSize(sizeToString(message.getAudio().getFileSize()));
+            youTubeFile.setDuration(durationToString(message.getAudio().getDuration()));
+            YoutubeFileEntity youtubeFileEntity = mapper.map(youTubeFile);
+            repository.save(youtubeFileEntity);
+        }
+    }
+
+    private String sizeToString(int fileSize) {
+        return (double) fileSize / (1024 * 1024) + "MB";
+    }
+
+    private String durationToString(int duration) {
+        int minutes = duration / 60;
+        int seconds = duration % 60;
+        return String.format("%d:%02d", minutes, seconds);
     }
 
     private void sendM4a(String link, String chatId) {
