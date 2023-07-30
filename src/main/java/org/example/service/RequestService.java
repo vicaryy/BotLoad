@@ -417,7 +417,6 @@ public class RequestService {
             } catch (Exception e) {
             }
             if (file != null) {
-                System.out.println(file.getFilePath());
                 bodyBuilder.part(methodName, fileId);
                 return;
             } else

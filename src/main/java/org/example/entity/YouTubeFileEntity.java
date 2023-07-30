@@ -8,7 +8,14 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @RequiredArgsConstructor
-public class YoutubeFileEntity {
+@NoArgsConstructor
+@Table(name = "YOUTUBE_FILES")
+public class YouTubeFileEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
+    private Long id;
+
     @Column(name = "YOUTUBE_ID")
     @NonNull
     private String youtubeId;
@@ -17,14 +24,20 @@ public class YoutubeFileEntity {
     @NonNull
     private String extension;
 
-    @Column(name = "FILE_SIZE")
+    @Column(name = "QUALITY")
+    @NonNull
+    private String quality;
+
+    @Column(name = "SIZE")
     private String size;
 
     @Column(name = "DURATION")
     private String duration;
 
-    @Id
-    @Column(name = "ID")
+    @Column(name = "TITLE")
+    private String title;
+
+    @Column(name = "FILE_ID")
     @NonNull
     private String fileId;
 }

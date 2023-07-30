@@ -10,7 +10,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,13 +46,13 @@ public class UpdatePollingThread implements Runnable {
             } catch (Exception e) {
                 System.out.println("Connection lost.");
             }
-            if (updates != null) {
+            if (updates != null && updates.size() < 6) {
                 for (Update update : updates)
                     executorService.execute(() -> updatePollingService.updateReceiver(update));
             }
 
             try {
-                Thread.sleep(3000);
+                Thread.sleep(1500);
             } catch (Exception e) {
                 System.out.println("Something goes wrong.");
             }
