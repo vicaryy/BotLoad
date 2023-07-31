@@ -1,4 +1,4 @@
-package org.example.service.youtube;
+package org.example.model;
 
 import lombok.*;
 

@@ -13,7 +13,7 @@ import org.example.repository.YoutubeFileRepository;
 import org.example.service.RequestService;
 import org.example.service.mapper.YouTubeFileMapper;
 import org.example.service.youtube.YouTubeDownloader;
-import org.example.service.youtube.YouTubeFileRequest;
+import org.example.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -23,7 +23,6 @@ public class YouTubeResponse {
     private final RequestService requestService;
     private final YoutubeFileRepository youtubeFileRepository;
     private final UserRepository userRepository;
-    private final YouTubeFileMapper mapper;
 
     public void response(Update update) {
         final String chatId = update.getChatId();
@@ -101,13 +100,15 @@ public class YouTubeResponse {
         if (message != null && file.getFileId() == null) {
             youtubeDownloader.deleteFile(file);
 
+            String title = file.getFile().getName();
+            String extension = request.getExtension();
             saveFileToRepository(YouTubeFileEntity.builder()
                     .youtubeId(request.getYoutubeId())
                     .extension(request.getExtension())
                     .quality(request.getPremium() ? "premium" : "standard")
                     .size(sizeToString(message.getAudio().getFileSize()))
                     .duration(durationToString(message.getAudio().getDuration()))
-                    .title(file.getFile().getName())
+                    .title(title.substring(0, title.length() - (extension.length() + 1)))
                     .fileId(message.getAudio().getFileId())
                     .build());
         }

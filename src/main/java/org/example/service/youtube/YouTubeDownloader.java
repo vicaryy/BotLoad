@@ -1,6 +1,7 @@
 package org.example.service.youtube;
 
 import org.example.api_request.InputFile;
+import org.example.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -25,6 +26,7 @@ public class YouTubeDownloader {
     private final String maxFileSizeCommand = "--max-filesize";
     private final String maxFileSize = "45M";
     private final String deleteCommand = "rm";
+    private final String renameCommand = "mv";
 
     public InputFile downloadMp3(YouTubeFileRequest request) {
         ProcessBuilder processBuilder = new ProcessBuilder();
@@ -57,10 +59,35 @@ public class YouTubeDownloader {
 
         if (filePath != null) {
             return InputFile.builder()
-                    .file(new File(filePath))
+                    .file(new File(correctFilePath(filePath, extension)))
                     .build();
         }
         return null;
+    }
+
+    public String correctFilePath(String filePath, String extension) {
+        String oldFileName = filePath.replaceFirst(path, "");
+        String newFileName = oldFileName;
+
+        newFileName = newFileName.replaceAll("&|/\\\\|⧸⧹", "and");
+        newFileName = newFileName.replaceAll("⧸", "-");
+
+        if (newFileName.length() > 64)
+            newFileName = newFileName.substring(0, 60) + "." + extension;
+
+        if (newFileName.equals(oldFileName))
+            return filePath;
+
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command(renameCommand, oldFileName, newFileName);
+        processBuilder.directory(new File(path));
+        try {
+            processBuilder.start();
+            System.out.printf("[rename] Renaming file to %s\n", newFileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return path + newFileName;
     }
 
     public InputFile downloadThumbnail(String videoId) {
@@ -77,7 +104,7 @@ public class YouTubeDownloader {
             while ((line = br.readLine()) != null) {
                 System.out.println(line);
                 if (line.equals("[download] Destination: /Users/vicary/desktop/folder/" + thumbnailName))
-                    thumbnailPath = "/Users/vicary/desktop/folder/" + thumbnailName;
+                    thumbnailPath = this.path + thumbnailName;
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -92,7 +119,7 @@ public class YouTubeDownloader {
         return null;
     }
 
-    private boolean checkFileSize(String fileSize) {
+    public boolean checkFileSize(String fileSize) {
         if (!fileSize.endsWith("MiB") && !fileSize.endsWith("KiB"))
             return false;
 
@@ -106,13 +133,13 @@ public class YouTubeDownloader {
         return Integer.parseInt(sb.toString()) <= 45;
     }
 
-    private String getMp3Path(String line) {
+    public String getMp3Path(String line) {
         if (line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/"))
             return line.substring(28);
         return null;
     }
 
-    private String generateUniqueName() {
+    public String generateUniqueName() {
         final StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.setLength(0);
         for (int i = 0; i < 10; i++)
@@ -203,7 +230,7 @@ public class YouTubeDownloader {
 
         try {
             processBuilder.start();
-            System.out.printf("Deleting original file %s%s\n", path, fileName);
+            System.out.printf("[delete] Deleting original file %s%s\n", path, fileName);
             return true;
         } catch (Exception e) {
             e.printStackTrace();

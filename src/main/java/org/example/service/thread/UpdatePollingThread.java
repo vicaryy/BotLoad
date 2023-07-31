@@ -4,7 +4,7 @@ import org.example.api_object.UpdateResponse;
 import org.example.api_object.Update;
 import org.example.configuration.BotInfo;
 import org.example.end_point.EndPoint;
-import org.example.service.UpdatePollingService;
+import org.example.service.UpdateReceiverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Service;
@@ -16,16 +16,16 @@ import java.util.concurrent.Executors;
 
 @Service
 public class UpdatePollingThread implements Runnable {
-    private final UpdatePollingService updatePollingService;
+    private final UpdateReceiverService updateReceiverService;
     private final WebClient client;
     private final Thread thread;
     private final ExecutorService executorService;
     private List<Update> updates;
 
     @Autowired
-    public UpdatePollingThread(UpdatePollingService updatePollingService,
+    public UpdatePollingThread(UpdateReceiverService updateReceiverService,
                                WebClient client) {
-        this.updatePollingService = updatePollingService;
+        this.updateReceiverService = updateReceiverService;
         this.client = client;
 
         this.thread = new Thread(this);
@@ -46,10 +46,11 @@ public class UpdatePollingThread implements Runnable {
             } catch (Exception e) {
                 System.out.println("Connection lost.");
             }
-            if (updates != null && updates.size() < 6) {
-                for (Update update : updates)
-                    executorService.execute(() -> updatePollingService.updateReceiver(update));
-            }
+            if (updates != null && updates.size() < 6)
+                updates.stream()
+                        .forEach(update
+                                -> executorService.execute(()
+                                -> updateReceiverService.updateReceiver(update)));
 
             try {
                 Thread.sleep(1500);
