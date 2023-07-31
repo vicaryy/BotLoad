@@ -68,8 +68,8 @@ public class YouTubeResponse {
     }
 
     private void sendMp3(YouTubeFileRequest request) {
-        InputFile file = null;
-        InputFile thumbnail = null;
+        InputFile file;
+        InputFile thumbnail;
         Message message = null;
 
         file = getFileFromRepository(request);
