@@ -69,8 +69,8 @@ public class YouTubeDownloader {
         String oldFileName = filePath.replaceFirst(path, "");
         String newFileName = oldFileName;
 
-        newFileName = newFileName.replaceAll("&|/\\\\|⧸⧹", "and");
-        newFileName = newFileName.replaceAll("⧸", "-");
+        newFileName = newFileName.replaceAll("&|⧸⧹", "and");
+        newFileName = newFileName.replaceAll("[/⧸||｜–]", "-");
 
         if (newFileName.length() > 64)
             newFileName = newFileName.substring(0, 60) + "." + extension;

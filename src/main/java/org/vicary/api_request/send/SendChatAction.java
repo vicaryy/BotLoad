@@ -36,7 +36,6 @@ public class SendChatAction implements ApiRequest<Boolean> {
     @JsonProperty("message_thread_id")
     private Integer messageThreadId;
 
-    @NonNull
     @JsonProperty("action")
     private String action;
 
@@ -84,7 +83,8 @@ public class SendChatAction implements ApiRequest<Boolean> {
 
     @Override
     public void checkValidation() {
-        if (chatId.isEmpty()) throw new IllegalArgumentException("Chat id cannot be empty.");
+        if (chatId.isEmpty()) throw new IllegalArgumentException("chatId cannot be empty.");
+        if (action == null) throw new IllegalArgumentException("action cannot be empty.");
 
         if (!action.equals("typing")
                 && !action.equals("upload_photo")

@@ -5,7 +5,9 @@ import org.vicary.api_object.Update;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.send.SendAudio;
+import org.vicary.api_request.send.SendChatAction;
 import org.vicary.api_request.send.SendDocument;
+import org.vicary.api_request.send.SendMessage;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.pattern.YoutubePattern;
 import org.vicary.repository.UserRepository;
@@ -67,6 +69,22 @@ public class YouTubeResponse {
     }
 
     private void sendMp3(YouTubeFileRequest request) {
+        String text = String.format("Downloading your %s file in %s quality, give me a moment...", request.getExtension(), request.getPremium() ? "premium" : "standard");
+        SendMessage sendMessage = SendMessage.builder()
+                .chatId(request.getChatId())
+                .disableNotification(true)
+                .text(text)
+                .build();
+        SendChatAction sendChatAction = SendChatAction.builder()
+                .chatId(request.getChatId())
+                .build();
+        sendChatAction.setActionOnUploadDocument();
+        try {
+            requestService.sendRequest(sendMessage);
+            requestService.sendRequest(sendChatAction);
+        } catch (Exception e) {
+        }
+
         InputFile file;
         InputFile thumbnail;
         Message message = null;
@@ -105,8 +123,8 @@ public class YouTubeResponse {
                     .youtubeId(request.getYoutubeId())
                     .extension(request.getExtension())
                     .quality(request.getPremium() ? "premium" : "standard")
-                    .size(sizeToString(message.getAudio().getFileSize()))
-                    .duration(durationToString(message.getAudio().getDuration()))
+                    .size(convertKBToMB(message.getAudio().getFileSize()))
+                    .duration(convertSecondsToMinutes(message.getAudio().getDuration()))
                     .title(title.substring(0, title.length() - (extension.length() + 1)))
                     .fileId(message.getAudio().getFileId())
                     .build());
@@ -117,15 +135,15 @@ public class YouTubeResponse {
         youtubeFileRepository.save(youTubeFileEntity);
     }
 
-    private String sizeToString(int fileSize) {
-        double sizeInMB = (double) fileSize / (1024 * 1024);
+    private String convertKBToMB(int KB) {
+        double sizeInMB = (double) KB / (1024 * 1024);
         return String.format("%.2fMB", sizeInMB);
     }
 
-    private String durationToString(int duration) {
-        int minutes = duration / 60;
-        int seconds = duration % 60;
-        return String.format("%d:%02d", minutes, seconds);
+    private String convertSecondsToMinutes(int seconds) {
+        int minutes = seconds / 60;
+        int sec = seconds % 60;
+        return String.format("%d:%02d", minutes, sec);
     }
 
     private void sendM4a(String link, String chatId) {
