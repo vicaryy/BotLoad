@@ -58,6 +58,19 @@ public class RequestService {
         return (ReturnObject) response.getResult();
     }
 
+    public <Request extends ApiRequest> void sendRequestAsync(Request request) throws Exception{
+        request.checkValidation();
+        String url = BotInfo.GET_URL() + request.getEndPoint();
+
+        client
+                .post()
+                .uri(url)
+                .bodyValue(request)
+                .retrieve()
+                .toBodilessEntity()
+                .subscribe();
+    }
+
     public Message sendRequest(SendPhoto sendPhoto) throws Exception {
         sendPhoto.checkValidation();
         String url = BotInfo.GET_URL() + sendPhoto.getEndPoint();

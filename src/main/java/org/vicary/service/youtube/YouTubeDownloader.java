@@ -1,8 +1,12 @@
 package org.vicary.service.youtube;
 
+import lombok.RequiredArgsConstructor;
 import org.vicary.api_request.InputFile;
+import org.vicary.api_request.edit_message.EditMessageText;
+import org.vicary.api_request.send.SendMessage;
 import org.vicary.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
+import org.vicary.service.RequestService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,6 +15,7 @@ import java.io.InputStreamReader;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
+@RequiredArgsConstructor
 public class YouTubeDownloader {
     private final String ytDlpCommand = "yt-dlp";
     private final String fileExtensionCommand = "-x";
@@ -28,33 +33,35 @@ public class YouTubeDownloader {
     private final String deleteCommand = "rm";
     private final String renameCommand = "mv";
 
-    public InputFile downloadMp3(YouTubeFileRequest request) {
-        ProcessBuilder processBuilder = new ProcessBuilder();
+    private final RequestService requestService;
+
+    public InputFile downloadMp3(YouTubeFileRequest request) throws Exception {
+        final String progress = "Downloading file... [0.0%]";
+        request.getEditMessageText().setText(progress);
         String quality = request.getPremium() ? "0" : "5";
         String extension = request.getExtension();
 
         String filePath = null;
         String fileSize = null;
 
+        ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command(ytDlpCommand, fileExtensionCommand, audioFormatCommand, extension, audioQualityCommand, quality, embedThumbnailCommand, maxFileSizeCommand, this.maxFileSize, pathCommand, path + defaultFileName, youtubeUrl + request.getYoutubeId());
-        try {
-            Process process = processBuilder.start();
-            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        Process process = processBuilder.start();
+        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                if (fileSize == null) {
-                    fileSize = getFileSize(line);
-                    if (fileSize != null && !checkFileSize(fileSize))
-                        process.destroy();
-                }
-                if (filePath == null)
-                    filePath = getMp3Path(line);
+        String line;
+        while ((line = br.readLine()) != null) {
+//            System.out.println(line);
 
+            updateMessageText(request.getEditMessageText(), line, request.getChatId());
+
+            if (fileSize == null) {
+                fileSize = getFileSize(line);
+                if (fileSize != null && !checkFileSize(fileSize))
+                    process.destroy();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (filePath == null)
+                filePath = getMp3Path(line);
         }
 
         if (filePath != null) {
@@ -65,7 +72,43 @@ public class YouTubeDownloader {
         return null;
     }
 
-    public String correctFilePath(String filePath, String extension) {
+    public EditMessageText updateMessageText(EditMessageText editMessageText, String line, String chatId) throws Exception {
+        String progress = getDownloadProgress(line);
+        if (progress != null) {
+            String oldText = editMessageText.getText();
+            String[] splitOldText = oldText.split(" ");
+            StringBuilder newText = new StringBuilder();
+
+            for (String s : splitOldText)
+                if (s.equals(splitOldText[splitOldText.length - 1]))
+                    newText.append("[" + progress + "]");
+                else
+                    newText.append(s + " ");
+
+
+            editMessageText.setText(newText.toString());
+            System.out.println(newText.toString());
+//            SendMessage sendMessage = SendMessage.builder()
+//                    .chatId(chatId)
+//                    .text(newText.toString())
+//                    .build();
+            System.out.println(editMessageText);
+            requestService.sendRequestAsync(editMessageText);
+        }
+        return editMessageText;
+    }
+
+    public String getDownloadProgress(String line) {
+        if (line.contains("[download]")) {
+            String[] s = line.split(" ");
+            for (String a : s)
+                if (a.contains("%"))
+                    return a;
+        }
+        return null;
+    }
+
+    public String correctFilePath(String filePath, String extension) throws Exception {
         String oldFileName = filePath.replaceFirst(path, "");
         String newFileName = oldFileName;
 
@@ -81,33 +124,25 @@ public class YouTubeDownloader {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command(renameCommand, oldFileName, newFileName);
         processBuilder.directory(new File(path));
-        try {
-            processBuilder.start();
-            System.out.printf("[rename] Renaming file to %s\n", newFileName);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        processBuilder.start();
+        System.out.printf("[rename] Renaming file to %s\n", newFileName);
         return path + newFileName;
     }
 
-    public InputFile downloadThumbnail(String videoId) {
+    public InputFile downloadThumbnail(String videoId) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder();
         final String thumbnailName = generateUniqueName() + ".jpg";
         String thumbnailPath = null;
 
         processBuilder.command(ytDlpCommand, pathCommand, path + thumbnailName, thumbnailLink + videoId + thumbnailType);
-        try {
-            Process process = processBuilder.start();
-            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        Process process = processBuilder.start();
+        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
-                if (line.equals("[download] Destination: /Users/vicary/desktop/folder/" + thumbnailName))
-                    thumbnailPath = this.path + thumbnailName;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+        String line;
+        while ((line = br.readLine()) != null) {
+            System.out.println(line);
+            if (line.equals("[download] Destination: /Users/vicary/desktop/folder/" + thumbnailName))
+                thumbnailPath = this.path + thumbnailName;
         }
 
         if (thumbnailPath != null) {

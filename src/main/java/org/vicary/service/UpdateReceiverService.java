@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import lombok.RequiredArgsConstructor;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
+import org.vicary.api_request.send.SendMessage;
 import org.vicary.pattern.YoutubePattern;
 import org.vicary.repository.UserRepository;
 import org.vicary.service.bot_response.TextResponse;
@@ -32,25 +33,16 @@ public class UpdateReceiverService {
         if (update.getMessage().getText() != null)
             text = update.getMessage().getText();
 
-//        String fileN = "Axwell /\\\\ Ingrosso.mp3";
-//        SendAudio sendAudio = SendAudio.builder()
-//                .chatId(update.getChatId())
-//                .audio(InputFile.builder()
-//                        .file(new File("/Users/vicary/desktop/" + fileN))
-//                        .build())
-//                .build();
-//
-//        try {
-//            requestService.sendRequest(sendAudio);
-//        } catch (Exception e) {
-//        }
 
         if (userRepository.findByUserId(user.getId().toString()) == null)
             userRepository.save(userMapper.map(user));
 
-
-        if (YoutubePattern.checkUrlValidation(text))
-            youtubeResponse.response(update);
+        try {
+            if (YoutubePattern.checkUrlValidation(text))
+                youtubeResponse.response(update);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 //            if (!text.startsWith("/"))
 //                textResponse.response(update);

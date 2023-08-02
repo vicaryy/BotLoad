@@ -1,6 +1,7 @@
 package org.vicary.model;
 
 import lombok.*;
+import org.vicary.api_request.edit_message.EditMessageText;
 
 @Data
 @AllArgsConstructor
@@ -14,4 +15,6 @@ public class YouTubeFileRequest {
     private String extension;
 
     private Boolean premium;
+
+    private EditMessageText editMessageText;
 }
