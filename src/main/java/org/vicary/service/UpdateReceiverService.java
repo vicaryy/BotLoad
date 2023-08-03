@@ -6,7 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
 import org.vicary.api_request.send.SendMessage;
+import org.vicary.entity.ActiveRequestEntity;
 import org.vicary.pattern.YoutubePattern;
+import org.vicary.repository.ActiveRequestRepository;
 import org.vicary.repository.UserRepository;
 import org.vicary.service.bot_response.TextResponse;
 import org.vicary.service.bot_response.YouTubeResponse;
@@ -21,7 +23,7 @@ public class UpdateReceiverService {
     private final YouTubeResponse youtubeResponse;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-    private final RequestService requestService;
+    private final ActiveRequestRepository activeRequestRepository;
 
     public void updateReceiver(Update update) {
         messageEntityService.save(update);
@@ -29,6 +31,7 @@ public class UpdateReceiverService {
         System.out.println(gson.toJson(update));
         String text = "";
         User user = update.getMessage().getFrom();
+        String userId = user.getId().toString();
 
         if (update.getMessage().getText() != null)
             text = update.getMessage().getText();
@@ -37,14 +40,20 @@ public class UpdateReceiverService {
         if (userRepository.findByUserId(user.getId().toString()) == null)
             userRepository.save(userMapper.map(user));
 
-        try {
-            if (YoutubePattern.checkUrlValidation(text))
-                youtubeResponse.response(update);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if (!activeRequestRepository.existsByUserId(userId)) {
+            ActiveRequestEntity activeRequestEntity = ActiveRequestEntity.builder()
+                    .userId(userId)
+                    .build();
+            activeRequestEntity = activeRequestRepository.save(activeRequestEntity);
 
-//            if (!text.startsWith("/"))
-//                textResponse.response(update);
+            try {
+                if (YoutubePattern.checkUrlValidation(text))
+                    youtubeResponse.response(update);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            activeRequestRepository.deleteById(activeRequestEntity.getId());
+        }
     }
 }

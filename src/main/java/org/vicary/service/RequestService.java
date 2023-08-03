@@ -1,5 +1,6 @@
 package org.vicary.service;
 
+import org.springframework.web.client.RestTemplate;
 import org.vicary.api_object.File;
 import org.vicary.api_object.RequestResponse;
 import org.vicary.api_object.RequestResponseList;
@@ -58,17 +59,12 @@ public class RequestService {
         return (ReturnObject) response.getResult();
     }
 
-    public <Request extends ApiRequest> void sendRequestAsync(Request request) throws Exception{
+    public <Request extends ApiRequest> void sendRequestAsync(Request request) throws Exception {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
-        client
-                .post()
-                .uri(url)
-                .bodyValue(request)
-                .retrieve()
-                .toBodilessEntity()
-                .subscribe();
+        RestTemplate restTemplate = new RestTemplate();
+        restTemplate.postForEntity(url, request, null);
     }
 
     public Message sendRequest(SendPhoto sendPhoto) throws Exception {

@@ -1,6 +1,7 @@
 package org.vicary.model;
 
 import lombok.*;
+import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 
 @Data
