@@ -1,6 +1,5 @@
 package org.vicary.model;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +21,8 @@ public class YouTubeFileResponse {
     private String title;
 
     private Integer duration;
+
+    private Long size;
 
     private String artist;
 

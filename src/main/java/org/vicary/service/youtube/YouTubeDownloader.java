@@ -51,6 +51,7 @@ public class YouTubeDownloader {
         final String connectingToYoutube = "\nConnecting to YouTube...";
         final String fileDownloadingInfo = "\nDownloading file... [0.0%]";
         final String thumbDownloadingInfo = "\nDownloading thumbnail... [0.0%]";
+        final String fileTooBigInfo = "File is too big, i can upload files up to 50MB (Telegrams fault).\nThings may change in time.";
         final String convertingInfo = String.format("\nConverting to %s...", request.getExtension());
         final String renamingInfo = "\nRenaming...";
         boolean fileDownloaded = false;
@@ -71,46 +72,49 @@ public class YouTubeDownloader {
 
         // if file is not in repo then download FILE
         if (response.getDownloadedFile() == null) {
-            processBuilder.command(ytDlpCommand, fileExtensionCommand, audioFormatCommand, extension, audioQualityCommand, quality, embedThumbnailCommand, maxFileSizeCommand, this.maxFileSize, pathCommand, path + defaultFileName, youtubeUrl + request.getYoutubeId());
+            filePath = String.format("%s%s.%s", path, response.getTitle(), extension);
+            request.getEditMessageText().setText(request.getEditMessageText().getText() + fileDownloadingInfo);
+            processBuilder.command(ytDlpCommand, fileExtensionCommand, audioFormatCommand, extension, audioQualityCommand, quality, embedThumbnailCommand, maxFileSizeCommand, this.maxFileSize, pathCommand, filePath, youtubeUrl + request.getYoutubeId());
             Process process = processBuilder.start();
-            BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
-            String line;
-            while ((line = br.readLine()) != null) {
-                System.out.println(line);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
 
-                if (!fileDownloaded) {
-                    if (line.contains("[download]") && !request.getEditMessageText().getText().contains(fileDownloadingInfo))
-                        request.getEditMessageText().setText(request.getEditMessageText().getText() + fileDownloadingInfo);
-                    request.setEditMessageText(updateMessageTextDownload(request.getEditMessageText(), line));
-                    if (request.getEditMessageText().getText().endsWith("[100%]"))
-                        fileDownloaded = true;
+                    if (!fileDownloaded) {
+                        request.setEditMessageText(updateMessageTextDownload(request.getEditMessageText(), line));
+                        if (request.getEditMessageText().getText().endsWith("[100%]"))
+                            fileDownloaded = true;
+                    }
+
+                    if (!fileConverted && isFileConverting(line)) {
+                        request.getEditMessageText().setText(request.getEditMessageText().getText() + convertingInfo);
+                        requestService.sendRequestAsync(request.getEditMessageText());
+                        fileConverted = true;
+                    }
+
+                    if (fileSize == null) {
+                        fileSize = getFileSize(line);
+                        if (fileSize != null && !checkFileSize(fileSize)) {
+                            request.getEditMessageText().setText(fileTooBigInfo);
+                            requestService.sendRequestAsync(request.getEditMessageText());
+                            process.destroy();
+                        }
+                    }
                 }
-
-                if (!fileConverted && isFileConverting(line)) {
-                    request.getEditMessageText().setText(request.getEditMessageText().getText() + convertingInfo);
-                    requestService.sendRequestAsync(request.getEditMessageText());
-                    fileConverted = true;
-                }
-
-                if (fileSize == null) {
-                    fileSize = getFileSize(line);
-                    if (fileSize != null && !checkFileSize(fileSize))
-                        process.destroy();
-                }
-                if (filePath == null)
-                    filePath = getMp3Path(line);
             }
-
-            if (filePath != null) {
+            if (new File(filePath).exists()) {
+                response.setSize(new File(filePath).length());
                 String oldFilePath = filePath;
                 filePath = correctFilePath(filePath, extension);
-                if (oldFilePath.equals(filePath)) {
+                if (!oldFilePath.equals(filePath)) {
                     request.getEditMessageText().setText(request.getEditMessageText().getText() + renamingInfo);
                     requestService.sendRequestAsync(request.getEditMessageText());
                 }
+                File downladedFile = new File(filePath);
                 response.setDownloadedFile(InputFile.builder()
-                        .file(new File(correctFilePath(filePath, extension)))
+                        .file(downladedFile)
                         .build());
             }
         }
@@ -145,7 +149,6 @@ public class YouTubeDownloader {
         response.setEditMessageText(request.getEditMessageText());
         response.setExtension(request.getExtension());
         response.setPremium(request.getPremium());
-
         return response;
     }
 
@@ -154,7 +157,8 @@ public class YouTubeDownloader {
                 request.getYoutubeId(),
                 request.getExtension(),
                 request.getPremium() ? "premium" : "standard");
-        if (youTubeFileEntity != null) {
+
+        if (youTubeFileEntity != null && convertMBToBytes(youTubeFileEntity.getSize()) < 20000000) {
             return InputFile.builder()
                     .fileId(youTubeFileEntity.getFileId())
                     .build();
@@ -205,6 +209,13 @@ public class YouTubeDownloader {
         return false;
     }
 
+    private Long convertMBToBytes(String MB) {
+        MB = MB.replaceFirst("MB", "");
+        MB = MB.replaceFirst(",", ".");
+        double Megabytes = Double.parseDouble(MB);
+        return (long) (Megabytes * (1024 * 1024));
+    }
+
     public String getDownloadProgress(String line) {
         if (line.contains("[download]")) {
             String[] s = line.split(" ");
@@ -236,38 +247,10 @@ public class YouTubeDownloader {
         return path + newFileName;
     }
 
-//    public YouTubeFileRequest downloadThumbnail(YouTubeFileRequest request) throws Exception {
-//        final String thumbDownloadingInfo = "\nDownloading thumbnail... [0.0%]";
-//        final String thumbnailName = generateUniqueName() + ".jpg";
-//        String thumbnailPath = null;
-//        request.getEditMessageText().setText(request.getEditMessageText().getText() + thumbDownloadingInfo);
-//
-//        ProcessBuilder processBuilder = new ProcessBuilder();
-//        processBuilder.command(ytDlpCommand, pathCommand, path + thumbnailName, thumbnailLink + request.getYoutubeId() + thumbnailType);
-//        Process process = processBuilder.start();
-//        BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//
-//        String line;
-//        while ((line = br.readLine()) != null) {
-//            System.out.println(line);
-//
-//            request.setEditMessageText(updateMessageTextDownload(request.getEditMessageText(), line));
-//
-//            if (line.equals("[download] Destination: /Users/vicary/desktop/folder/" + thumbnailName))
-//                thumbnailPath = this.path + thumbnailName;
-//        }
-//
-//        if (thumbnailPath != null) {
-//            request.setThumbnail(InputFile.builder()
-//                    .file(new File(thumbnailPath))
-//                    .isThumbnail(true)
-//                    .build());
-//        }
-//        return request;
-//    }
-
     public boolean checkFileSize(String fileSize) {
-        if (!fileSize.endsWith("MiB") && !fileSize.endsWith("KiB"))
+        if (fileSize.endsWith("KiB"))
+            return true;
+        if (!fileSize.endsWith("MiB"))
             return false;
 
         StringBuilder sb = new StringBuilder();

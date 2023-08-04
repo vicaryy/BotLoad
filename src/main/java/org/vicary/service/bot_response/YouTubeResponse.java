@@ -62,6 +62,7 @@ public class YouTubeResponse {
         // preparing message and chat action to send
         final String downloadingInfo = "Alright, give me a moment.";
         final String sendingInfo = "\nSending...";
+        final String errorInfo = "Sorry but something goes wrong.";
         final String downloadMessage1 = "There you go.";
         Message botMessageInfo;
         SendMessage sendMessage = SendMessage.builder()
@@ -89,6 +90,7 @@ public class YouTubeResponse {
         // getting youtube file
         YouTubeFileResponse response = youtubeDownloader.downloadMp3(request);
 
+        System.out.println(response.getDownloadedFile());
         if (response.getDownloadedFile() != null) {
             // preparing audio object to send
             SendAudio sendAudio = SendAudio.builder()
@@ -103,6 +105,7 @@ public class YouTubeResponse {
             // sending audio to telegram chat
             System.out.printf("\n[send] Sending file to chatId: %s", request.getChatId());
             request.getEditMessageText().setText(request.getEditMessageText().getText() + sendingInfo);
+            sendChatAction.setActionOnUploadDocument();
             requestService.sendRequest(sendChatAction);
             requestService.sendRequestAsync(request.getEditMessageText());
             Message sendFileMessage = requestService.sendRequest(sendAudio);
@@ -115,20 +118,22 @@ public class YouTubeResponse {
                 youtubeDownloader.deleteFile(response.getThumbnail());
 
             // saving file to repository
-            System.out.println(gson.toJson(sendFileMessage));
-            if (sendFileMessage != null && response.getDownloadedFile().getFileId() == null) {
+            if (sendFileMessage != null && !youtubeFileRepository.existsByYoutubeIdAndExtensionAndQuality(response.getYoutubeId(), response.getExtension(), response.getPremium() ? "premium" : "standard")) {
                 youtubeDownloader.deleteFile(response.getDownloadedFile());
 
                 saveFileToRepository(YouTubeFileEntity.builder()
                         .youtubeId(request.getYoutubeId())
                         .extension(request.getExtension())
                         .quality(request.getPremium() ? "premium" : "standard")
-                        .size(convertKBToMB(sendFileMessage.getAudio().getFileSize()))
+                        .size(convertBytesToMB(response.getSize()))
                         .duration(convertSecondsToMinutes(response.getDuration()))
                         .title(response.getTitle())
                         .fileId(sendFileMessage.getAudio().getFileId())
                         .build());
             }
+        } else {
+            request.getEditMessageText().setText(errorInfo);
+            requestService.sendRequestAsync(request.getEditMessageText());
         }
     }
 
@@ -143,8 +148,8 @@ public class YouTubeResponse {
         youtubeFileRepository.save(youTubeFileEntity);
     }
 
-    private String convertKBToMB(int KB) {
-        double sizeInMB = (double) KB / (1024 * 1024);
+    private String convertBytesToMB(Long Bytes) {
+        double sizeInMB = (double) Bytes / (1024 * 1024);
         return String.format("%.2fMB", sizeInMB);
     }
 
