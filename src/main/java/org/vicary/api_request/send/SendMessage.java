@@ -81,7 +81,7 @@ public class SendMessage implements ApiRequest<Message> {
         if (parseMode == null)
             parseMode = "";
 
-        if (!parseMode.equals("HTML") && !parseMode.equals("MarkdownV2") && !parseMode.equals(""))
+        if (!parseMode.equals("HTML") && !parseMode.equals("Markdown") && !parseMode.equals("MarkdownV2") && !parseMode.equals(""))
             throw new IllegalArgumentException("ParseMode: \"" + parseMode + "\" does not exist.");
 
         if (!parseMode.equals("") && (entities != null && !entities.isEmpty()))

@@ -12,6 +12,7 @@ import org.vicary.api_request.send.SendChatAction;
 import org.vicary.api_request.send.SendDocument;
 import org.vicary.api_request.send.SendMessage;
 import org.vicary.entity.YouTubeFileEntity;
+import org.vicary.format.MarkdownV2;
 import org.vicary.model.YouTubeFileResponse;
 import org.vicary.pattern.YoutubePattern;
 import org.vicary.repository.UserRepository;
@@ -20,6 +21,9 @@ import org.vicary.service.RequestService;
 import org.vicary.service.youtube.YouTubeDownloader;
 import org.vicary.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
+
+import java.util.Arrays;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -60,15 +64,18 @@ public class YouTubeResponse {
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
         // preparing message and chat action to send
-        final String downloadingInfo = "Alright, give me a moment.";
-        final String sendingInfo = "\nSending...";
-        final String errorInfo = "Sorry but something goes wrong.";
-        final String downloadMessage1 = "There you go.";
+        final String gotTheLinkInfo = MarkdownV2.apply("Got the link!").toBold().newlineAfter().get();
+        final String holdOnInfo = MarkdownV2.apply("Just hold on for a moment.").newlineAfter().get();
+        final String sendingInfo = MarkdownV2.apply("Sending...").toItalic().newlineBefore().get();
+        final String errorInfo = MarkdownV2.apply("Sorry but something goes wrong.").toBold().get();
+        final String receivedInfo = MarkdownV2.apply("Here's your file.").get();
+
         Message botMessageInfo;
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(request.getChatId())
                 .disableNotification(true)
-                .text(downloadingInfo)
+                .text(gotTheLinkInfo + holdOnInfo)
+                .parseMode("MarkdownV2")
                 .build();
         SendChatAction sendChatAction = SendChatAction.builder()
                 .chatId(request.getChatId())
@@ -83,7 +90,8 @@ public class YouTubeResponse {
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId(request.getChatId())
                 .messageId(botMessageInfo.getMessageId())
-                .text(downloadingInfo)
+                .text(gotTheLinkInfo + holdOnInfo)
+                .parseMode("MarkdownV2")
                 .build();
         request.setEditMessageText(editMessageText);
 
@@ -109,7 +117,7 @@ public class YouTubeResponse {
             requestService.sendRequest(sendChatAction);
             requestService.sendRequestAsync(request.getEditMessageText());
             Message sendFileMessage = requestService.sendRequest(sendAudio);
-            editMessageText.setText(downloadMessage1);
+            editMessageText.setText(getReceivedFileInfo(response));
             requestService.sendRequestAsync(editMessageText);
             System.out.printf("\n[send] File sent successfully.\n");
 
@@ -135,6 +143,55 @@ public class YouTubeResponse {
             request.getEditMessageText().setText(errorInfo);
             requestService.sendRequestAsync(request.getEditMessageText());
         }
+    }
+
+    public String getReceivedFileInfo(YouTubeFileResponse response) {
+        StringBuilder fileInfo = new StringBuilder();
+        final String receivedInfo = "Here's your file: ";
+        String text = response.getEditMessageText().getText();
+
+        String title = response.getTitle();
+        String artist = response.getArtist();
+        String track = response.getTrack();
+        String album = response.getAlbum();
+        String releaseYear = response.getReleaseYear();
+        String duration = convertSecondsToMinutes(response.getDuration());
+        String size = convertBytesToMB(response.getSize());
+        String quality = response.getPremium() ? "Premium" : "Standard";
+
+        fileInfo.append(MarkdownV2.apply(receivedInfo).toItalic().newlineAfter().get());
+        if (track == null) {
+            fileInfo.append(MarkdownV2.apply("Title: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(title).get());
+        }
+        if (artist != null) {
+            fileInfo.append(MarkdownV2.apply("Artist: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(artist).get());
+        }
+        if (track != null) {
+            fileInfo.append(MarkdownV2.apply("Track: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(track).get());
+        }
+        if (album != null) {
+            fileInfo.append(MarkdownV2.apply("Album: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(album).get());
+        }
+        if (releaseYear != null) {
+            fileInfo.append(MarkdownV2.apply("Release Year: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(releaseYear).get());
+        }
+        if (duration != null) {
+            fileInfo.append(MarkdownV2.apply("Duration: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(duration).get());
+        }
+        if (size != null) {
+            fileInfo.append(MarkdownV2.apply("Size: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(size).get());
+        }
+        fileInfo.append(MarkdownV2.apply("Quality: ").toBold().newlineBefore().get());
+        fileInfo.append(MarkdownV2.apply(quality).get());
+
+        return fileInfo.toString();
     }
 
     private String getExtension(String text) {

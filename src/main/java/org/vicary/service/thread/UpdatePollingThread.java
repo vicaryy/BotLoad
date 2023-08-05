@@ -36,7 +36,8 @@ public class UpdatePollingThread implements Runnable {
     @Override
     public void run() {
         try {
-            Thread.sleep(3000);
+            Thread.sleep(1000);
+//            resetUpdates();
         } catch (Exception e) {
         }
 
@@ -46,44 +47,73 @@ public class UpdatePollingThread implements Runnable {
             } catch (Exception e) {
                 System.out.println("Connection lost.");
             }
-            if (updates != null && updates.size() < 6)
-                updates.stream()
-                        .forEach(update
-                                -> executorService.execute(()
-                                -> updateReceiverService.updateReceiver(update)));
+            if (updates != null && updates.size() < 6) {
+                for (Update update : updates) {
+                    executorService.execute(() -> updateReceiverService.updateReceiver(update));
+                    try {
+                        Thread.sleep(100);
+                    } catch (Exception e) {
+                    }
+                }
 
-            try {
-                Thread.sleep(1500);
-            } catch (Exception e) {
-                System.out.println("Something goes wrong.");
+                try {
+                    Thread.sleep(1500);
+                } catch (Exception e) {
+                    System.out.println("Something goes wrong.");
+                }
+
             }
-
         }
     }
 
-    public List<Update> getUpdates() throws Exception {
-        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
+        public List<Update> getUpdates () throws Exception {
+            String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
 
-        UpdateResponse response = client
-                .get()
-                .uri(pollUrl)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
-                })
-                .block();
+            UpdateResponse response = client
+                    .get()
+                    .uri(pollUrl)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
+                    })
+                    .block();
 
-        if (response.getResult().isEmpty())
-            return null;
+            if (response.getResult().isEmpty())
+                return null;
 
-        int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
+            int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
 
-        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
+            String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
 
-        client.get()
-                .uri(deletePollUrl)
-                .retrieve()
-                .bodyToMono(UpdateResponse.class)
-                .block();
-        return response.getResult();
+            client.get()
+                    .uri(deletePollUrl)
+                    .retrieve()
+                    .bodyToMono(UpdateResponse.class)
+                    .block();
+            return response.getResult();
+        }
+
+        public void resetUpdates () throws Exception {
+            String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
+
+            UpdateResponse response = client
+                    .get()
+                    .uri(pollUrl)
+                    .retrieve()
+                    .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
+                    })
+                    .block();
+
+            if (response.getResult().isEmpty())
+                return;
+
+            int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
+
+            String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
+
+            client.get()
+                    .uri(deletePollUrl)
+                    .retrieve()
+                    .bodyToMono(UpdateResponse.class)
+                    .block();
+        }
     }
-}
