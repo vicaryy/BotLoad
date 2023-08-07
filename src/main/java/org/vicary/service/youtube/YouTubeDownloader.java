@@ -11,13 +11,12 @@ import org.vicary.model.YouTubeFileInfo;
 import org.vicary.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 import org.vicary.model.YouTubeFileResponse;
-import org.vicary.repository.YoutubeFileRepository;
 import org.vicary.service.RequestService;
+import org.vicary.service.YouTubeFileService;
 import org.vicary.service.mapper.YouTubeFileMapper;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -42,12 +41,11 @@ public class YouTubeDownloader {
     private final String fileInfoCommand = "-j";
 
     private final RequestService requestService;
-
-    private final YoutubeFileRepository youtubeFileRepository;
+    private final YouTubeFileService youTubeFileService;
     private final YouTubeFileMapper mapper;
     private final Gson gson = new Gson();
 
-    public YouTubeFileResponse downloadMp3(YouTubeFileRequest request) throws Exception {
+    public YouTubeFileResponse download(YouTubeFileRequest request) throws Exception {
         ProcessBuilder processBuilder = new ProcessBuilder();
         final String connectingToYoutube = MarkdownV2.apply("Connecting to YouTube...").toItalic().newlineBefore().get();
         final String fileDownloadingInfo = MarkdownV2.apply("Downloading file... [0.0%]").toItalic().newlineBefore().get();
@@ -158,7 +156,7 @@ public class YouTubeDownloader {
     }
 
     public YouTubeFileResponse getFileFromRepository(YouTubeFileResponse response) {
-        YouTubeFileEntity youTubeFileEntity = youtubeFileRepository.findByYoutubeIdAndExtensionAndQuality(
+        YouTubeFileEntity youTubeFileEntity = youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
                 response.getYoutubeId(),
                 response.getExtension(),
                 response.getPremium() ? "premium" : "standard");
@@ -191,7 +189,7 @@ public class YouTubeDownloader {
     }
 
     public EditMessageText updateMessageTextDownload(EditMessageText editMessageText, String line) throws Exception {
-        String progress = getDownloadProgressInMarkdownV2(line);
+        String progress = getDownloadProgress(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
@@ -228,28 +226,11 @@ public class YouTubeDownloader {
             String[] s = line.split(" ");
             for (String a : s)
                 if (a.contains("%"))
-                    return a;
+                    return MarkdownV2.apply(a).get();
         }
         return null;
     }
 
-    public String getDownloadProgressInMarkdownV2(String line) {
-        StringBuilder sb = new StringBuilder();
-        if (line.contains("[download]")) {
-            String[] s = line.split(" ");
-            for (String a : s)
-                if (a.contains("%"))
-                    for (char c : a.toCharArray()) {
-                        if (c == '.') {
-                            sb.append("\\" + c);
-                            continue;
-                        }
-                        sb.append(c);
-                    }
-            return sb.toString();
-        }
-        return null;
-    }
 
     public String correctFilePath(String filePath, String extension) throws Exception {
         int maxFileNameLength = 63;
@@ -313,83 +294,13 @@ public class YouTubeDownloader {
         return null;
     }
 
-
-    public InputFile downloadMp4(String videoId) {
-        String newMp4Path = null;
-
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(ytDlpCommand, "-f", "worst[ext=mp4]", pathCommand, path + defaultFileName, youtubeUrl + videoId);
-
-        try {
-            Process process = processBuilder.start();
-            InputStream inputStream = process.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bf = new BufferedReader(inputStreamReader);
-
-            String line;
-            while ((line = bf.readLine()) != null) {
-                System.out.println(line);
-                if (line.startsWith("[download] Destination: /Users/vicary/desktop/folder/"))
-                    newMp4Path = line.substring(24);
-                System.out.println(newMp4Path);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (newMp4Path != null) {
-            InputFile video = InputFile.builder()
-                    .file(new File(newMp4Path))
-                    .build();
-            return video;
-        }
-        return null;
-    }
-
-    public InputFile downloadM4a(String videoId) {
-        String newM4aPath = null;
-
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(ytDlpCommand, "-f", "m4a", pathCommand, path + defaultFileName, youtubeUrl + videoId);
-
-        try {
-            Process process = processBuilder.start();
-            InputStream inputStream = process.getInputStream();
-            InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-            BufferedReader bf = new BufferedReader(inputStreamReader);
-
-            String line;
-            while ((line = bf.readLine()) != null) {
-                System.out.println(line);
-                if (line.startsWith("[download] Destination: /Users/vicary/desktop/folder/"))
-                    newM4aPath = line.substring(24);
-                System.out.println(newM4aPath);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        if (newM4aPath != null) {
-            InputFile audio = InputFile.builder()
-                    .file(new File(newM4aPath))
-                    .build();
-            return audio;
-        }
-        return null;
-    }
-
-    public boolean deleteFile(InputFile inputFile) {
+    public boolean deleteFile(InputFile inputFile) throws Exception {
         String fileName = inputFile.getFile().getName();
         ProcessBuilder processBuilder = new ProcessBuilder(deleteCommand, fileName);
         processBuilder.directory(new File(path));
 
-        try {
-            processBuilder.start();
-            System.out.printf("[delete] Deleting original file %s%s\n", path, fileName);
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return false;
+        processBuilder.start();
+        System.out.printf("[delete] Deleting original file %s%s\n", path, fileName);
+        return true;
     }
 }

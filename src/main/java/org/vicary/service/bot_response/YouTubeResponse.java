@@ -1,29 +1,24 @@
 package org.vicary.service.bot_response;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.RequiredArgsConstructor;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.message.Message;
-import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendAudio;
 import org.vicary.api_request.send.SendChatAction;
-import org.vicary.api_request.send.SendDocument;
 import org.vicary.api_request.send.SendMessage;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.model.YouTubeFileResponse;
 import org.vicary.pattern.YoutubePattern;
-import org.vicary.repository.UserRepository;
-import org.vicary.repository.YoutubeFileRepository;
 import org.vicary.service.RequestService;
+import org.vicary.service.UserService;
+import org.vicary.service.YouTubeFileService;
 import org.vicary.service.youtube.YouTubeDownloader;
 import org.vicary.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -33,9 +28,10 @@ public class YouTubeResponse {
 
     private final RequestService requestService;
 
-    private final YoutubeFileRepository youtubeFileRepository;
+    private final YouTubeFileService youTubeFileService;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final Set<String> availableExtensions = Set.of("mp3", "mp4", "m4a");
 
     public void response(Update update) throws Exception {
         final String chatId = update.getChatId();
@@ -43,7 +39,7 @@ public class YouTubeResponse {
         final String userId = update.getMessage().getFrom().getId().toString();
         final String extension = getExtension(text);
         final String youtubeId = YoutubePattern.getYoutubeId(text);
-        final boolean premium = userRepository.findByUserId(userId).getPremium();
+        final boolean premium = userService.findByUserId(userId).getPremium();
 
         final YouTubeFileRequest request = YouTubeFileRequest.builder()
                 .youtubeId(youtubeId)
@@ -52,23 +48,16 @@ public class YouTubeResponse {
                 .premium(premium)
                 .build();
 
-        if (extension.equals("mp3"))
-            sendMp3(request);
-        else if (extension.equals("mp4"))
-            sendMp4(youtubeId, chatId);
-        else if (extension.equals("m4a"))
-            sendM4a(youtubeId, chatId);
+        if (availableExtensions.contains(extension))
+            sendFile(request);
     }
 
-    private void sendMp3(YouTubeFileRequest request) throws Exception {
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-
+    public void sendFile(YouTubeFileRequest request) throws Exception {
         // preparing message and chat action to send
         final String gotTheLinkInfo = MarkdownV2.apply("Got the link!").toBold().newlineAfter().get();
         final String holdOnInfo = MarkdownV2.apply("Just hold on for a moment.").newlineAfter().get();
         final String sendingInfo = MarkdownV2.apply("Sending...").toItalic().newlineBefore().get();
         final String errorInfo = MarkdownV2.apply("Sorry but something goes wrong.").toBold().get();
-        final String receivedInfo = MarkdownV2.apply("Here's your file.").get();
 
         Message botMessageInfo;
         SendMessage sendMessage = SendMessage.builder()
@@ -96,7 +85,7 @@ public class YouTubeResponse {
         request.setEditMessageText(editMessageText);
 
         // getting youtube file
-        YouTubeFileResponse response = youtubeDownloader.downloadMp3(request);
+        YouTubeFileResponse response = youtubeDownloader.download(request);
 
         System.out.println(response.getDownloadedFile());
         if (response.getDownloadedFile() != null) {
@@ -126,10 +115,10 @@ public class YouTubeResponse {
                 youtubeDownloader.deleteFile(response.getThumbnail());
 
             // saving file to repository
-            if (sendFileMessage != null && !youtubeFileRepository.existsByYoutubeIdAndExtensionAndQuality(response.getYoutubeId(), response.getExtension(), response.getPremium() ? "premium" : "standard")) {
+            if (sendFileMessage != null && !youTubeFileService.existsByYoutubeIdAndExtensionAndQuality(response.getYoutubeId(), response.getExtension(), response.getPremium() ? "premium" : "standard")) {
                 youtubeDownloader.deleteFile(response.getDownloadedFile());
 
-                saveFileToRepository(YouTubeFileEntity.builder()
+                youTubeFileService.saveYouTubeFile(YouTubeFileEntity.builder()
                         .youtubeId(request.getYoutubeId())
                         .extension(request.getExtension())
                         .quality(request.getPremium() ? "premium" : "standard")
@@ -147,17 +136,16 @@ public class YouTubeResponse {
 
     public String getReceivedFileInfo(YouTubeFileResponse response) {
         StringBuilder fileInfo = new StringBuilder();
-        final String receivedInfo = "Here's your file: ";
-        String text = response.getEditMessageText().getText();
 
-        String title = response.getTitle();
-        String artist = response.getArtist();
-        String track = response.getTrack();
-        String album = response.getAlbum();
-        String releaseYear = response.getReleaseYear();
-        String duration = convertSecondsToMinutes(response.getDuration());
-        String size = convertBytesToMB(response.getSize());
-        String quality = response.getPremium() ? "Premium" : "Standard";
+        final String receivedInfo = "Here's your file";
+        final String title = response.getTitle();
+        final String artist = response.getArtist();
+        final String track = response.getTrack();
+        final String album = response.getAlbum();
+        final String releaseYear = response.getReleaseYear();
+        final String duration = convertSecondsToMinutes(response.getDuration());
+        final String size = convertBytesToMB(response.getSize());
+        final String quality = response.getPremium() ? "Premium" : "Standard";
 
         fileInfo.append(MarkdownV2.apply(receivedInfo).toItalic().newlineAfter().get());
         if (track == null) {
@@ -201,61 +189,14 @@ public class YouTubeResponse {
         return "mp3";
     }
 
-    private void saveFileToRepository(YouTubeFileEntity youTubeFileEntity) {
-        youtubeFileRepository.save(youTubeFileEntity);
-    }
-
-    private String convertBytesToMB(Long Bytes) {
+    public String convertBytesToMB(Long Bytes) {
         double sizeInMB = (double) Bytes / (1024 * 1024);
         return String.format("%.2fMB", sizeInMB);
     }
 
-    private String convertSecondsToMinutes(int seconds) {
+    public String convertSecondsToMinutes(int seconds) {
         int minutes = seconds / 60;
         int sec = seconds % 60;
         return String.format("%d:%02d", minutes, sec);
-    }
-
-    private void sendM4a(String link, String chatId) {
-        InputFile m4a = youtubeDownloader.downloadM4a(link);
-
-        if (m4a != null) {
-            SendAudio sendAudio = SendAudio.builder()
-                    .chatId(chatId)
-                    .audio(m4a)
-                    .build();
-
-            String m4aName = m4a.getFile().getName();
-
-            try {
-                System.out.printf("\n[send] Sending file to chatId: %s", chatId);
-                requestService.sendRequest(sendAudio);
-                System.out.printf("\n[send] File sent successfully.\n", m4aName);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            youtubeDownloader.deleteFile(m4a);
-        }
-    }
-
-    private void sendMp4(String link, String chatId) {
-        InputFile mp4 = youtubeDownloader.downloadMp4(link);
-
-        if (mp4 != null) {
-            SendDocument sendDocument = SendDocument.builder()
-                    .chatId(chatId)
-                    .document(mp4)
-                    .build();
-
-            String mp4Name = mp4.getFile().getName();
-            try {
-                System.out.printf("\n[send] Sending file to chatId: %s", chatId);
-                requestService.sendRequest(sendDocument);
-                System.out.printf("\n[send] File sent successfully.\n", mp4Name);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            youtubeDownloader.deleteFile(mp4);
-        }
     }
 }
