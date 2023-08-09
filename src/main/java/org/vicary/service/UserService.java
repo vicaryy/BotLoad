@@ -6,10 +6,12 @@ import org.vicary.entity.UserEntity;
 import org.vicary.repository.UserRepository;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
     private final UserRepository repository;
 
     public void saveUser(UserEntity userEntity) {
@@ -20,40 +22,32 @@ public class UserService {
         return repository.existsByUserId(userId);
     }
 
-    public UserEntity findByUserId(String userId) {
+    public Optional<UserEntity> findByUserId(String userId) {
         return repository.findByUserId(userId);
     }
 
-    public boolean updateUserToPremiumByUserId(String userId) {
-        UserEntity userEntity = repository.findByUserId(userId);
-        if (userEntity != null) {
-            UserEntity updatedUser = userEntity;
-            updatedUser.setPremium(true);
-            repository.save(updatedUser);
-            return true;
-        }
-        throw new NoSuchElementException("User by id: " + userId + "does not exists!");
+    public Optional<UserEntity> findByUserNick(String nick) {
+        return repository.findByNick(nick);
+    }
+
+    public void updateUserToPremiumByUserId(String userId) {
+        UserEntity updatedUser = findByUserId(userId)
+                .orElseThrow(() -> new NoSuchElementException("User by id: " + userId + "does not exists!"));
+        updatedUser.setPremium(true);
+        saveUser(updatedUser);
     }
 
     public void updateUserToPremiumByNick(String nick) {
-        UserEntity userEntity = repository.findByNick(nick);
-        if (userEntity != null) {
-            UserEntity updatedUser = userEntity;
-            updatedUser.setPremium(true);
-            repository.save(updatedUser);
-            return;
-        }
-        throw new NoSuchElementException("User by id: " + nick + "does not exists!");
+        UserEntity updatedUser = findByUserNick(nick)
+                .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + " does not exists!"));
+        updatedUser.setPremium(true);
+        saveUser(updatedUser);
     }
 
     public void updateUserToStandardByNick(String nick) {
-        UserEntity userEntity = repository.findByNick(nick);
-        if (userEntity != null) {
-            UserEntity updatedUser = userEntity;
-            updatedUser.setPremium(false);
-            repository.save(updatedUser);
-            return;
-        }
-        throw new NoSuchElementException("User by id: " + nick + "does not exists!");
+        UserEntity updatedUser = findByUserNick(nick)
+                .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + "does not exists!"));
+        updatedUser.setPremium(false);
+        saveUser(updatedUser);
     }
 }

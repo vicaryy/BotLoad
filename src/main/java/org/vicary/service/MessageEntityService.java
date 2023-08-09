@@ -9,6 +9,8 @@ import org.vicary.service.mapper.MessageMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -21,8 +23,14 @@ public class MessageEntityService {
         repository.save(messageEntity);
     }
 
-    public MessageEntityResponse getMessageById(Long messageId) {
-        MessageEntity messageEntity = repository.findById(messageId).get();
+    public Optional<MessageEntity> getMessageById(Long messageId) {
+        return repository.findById(messageId);
+    }
+
+    public MessageEntityResponse getMessageResponseById(Long messageId) {
+        MessageEntity messageEntity = repository
+                .findById(messageId)
+                .orElseThrow(() -> new NoSuchElementException("Message by id = " + messageId + " does not exists."));
         return mapper.map(messageEntity);
     }
 

@@ -3,8 +3,10 @@ package org.vicary.repository;
 import org.vicary.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
-    UserEntity findByUserId(String userId);
-    UserEntity findByNick(String nick);
+    Optional<UserEntity> findByUserId(String userId);
+    Optional<UserEntity> findByNick(String nick);
     boolean existsByUserId(String userId);
 }

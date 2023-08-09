@@ -7,6 +7,7 @@ import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendAudio;
 import org.vicary.api_request.send.SendChatAction;
 import org.vicary.api_request.send.SendMessage;
+import org.vicary.entity.UserEntity;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.model.YouTubeFileResponse;
@@ -39,7 +40,9 @@ public class YouTubeResponse {
         final String userId = update.getMessage().getFrom().getId().toString();
         final String extension = getExtension(text);
         final String youtubeId = YoutubePattern.getYoutubeId(text);
-        final boolean premium = userService.findByUserId(userId).getPremium();
+        final boolean premium = userService.findByUserId(userId)
+                .map(UserEntity::getPremium)
+                .orElse(false);
 
         final YouTubeFileRequest request = YouTubeFileRequest.builder()
                 .youtubeId(youtubeId)

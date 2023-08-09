@@ -16,6 +16,8 @@ import org.vicary.api_object.stickers.Sticker;
 import org.vicary.api_object.telegram_passport.PassportData;
 import org.vicary.api_object.video.*;
 
+import java.util.Optional;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Data

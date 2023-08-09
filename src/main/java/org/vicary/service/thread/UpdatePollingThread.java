@@ -4,6 +4,7 @@ import org.vicary.api_object.UpdateResponse;
 import org.vicary.api_object.Update;
 import org.vicary.configuration.BotInfo;
 import org.vicary.end_point.EndPoint;
+import org.vicary.service.ActiveRequestService;
 import org.vicary.service.UpdateReceiverService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
@@ -17,20 +18,23 @@ import java.util.concurrent.Executors;
 @Service
 public class UpdatePollingThread implements Runnable {
     private final UpdateReceiverService updateReceiverService;
+    private final ActiveRequestService activeRequestService;
     private final WebClient client;
     private final Thread thread;
     private final ExecutorService executorService;
     private List<Update> updates;
 
-    @Autowired
     public UpdatePollingThread(UpdateReceiverService updateReceiverService,
+                               ActiveRequestService activeRequestService,
                                WebClient client) {
         this.updateReceiverService = updateReceiverService;
+        this.activeRequestService = activeRequestService;
         this.client = client;
 
         this.thread = new Thread(this);
         thread.start();
         executorService = Executors.newCachedThreadPool();
+        activeRequestService.deleteAllActiveUsers();
     }
 
     @Override

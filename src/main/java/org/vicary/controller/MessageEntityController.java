@@ -16,7 +16,7 @@ public class MessageEntityController {
     @GetMapping(path = "/api/message/{messageId}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public MessageEntityResponse getMessageByMessageId(@PathVariable Long messageId) {
-        return service.getMessageById(messageId);
+        return service.getMessageResponseById(messageId);
     }
     @GetMapping(path = "/api/message")
     @ResponseStatus(HttpStatus.ACCEPTED)
