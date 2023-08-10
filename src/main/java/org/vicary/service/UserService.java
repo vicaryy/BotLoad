@@ -30,24 +30,27 @@ public class UserService {
         return repository.findByNick(nick);
     }
 
-    public void updateUserToPremiumByUserId(String userId) {
+    public boolean updateUserToPremiumByUserId(String userId) {
         UserEntity updatedUser = findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("User by id: " + userId + "does not exists!"));
         updatedUser.setPremium(true);
         saveUser(updatedUser);
+        return true;
     }
 
-    public void updateUserToPremiumByNick(String nick) {
+    public boolean updateUserToPremiumByNick(String nick) {
         UserEntity updatedUser = findByUserNick(nick)
                 .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + " does not exists!"));
         updatedUser.setPremium(true);
         saveUser(updatedUser);
+        return true;
     }
 
-    public void updateUserToStandardByNick(String nick) {
+    public boolean updateUserToStandardByNick(String nick) {
         UserEntity updatedUser = findByUserNick(nick)
                 .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + "does not exists!"));
         updatedUser.setPremium(false);
         saveUser(updatedUser);
+        return true;
     }
 }

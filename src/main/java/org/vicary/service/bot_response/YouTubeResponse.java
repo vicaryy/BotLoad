@@ -11,7 +11,7 @@ import org.vicary.entity.UserEntity;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.model.YouTubeFileResponse;
-import org.vicary.pattern.YoutubePattern;
+import org.vicary.service.youtube.YoutubePattern;
 import org.vicary.service.RequestService;
 import org.vicary.service.UserService;
 import org.vicary.service.YouTubeFileService;
@@ -19,6 +19,7 @@ import org.vicary.service.youtube.YouTubeDownloader;
 import org.vicary.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Set;
 
 @Service
@@ -32,14 +33,15 @@ public class YouTubeResponse {
     private final YouTubeFileService youTubeFileService;
 
     private final UserService userService;
-    private final Set<String> availableExtensions = Set.of("mp3", "mp4", "m4a");
+    private final Set<String> availableExtensions = Set.of("mp3", "m4a", "flac");
 
     public void response(Update update) throws Exception {
         final String chatId = update.getChatId();
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
         final String extension = getExtension(text);
-        final String youtubeId = YoutubePattern.getYoutubeId(text);
+        final String youtubeUrl = Arrays.stream(text.split(" ")).findFirst().get();
+        final String youtubeId = YoutubePattern.getYoutubeId(youtubeUrl);
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
                 .orElse(false);
@@ -53,6 +55,12 @@ public class YouTubeResponse {
 
         if (availableExtensions.contains(extension))
             sendFile(request);
+        else {
+            requestService.sendRequestAsync(SendMessage.builder()
+                    .chatId(chatId)
+                    .text("Sorry but I can't identify the extension.")
+                    .build());
+        }
     }
 
     public void sendFile(YouTubeFileRequest request) throws Exception {
@@ -148,6 +156,7 @@ public class YouTubeResponse {
         final String releaseYear = response.getReleaseYear();
         final String duration = convertSecondsToMinutes(response.getDuration());
         final String size = convertBytesToMB(response.getSize());
+        final String extension = response.getExtension();
         final String quality = response.getPremium() ? "Premium" : "Standard";
 
         fileInfo.append(MarkdownV2.apply(receivedInfo).toItalic().newlineAfter().get());
@@ -178,6 +187,10 @@ public class YouTubeResponse {
         if (size != null) {
             fileInfo.append(MarkdownV2.apply("Size: ").toBold().newlineBefore().get());
             fileInfo.append(MarkdownV2.apply(size).get());
+        }
+        if (extension != null) {
+            fileInfo.append(MarkdownV2.apply("Extension: ").toBold().newlineBefore().get());
+            fileInfo.append(MarkdownV2.apply(extension).get());
         }
         fileInfo.append(MarkdownV2.apply("Quality: ").toBold().newlineBefore().get());
         fileInfo.append(MarkdownV2.apply(quality).get());

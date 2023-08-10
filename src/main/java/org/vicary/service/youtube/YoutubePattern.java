@@ -1,5 +1,6 @@
-package org.vicary.pattern;
+package org.vicary.service.youtube;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
