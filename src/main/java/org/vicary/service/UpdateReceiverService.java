@@ -15,11 +15,17 @@ import java.util.Arrays;
 @Service
 @RequiredArgsConstructor
 public class UpdateReceiverService {
+
     private final MessageEntityService messageEntityService;
+
     private final YouTubeResponse youtubeResponse;
+
     private final UserMapper userMapper;
+
     private final ActiveRequestService activeRequestService;
+
     private final UserService userService;
+
     private final AdminResponse adminResponse;
 
     public void updateReceiver(Update update) {

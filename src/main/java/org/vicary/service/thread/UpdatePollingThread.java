@@ -4,6 +4,7 @@ import org.vicary.api_object.UpdateResponse;
 import org.vicary.api_object.Update;
 import org.vicary.configuration.BotInfo;
 import org.vicary.end_point.EndPoint;
+import org.vicary.exception.BotSendException;
 import org.vicary.service.ActiveRequestService;
 import org.vicary.service.UpdateReceiverService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,15 +42,16 @@ public class UpdatePollingThread implements Runnable {
     public void run() {
         try {
             Thread.sleep(1000);
-//            resetUpdates();
-        } catch (Exception e) {
+            // resetUpdates();
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
 
         while (true) {
             try {
                 updates = getUpdates();
             } catch (Exception e) {
-                System.out.println("Connection lost.");
+                System.err.println("Connection lost, attempting to reconnect...");
             }
             if (updates != null && updates.size() < 6) {
                 for (Update update : updates) {
@@ -63,61 +65,61 @@ public class UpdatePollingThread implements Runnable {
                 try {
                     Thread.sleep(1500);
                 } catch (Exception e) {
-                    System.out.println("Something goes wrong.");
+                    System.err.println("Something goes wrong.");
                 }
 
             }
         }
     }
 
-        public List<Update> getUpdates () throws Exception {
-            String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
+    public List<Update> getUpdates() throws BotSendException {
+        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
 
-            UpdateResponse response = client
-                    .get()
-                    .uri(pollUrl)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
-                    })
-                    .block();
+        UpdateResponse response = client
+                .get()
+                .uri(pollUrl)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
+                })
+                .block();
 
-            if (response.getResult().isEmpty())
-                return null;
+        if (response.getResult().isEmpty())
+            return null;
 
-            int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
+        int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
 
-            String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
+        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
 
-            client.get()
-                    .uri(deletePollUrl)
-                    .retrieve()
-                    .bodyToMono(UpdateResponse.class)
-                    .block();
-            return response.getResult();
-        }
-
-        public void resetUpdates () throws Exception {
-            String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
-
-            UpdateResponse response = client
-                    .get()
-                    .uri(pollUrl)
-                    .retrieve()
-                    .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
-                    })
-                    .block();
-
-            if (response.getResult().isEmpty())
-                return;
-
-            int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
-
-            String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
-
-            client.get()
-                    .uri(deletePollUrl)
-                    .retrieve()
-                    .bodyToMono(UpdateResponse.class)
-                    .block();
-        }
+        client.get()
+                .uri(deletePollUrl)
+                .retrieve()
+                .bodyToMono(UpdateResponse.class)
+                .block();
+        return response.getResult();
     }
+
+    public void resetUpdates() throws BotSendException {
+        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
+
+        UpdateResponse response = client
+                .get()
+                .uri(pollUrl)
+                .retrieve()
+                .bodyToMono(new ParameterizedTypeReference<UpdateResponse<Update>>() {
+                })
+                .block();
+
+        if (response.getResult().isEmpty())
+            return;
+
+        int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
+
+        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
+
+        client.get()
+                .uri(deletePollUrl)
+                .retrieve()
+                .bodyToMono(UpdateResponse.class)
+                .block();
+    }
+}

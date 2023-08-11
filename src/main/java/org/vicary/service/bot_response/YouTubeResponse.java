@@ -63,6 +63,17 @@ public class YouTubeResponse {
         }
     }
 
+    public void sendMessage(String text, String chatId) {
+        try {
+            requestService.sendRequestAsync(SendMessage.builder()
+                    .chatId(chatId)
+                    .text(text)
+                    .build());
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void sendFile(YouTubeFileRequest request) throws Exception {
         // preparing message and chat action to send
         final String gotTheLinkInfo = MarkdownV2.apply("Got the link!").toBold().newlineAfter().get();
