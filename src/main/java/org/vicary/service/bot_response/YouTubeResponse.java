@@ -1,6 +1,8 @@
 package org.vicary.service.bot_response;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.edit_message.EditMessageText;
@@ -11,6 +13,7 @@ import org.vicary.entity.UserEntity;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.model.YouTubeFileResponse;
+import org.vicary.service.quick_sender.QuickSender;
 import org.vicary.service.youtube.YoutubePattern;
 import org.vicary.service.RequestService;
 import org.vicary.service.UserService;
@@ -25,6 +28,7 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 public class YouTubeResponse {
+    private final static Logger logger = LoggerFactory.getLogger(YouTubeResponse.class);
 
     private final YouTubeDownloader youtubeDownloader;
 
@@ -33,6 +37,8 @@ public class YouTubeResponse {
     private final YouTubeFileService youTubeFileService;
 
     private final UserService userService;
+
+    private final QuickSender quickSender;
     private final Set<String> availableExtensions = Set.of("mp3", "m4a", "flac");
 
     public void response(Update update) throws Exception {
@@ -55,23 +61,8 @@ public class YouTubeResponse {
 
         if (availableExtensions.contains(extension))
             sendFile(request);
-        else {
-            requestService.sendRequestAsync(SendMessage.builder()
-                    .chatId(chatId)
-                    .text("Sorry but I can't identify the extension.")
-                    .build());
-        }
-    }
-
-    public void sendMessage(String text, String chatId) {
-        try {
-            requestService.sendRequestAsync(SendMessage.builder()
-                    .chatId(chatId)
-                    .text(text)
-                    .build());
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
+        else
+            quickSender.message(chatId, "Sorry but I can't identify the extension.", false);
     }
 
     public void sendFile(YouTubeFileRequest request) throws Exception {
@@ -80,22 +71,11 @@ public class YouTubeResponse {
         final String holdOnInfo = MarkdownV2.apply("Just hold on for a moment.").newlineAfter().get();
         final String sendingInfo = MarkdownV2.apply("Sending...").toItalic().newlineBefore().get();
         final String errorInfo = MarkdownV2.apply("Sorry but something goes wrong.").toBold().get();
+        final String chatId = request.getChatId();
 
         Message botMessageInfo;
-        SendMessage sendMessage = SendMessage.builder()
-                .chatId(request.getChatId())
-                .disableNotification(true)
-                .text(gotTheLinkInfo + holdOnInfo)
-                .parseMode("MarkdownV2")
-                .build();
-        SendChatAction sendChatAction = SendChatAction.builder()
-                .chatId(request.getChatId())
-                .action("typing")
-                .build();
-
-        // sending message and chat action
-        botMessageInfo = requestService.sendRequest(sendMessage);
-        requestService.sendRequest(sendChatAction);
+        botMessageInfo = quickSender.messageWithReturn(chatId, gotTheLinkInfo + holdOnInfo, true);
+        quickSender.chatAction(chatId, "typing");
 
         // setting editMessageText to request
         EditMessageText editMessageText = EditMessageText.builder()
@@ -109,7 +89,6 @@ public class YouTubeResponse {
         // getting youtube file
         YouTubeFileResponse response = youtubeDownloader.download(request);
 
-        System.out.println(response.getDownloadedFile());
         if (response.getDownloadedFile() != null) {
             // preparing audio object to send
             SendAudio sendAudio = SendAudio.builder()
@@ -122,15 +101,14 @@ public class YouTubeResponse {
                     .build();
 
             // sending audio to telegram chat
-            System.out.printf("\n[send] Sending file to chatId: %s", request.getChatId());
+            logger.info("[send] Sending file '{}' to chatId '{}'", request.getYoutubeId(), request.getChatId());
             request.getEditMessageText().setText(request.getEditMessageText().getText() + sendingInfo);
-            sendChatAction.setActionOnUploadDocument();
-            requestService.sendRequest(sendChatAction);
+            quickSender.chatAction(chatId, "upload_document");
             requestService.sendRequestAsync(request.getEditMessageText());
             Message sendFileMessage = requestService.sendRequest(sendAudio);
             editMessageText.setText(getReceivedFileInfo(response));
-            requestService.sendRequestAsync(editMessageText);
-            System.out.printf("\n[send] File sent successfully.\n");
+            quickSender.editMessageText(editMessageText);
+            logger.info("[send] File sent successfully.");
 
             // deleting thumbnail
             if (response.getThumbnail() != null)
@@ -152,7 +130,7 @@ public class YouTubeResponse {
             }
         } else {
             request.getEditMessageText().setText(errorInfo);
-            requestService.sendRequestAsync(request.getEditMessageText());
+            quickSender.editMessageText(request.getEditMessageText());
         }
     }
 

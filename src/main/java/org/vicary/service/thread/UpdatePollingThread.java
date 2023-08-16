@@ -1,5 +1,7 @@
 package org.vicary.service.thread;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.vicary.api_object.UpdateResponse;
@@ -19,13 +21,13 @@ import java.util.concurrent.Executors;
 
 @Service
 public class UpdatePollingThread implements Runnable {
+    private static final Logger logger = LoggerFactory.getLogger(UpdatePollingThread.class);
     private final UpdateReceiverService updateReceiverService;
     private final ActiveRequestService activeRequestService;
     private final WebClient client;
     private final Thread thread;
     private final ExecutorService executorService;
     private List<Update> updates;
-
     private static final int BREAK_BEFORE_START = 1000; // milliseconds
     private static final int TRYING_TO_RECONNECT_DELAY = 4000; // milliseconds
     private static final int EXECUTING_THREADS_DELAY = 150; // milliseconds
@@ -42,13 +44,12 @@ public class UpdatePollingThread implements Runnable {
         this.thread = new Thread(this);
         thread.start();
         executorService = Executors.newCachedThreadPool();
-        activeRequestService.deleteAllActiveUsers();
     }
 
     @Override
     public void run() {
         sleep(BREAK_BEFORE_START);
-
+        activeRequestService.deleteAllActiveUsers();
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 updates = getUpdates();
@@ -58,19 +59,17 @@ public class UpdatePollingThread implements Runnable {
             } catch (WebClientRequestException ex) {
                 handleWebClientRequestException(ex);
             }
-
             executeUpdates();
             sleep(GET_UPDATES_DELAY);
         }
     }
 
     public void executeUpdates() {
-        if (updates != null && updates.size() < MAX_UPDATES_SIZE) {
-            for (Update update : updates) {
+        if (updates != null && updates.size() < MAX_UPDATES_SIZE)
+            for (Update update : updates)
                 executorService.execute(() -> updateReceiverService.updateReceiver(update));
-                sleep(EXECUTING_THREADS_DELAY);
-            }
-        }
+
+        sleep(EXECUTING_THREADS_DELAY);
     }
 
     public StackTraceElement printLocation() {
@@ -81,21 +80,18 @@ public class UpdatePollingThread implements Runnable {
     }
 
     public void handleWebClientResponseException(WebClientResponseException ex) {
-        System.err.println("---------------------------");
-        System.err.println("Error in Polling Thread:");
-        System.err.println("Status code: " + ex.getStatusCode());
-        System.err.println("Description: " + ex.getStatusText());
-        System.err.println("Check your bot token etc. and try again.");
-        System.err.println("---------------------------");
+        logger.error("---------------------------");
+        logger.error("Status code: " + ex.getStatusCode());
+        logger.error("Description: " + ex.getStatusText());
+        logger.error("Check your bot token etc. and try again.");
+        logger.error("---------------------------");
     }
 
     public void handleWebClientRequestException(WebClientRequestException ex) {
-        System.err.println("---------------------------");
-        System.err.println("Error in Polling Thread:");
-        System.err.println("Location: " + printLocation());
-        System.err.println("Can't connect to Telegram, check your internet connection.");
-        System.err.println("Trying to reconnect...");
-        System.err.println("---------------------------");
+        logger.warn("---------------------------");
+        logger.warn("Can't connect to Telegram, check your internet connection.");
+        logger.warn("Trying to reconnect...");
+        logger.warn("---------------------------");
         sleep(TRYING_TO_RECONNECT_DELAY);
     }
 
@@ -107,7 +103,7 @@ public class UpdatePollingThread implements Runnable {
         }
     }
 
-    public List<Update> getUpdates() {
+    public List<Update> getUpdates() throws WebClientResponseException, WebClientRequestException{
         String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
 
         UpdateResponse<Update> response = client
@@ -134,7 +130,7 @@ public class UpdatePollingThread implements Runnable {
         return response.getResult();
     }
 
-    public void resetUpdates() throws BotSendException {
+    public void resetUpdates() throws WebClientResponseException, WebClientRequestException {
         String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
 
         UpdateResponse<Update> response = client
@@ -148,7 +144,7 @@ public class UpdatePollingThread implements Runnable {
         if (response.getResult().isEmpty())
             return;
 
-        int offset = ((Update) response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
+        int offset = (response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
 
         String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
 

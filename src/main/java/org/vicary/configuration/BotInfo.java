@@ -13,7 +13,7 @@ public class BotInfo {
     }
 
     public static String GET_URL() {
-        return apiBotConfiguration.getApiUrl() + "bot" + apiBotConfiguration.getBotToken();
+        return apiBotConfiguration.getApiUrl() + apiBotConfiguration.getBotToken();
     }
 
     public static String GET_BOT_USERNAME() {

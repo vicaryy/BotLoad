@@ -1,6 +1,10 @@
 package org.vicary.service;
 
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.vicary.api_object.File;
 import org.vicary.api_object.RequestResponse;
 import org.vicary.api_object.RequestResponseList;
@@ -32,7 +36,7 @@ public class RequestService {
         this.typeReferences = typeReferences;
     }
 
-    public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws BotSendException {
+    public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
@@ -46,7 +50,7 @@ public class RequestService {
         return (ReturnObject) response.getResult();
     }
 
-    public <Request extends ApiRequestList<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws BotSendException {
+    public <Request extends ApiRequestList<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
@@ -60,7 +64,7 @@ public class RequestService {
         return (ReturnObject) response.getResult();
     }
 
-    public <Request extends ApiRequest> void sendRequestAsync(Request request) throws BotSendException {
+    public <Request extends ApiRequest> void sendRequestAsync(Request request) throws RestClientException {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
@@ -68,7 +72,7 @@ public class RequestService {
         restTemplate.postForEntity(url, request, null);
     }
 
-    public Message sendRequest(SendPhoto sendPhoto) throws Exception {
+    public Message sendRequest(SendPhoto sendPhoto) {
         sendPhoto.checkValidation();
         String url = BotInfo.GET_URL() + sendPhoto.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -85,7 +89,7 @@ public class RequestService {
 
         bodyBuilder.part("parse_mode", sendPhoto.getParseMode());
 
-        if (sendPhoto.getParseMode().equals("") && sendPhoto.getCaptionEntities() != null)
+        if (sendPhoto.getParseMode().isEmpty() && sendPhoto.getCaptionEntities() != null)
             bodyBuilder.part("caption_entities", sendPhoto.getCaptionEntities());
 
         if (sendPhoto.getHasSpoiler() != null)
@@ -106,7 +110,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendRequest(SendAudio sendAudio) throws BotSendException {
+    public Message sendRequest(SendAudio sendAudio) {
         sendAudio.checkValidation();
         String url = BotInfo.GET_URL() + sendAudio.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -153,7 +157,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendRequest(SendDocument sendDocument) throws BotSendException {
+    public Message sendRequest(SendDocument sendDocument) {
         sendDocument.checkValidation();
         String url = BotInfo.GET_URL() + sendDocument.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -194,7 +198,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendRequest(SendVideo sendVideo) throws BotSendException {
+    public Message sendRequest(SendVideo sendVideo) {
         sendVideo.checkValidation();
         String url = BotInfo.GET_URL() + sendVideo.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -247,7 +251,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendRequest(SendAnimation sendAnimation) throws BotSendException {
+    public Message sendRequest(SendAnimation sendAnimation) {
         sendAnimation.checkValidation();
         String url = BotInfo.GET_URL() + sendAnimation.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -297,7 +301,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendRequest(SendVoice sendVoice) throws BotSendException {
+    public Message sendRequest(SendVoice sendVoice) {
         sendVoice.checkValidation();
         String url = BotInfo.GET_URL() + sendVoice.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -335,7 +339,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendRequest(SendVideoNote sendVideoNote) throws BotSendException {
+    public Message sendRequest(SendVideoNote sendVideoNote) {
         sendVideoNote.checkValidation();
         String url = BotInfo.GET_URL() + sendVideoNote.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -371,7 +375,7 @@ public class RequestService {
         return sendRequest(url, bodyBuilder);
     }
 
-    public Message sendSticker(SendSticker sendSticker) throws BotSendException {
+    public Message sendSticker(SendSticker sendSticker) {
         sendSticker.checkValidation();
         String url = BotInfo.GET_URL() + sendSticker.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
@@ -402,7 +406,7 @@ public class RequestService {
     }
 
 
-    public Message sendRequest(String url, MultipartBodyBuilder bodyBuilder) throws BotSendException {
+    public Message sendRequest(String url, MultipartBodyBuilder bodyBuilder) throws WebClientRequestException, WebClientResponseException {
         RequestResponse response = (RequestResponse) client
                 .post()
                 .uri(url)
@@ -414,26 +418,20 @@ public class RequestService {
         return (Message) response.getResult();
     }
 
-    private void inputFile(InputFile inputFile, MultipartBodyBuilder bodyBuilder, String methodName) throws BotSendException {
+
+    public void inputFile(InputFile inputFile, MultipartBodyBuilder bodyBuilder, String methodName) {
         inputFile.checkValidation(methodName);
         String fileId = inputFile.getFileId();
 
         if (fileId != null) {
             GetFile getFile = new GetFile(fileId);
-            File file = null;
-            file = sendRequest(getFile);
+            File file = sendRequest(getFile);
             if (file != null) {
                 bodyBuilder.part(methodName, fileId);
                 return;
             } else
-                throw new IllegalArgumentException("fileId: " + fileId + " does not exists on Telegram server.");
+                throw new NoSuchElementException("fileId: " + fileId + " does not exists on Telegram server.");
         }
-
-        if (inputFile.getFile() == null)
-            throw new NoSuchElementException("File cannot be null if fileId does not exists on Telegram server.");
-
-        if (!inputFile.getFile().exists())
-            throw new NoSuchElementException("File does not exist. \nFile path: " + inputFile.getFile().getPath());
 
         java.io.File file = inputFile.getFile();
         if (file != null) {

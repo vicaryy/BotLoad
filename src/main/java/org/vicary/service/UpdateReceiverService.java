@@ -1,20 +1,30 @@
 package org.vicary.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
 import org.vicary.entity.ActiveRequestEntity;
 import org.vicary.service.bot_response.AdminResponse;
+import org.vicary.service.quick_sender.QuickSender;
 import org.vicary.service.youtube.YoutubePattern;
 import org.vicary.service.bot_response.YouTubeResponse;
 import org.vicary.service.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class UpdateReceiverService {
+    private static final Logger logger = LoggerFactory.getLogger(UpdateReceiverService.class);
+
+    private final QuickSender quickSender;
 
     private final MessageEntityService messageEntityService;
 
@@ -32,14 +42,17 @@ public class UpdateReceiverService {
         User user = update.getMessage().getFrom();
         String text = update.getMessage().getText();
         String userId = user.getId().toString();
+        String chatId = update.getChatId();
 
 
         // SAVING MESSAGE TO REPOSITORY
         messageEntityService.save(update);
 
         // ADDING NEW USER TO USER REPOSITORY
-        if (!userService.existsByUserId(user.getId().toString()))
+        if (!userService.existsByUserId(user.getId().toString())) {
             userService.saveUser(userMapper.map(user));
+            logger.info("New user with id '{}' saved to repository.", userId);
+        }
 
         // CHECKING IF USER IS NOT ALREADY IN REQUESTS REPO
         if (!activeRequestService.existsByUserId(userId)) {
@@ -50,8 +63,18 @@ public class UpdateReceiverService {
                 String url = Arrays.stream(text.trim().split(" ")).findFirst().orElse("");
                 if (YoutubePattern.checkUrlValidation(url))
                     youtubeResponse.response(update);
-            } catch (Exception e) {
-                e.printStackTrace();
+            } catch (WebClientResponseException ex) {
+                logger.warn("---------------------------");
+                logger.warn("Status code: " + ex.getStatusCode());
+                logger.warn("Description: " + ex.getStatusText());
+                logger.warn("---------------------------");
+                quickSender.message(chatId, "Sorry, but something goes wrong.", false);
+            } catch (WebClientRequestException | IllegalArgumentException | NoSuchElementException | IOException ex) {
+                logger.warn("Expected exception: ", ex);
+                quickSender.message(chatId, "Sorry, but something goes wrong.", false);
+            } catch (Exception ex) {
+                logger.warn("Unexpected exception: ", ex);
+                quickSender.message(chatId, "Sorry, but something goes wrong.", false);
             }
 
             // DELETE USER FROM ACTIVE REQUESTS
@@ -60,7 +83,7 @@ public class UpdateReceiverService {
 
 
         // ADMIN STUFF
-        if (userId.equals("1935527130"))
+        if (userService.isUserAdmin(userId))
             adminResponse.response(update);
     }
 }
