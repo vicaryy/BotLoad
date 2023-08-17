@@ -9,13 +9,14 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
+import org.vicary.info.YouTubeDownloaderInfo;
 import org.vicary.model.YouTubeFileInfo;
 import org.vicary.model.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 import org.vicary.model.YouTubeFileResponse;
-import org.vicary.service.RequestService;
 import org.vicary.service.YouTubeFileService;
 import org.vicary.service.mapper.YouTubeFileMapper;
+import org.vicary.service.quick_sender.QuickSender;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -30,19 +31,19 @@ import java.util.concurrent.ThreadLocalRandom;
 public class YouTubeDownloader {
     private final static Logger logger = LoggerFactory.getLogger(YouTubeDownloader.class);
 
-    private final RequestService requestService;
-
     private final YouTubeFileService youTubeFileService;
 
     private final YouTubeFileMapper mapper;
 
     private final YouTubeCommand commands;
 
-    private final YouTubeInfo info;
+    private final YouTubeDownloaderInfo info;
+
+    private final QuickSender quickSender;
 
     private final Gson gson;
 
-    public YouTubeFileResponse download(YouTubeFileRequest request) throws WebClientRequestException, WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
+    public YouTubeFileResponse download(YouTubeFileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         boolean fileDownloaded = false;
         boolean fileConverted = false;
@@ -54,7 +55,7 @@ public class YouTubeDownloader {
         String fileSize = null;
 
         // getting youtube file info
-        editMessageText = sendEditMessageText(editMessageText, editMessageText.getText() + info.getConnectingToYoutubeInfo());
+        editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToYoutube());
         YouTubeFileResponse response = getFileInfo(request, processBuilder);
         response.setExtension(extension);
         response.setPremium(request.getPremium());
@@ -66,7 +67,7 @@ public class YouTubeDownloader {
         // if file is not in repo then download FILE
         if (response.getDownloadedFile() == null) {
             filePath = String.format("%s%s.%s", commands.getPath(), response.getTitle(), extension);
-            editMessageText.setText(editMessageText.getText() + info.getFileDownloadingInfo());
+            editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
             processBuilder.command(commands.getFileCommand(response));
             Process process = processBuilder.start();
             logger.info("[download] Downloading YouTube file '{}'", response.getYoutubeId());
@@ -84,7 +85,7 @@ public class YouTubeDownloader {
                     }
 
                     if (!fileConverted && isFileConverting(line)) {
-                        editMessageText = sendEditMessageText(editMessageText, editMessageText.getText() + info.getConvertingInfo(extension));
+                        editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConverting(extension));
                         logger.info("[convert] Successfully converted to {} file '{}'", response.getExtension(), response.getYoutubeId());
                         fileConverted = true;
                     }
@@ -92,7 +93,7 @@ public class YouTubeDownloader {
                     if (fileSize == null) {
                         fileSize = getFileSize(line);
                         if (fileSize != null && !checkFileSizeProcessBuilder(fileSize)) {
-                            editMessageText = sendEditMessageText(editMessageText, info.getFileTooBigInfo() + info.getUpTo50MBInfo());
+                            editMessageText = quickSender.editMessageText(editMessageText, info.getFileTooBig() + info.getUpTo50Mb());
                             logger.warn("Size of file '{}' is too big. File size: {}", response.getYoutubeId(), fileSize);
                             process.destroy();
                         }
@@ -105,7 +106,7 @@ public class YouTubeDownloader {
                 String oldFilePath = filePath;
                 filePath = correctFilePath(filePath, extension, response.getYoutubeId());
                 if (!oldFilePath.equals(filePath)) {
-                    editMessageText = sendEditMessageText(editMessageText, editMessageText.getText() + info.getRenamingInfo());
+                    editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getRenaming());
                 }
                 File downladedFile = new File(filePath);
                 response.setDownloadedFile(InputFile.builder()
@@ -117,7 +118,7 @@ public class YouTubeDownloader {
         // downloading thumbnail
         final String thumbnailName = generateUniqueName() + ".jpg";
         String thumbnailPath = null;
-        editMessageText.setText(editMessageText.getText() + info.getThumbDownloadingInfo());
+        editMessageText.setText(editMessageText.getText() + info.getThumbnailDownloading());
 
         processBuilder.command(commands.getThumbnailCommand(thumbnailName, request.getYoutubeId()));
         Process process = processBuilder.start();
@@ -197,14 +198,8 @@ public class YouTubeDownloader {
                     newText.append(s + " ");
 
             if (!oldText.contentEquals(newText))
-                sendEditMessageText(editMessageText, newText.toString());
+                quickSender.editMessageText(editMessageText, newText.toString());
         }
-        return editMessageText;
-    }
-
-    public EditMessageText sendEditMessageText(EditMessageText editMessageText, String text) {
-        editMessageText.setText(text);
-        requestService.sendRequestAsync(editMessageText);
         return editMessageText;
     }
 
@@ -275,7 +270,7 @@ public class YouTubeDownloader {
     public void checkFileSize(Long size, EditMessageText editMessageText, String youtubeId) {
         long fileSize = size / (1024 * 1024);
         if (fileSize > 50) {
-            sendEditMessageText(editMessageText, info.getFileTooBigInfo() + info.getUpTo50MBInfo());
+            quickSender.editMessageText(editMessageText, info.getFileTooBig() + info.getUpTo50Mb());
             logger.warn("Size of file '{}' is too big. File size: {}MB", youtubeId, fileSize);
             throw new IllegalArgumentException("File size cannot be more than 50MB." +
                                                "\n Your file size: " + fileSize + "MB.");

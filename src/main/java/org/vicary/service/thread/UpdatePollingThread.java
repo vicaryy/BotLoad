@@ -8,7 +8,6 @@ import org.vicary.api_object.UpdateResponse;
 import org.vicary.api_object.Update;
 import org.vicary.configuration.BotInfo;
 import org.vicary.end_point.EndPoint;
-import org.vicary.exception.BotSendException;
 import org.vicary.service.ActiveRequestService;
 import org.vicary.service.UpdateReceiverService;
 import org.springframework.core.ParameterizedTypeReference;

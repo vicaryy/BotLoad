@@ -7,11 +7,10 @@ import org.vicary.api_object.Update;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendAudio;
-import org.vicary.api_request.send.SendChatAction;
-import org.vicary.api_request.send.SendMessage;
 import org.vicary.entity.UserEntity;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
+import org.vicary.info.YouTubeResponseInfo;
 import org.vicary.model.YouTubeFileResponse;
 import org.vicary.service.quick_sender.QuickSender;
 import org.vicary.service.youtube.YoutubePattern;
@@ -32,9 +31,11 @@ public class YouTubeResponse {
 
     private final YouTubeDownloader youtubeDownloader;
 
-    private final RequestService requestService;
+    private final YouTubeResponseInfo info;
 
     private final YouTubeFileService youTubeFileService;
+
+    private final RequestService requestService;
 
     private final UserService userService;
 
@@ -62,26 +63,22 @@ public class YouTubeResponse {
         if (availableExtensions.contains(extension))
             sendFile(request);
         else
-            quickSender.message(chatId, "Sorry but I can't identify the extension.", false);
+            quickSender.message(chatId, info.getWrongExtension(), false);
     }
 
     public void sendFile(YouTubeFileRequest request) throws Exception {
         // preparing message and chat action to send
-        final String gotTheLinkInfo = MarkdownV2.apply("Got the link!").toBold().newlineAfter().get();
-        final String holdOnInfo = MarkdownV2.apply("Just hold on for a moment.").newlineAfter().get();
-        final String sendingInfo = MarkdownV2.apply("Sending...").toItalic().newlineBefore().get();
-        final String errorInfo = MarkdownV2.apply("Sorry but something goes wrong.").toBold().get();
         final String chatId = request.getChatId();
 
         Message botMessageInfo;
-        botMessageInfo = quickSender.messageWithReturn(chatId, gotTheLinkInfo + holdOnInfo, true);
+        botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
         quickSender.chatAction(chatId, "typing");
 
         // setting editMessageText to request
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId(request.getChatId())
                 .messageId(botMessageInfo.getMessageId())
-                .text(gotTheLinkInfo + holdOnInfo)
+                .text(info.getGotTheLink() + info.getHoldOn())
                 .parseMode("MarkdownV2")
                 .build();
         request.setEditMessageText(editMessageText);
@@ -102,12 +99,11 @@ public class YouTubeResponse {
 
             // sending audio to telegram chat
             logger.info("[send] Sending file '{}' to chatId '{}'", request.getYoutubeId(), request.getChatId());
-            request.getEditMessageText().setText(request.getEditMessageText().getText() + sendingInfo);
+            request.getEditMessageText().setText(request.getEditMessageText().getText() + info.getSending());
             quickSender.chatAction(chatId, "upload_document");
             requestService.sendRequestAsync(request.getEditMessageText());
             Message sendFileMessage = requestService.sendRequest(sendAudio);
-            editMessageText.setText(getReceivedFileInfo(response));
-            quickSender.editMessageText(editMessageText);
+            quickSender.editMessageText(editMessageText, getReceivedFileInfo(response));
             logger.info("[send] File sent successfully.");
 
             // deleting thumbnail
@@ -129,15 +125,13 @@ public class YouTubeResponse {
                         .build());
             }
         } else {
-            request.getEditMessageText().setText(errorInfo);
-            quickSender.editMessageText(request.getEditMessageText());
+            quickSender.editMessageText(request.getEditMessageText(), info.getError());
         }
     }
 
     public String getReceivedFileInfo(YouTubeFileResponse response) {
         StringBuilder fileInfo = new StringBuilder();
 
-        final String receivedInfo = "Here's your file";
         final String title = response.getTitle();
         final String artist = response.getArtist();
         final String track = response.getTrack();
@@ -148,40 +142,40 @@ public class YouTubeResponse {
         final String extension = response.getExtension();
         final String quality = response.getPremium() ? "Premium" : "Standard";
 
-        fileInfo.append(MarkdownV2.apply(receivedInfo).toItalic().newlineAfter().get());
+        fileInfo.append(MarkdownV2.apply(info.getReceived()).toItalic().newlineAfter().get());
         if (track == null) {
-            fileInfo.append(MarkdownV2.apply("Title: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getTitle());
             fileInfo.append(MarkdownV2.apply(title).get());
         }
         if (artist != null) {
-            fileInfo.append(MarkdownV2.apply("Artist: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getArtist());
             fileInfo.append(MarkdownV2.apply(artist).get());
         }
         if (track != null) {
-            fileInfo.append(MarkdownV2.apply("Track: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getTrack());
             fileInfo.append(MarkdownV2.apply(track).get());
         }
         if (album != null) {
-            fileInfo.append(MarkdownV2.apply("Album: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getAlbum());
             fileInfo.append(MarkdownV2.apply(album).get());
         }
         if (releaseYear != null) {
-            fileInfo.append(MarkdownV2.apply("Release Year: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getReleaseYear());
             fileInfo.append(MarkdownV2.apply(releaseYear).get());
         }
         if (duration != null) {
-            fileInfo.append(MarkdownV2.apply("Duration: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getDuration());
             fileInfo.append(MarkdownV2.apply(duration).get());
         }
         if (size != null) {
-            fileInfo.append(MarkdownV2.apply("Size: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getSize());
             fileInfo.append(MarkdownV2.apply(size).get());
         }
         if (extension != null) {
-            fileInfo.append(MarkdownV2.apply("Extension: ").toBold().newlineBefore().get());
+            fileInfo.append(info.getExtension());
             fileInfo.append(MarkdownV2.apply(extension).get());
         }
-        fileInfo.append(MarkdownV2.apply("Quality: ").toBold().newlineBefore().get());
+        fileInfo.append(info.getQuality());
         fileInfo.append(MarkdownV2.apply(quality).get());
 
         return fileInfo.toString();

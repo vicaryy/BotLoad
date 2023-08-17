@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendChatAction;
@@ -38,13 +40,14 @@ public class QuickSender {
                 .build();
         try {
             return requestService.sendRequest(sendMessage);
-        } catch (RestClientException ex) {
-            logger.warn("Error in sending message request, message: {}", ex.getMessage());
+        } catch (WebClientRequestException | WebClientResponseException ex) {
+            logger.warn("Error in sending message with return request, message: {}", ex.getMessage());
         }
         return null;
     }
 
-    public EditMessageText editMessageText(EditMessageText editMessageText) {
+    public EditMessageText editMessageText(EditMessageText editMessageText, String text) {
+        editMessageText.setText(text);
         try {
             requestService.sendRequestAsync(editMessageText);
         } catch (RestClientException ex) {

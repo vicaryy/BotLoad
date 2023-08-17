@@ -20,7 +20,6 @@ import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.vicary.exception.BotSendException;
 
 import java.util.NoSuchElementException;
 

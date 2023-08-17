@@ -47,6 +47,7 @@ public class UpdateReceiverService {
 
         // SAVING MESSAGE TO REPOSITORY
         messageEntityService.save(update);
+        logger.info("Got message from user id '{}'", userId);
 
         // ADDING NEW USER TO USER REPOSITORY
         if (!userService.existsByUserId(user.getId().toString())) {
@@ -75,15 +76,15 @@ public class UpdateReceiverService {
             } catch (Exception ex) {
                 logger.warn("Unexpected exception: ", ex);
                 quickSender.message(chatId, "Sorry, but something goes wrong.", false);
+            } finally {
+                // DELETE USER FROM ACTIVE REQUESTS
+                activeRequestService.deleteById(request.getId());
             }
 
-            // DELETE USER FROM ACTIVE REQUESTS
-            activeRequestService.deleteById(request.getId());
+
+            // ADMIN STUFF
+            if (userService.isUserAdmin(userId))
+                adminResponse.response(update);
         }
-
-
-        // ADMIN STUFF
-        if (userService.isUserAdmin(userId))
-            adminResponse.response(update);
     }
 }
