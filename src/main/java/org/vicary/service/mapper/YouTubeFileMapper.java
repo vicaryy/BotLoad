@@ -1,8 +1,8 @@
 package org.vicary.service.mapper;
 
 import org.springframework.stereotype.Component;
-import org.vicary.model.YouTubeFileInfo;
-import org.vicary.model.YouTubeFileResponse;
+import org.vicary.model.youtube.YouTubeFileInfo;
+import org.vicary.model.youtube.YouTubeFileResponse;
 
 @Component
 public class YouTubeFileMapper {

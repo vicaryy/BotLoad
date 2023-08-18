@@ -1,4 +1,4 @@
-package org.vicary.model;
+package org.vicary.model.youtube;
 
 import lombok.*;
 import org.vicary.api_request.InputFile;

@@ -1,4 +1,4 @@
-package org.vicary.model;
+package org.vicary.model.youtube;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;

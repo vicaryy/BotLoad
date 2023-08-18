@@ -1,4 +1,4 @@
-package org.vicary.model;
+package org.vicary.model.youtube;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

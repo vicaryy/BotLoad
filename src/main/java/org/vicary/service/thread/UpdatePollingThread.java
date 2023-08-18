@@ -65,10 +65,10 @@ public class UpdatePollingThread implements Runnable {
 
     public void executeUpdates() {
         if (updates != null && updates.size() < MAX_UPDATES_SIZE)
-            for (Update update : updates)
+            for (Update update : updates) {
                 executorService.execute(() -> updateReceiverService.updateReceiver(update));
-
-        sleep(EXECUTING_THREADS_DELAY);
+                sleep(EXECUTING_THREADS_DELAY);
+            }
     }
 
     public StackTraceElement printLocation() {
@@ -102,7 +102,7 @@ public class UpdatePollingThread implements Runnable {
         }
     }
 
-    public List<Update> getUpdates() throws WebClientResponseException, WebClientRequestException{
+    public List<Update> getUpdates() throws WebClientResponseException, WebClientRequestException {
         String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
 
         UpdateResponse<Update> response = client

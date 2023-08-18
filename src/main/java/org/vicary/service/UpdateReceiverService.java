@@ -8,9 +8,11 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
 import org.vicary.entity.ActiveRequestEntity;
+import org.vicary.pattern.twitter.TwitterPattern;
 import org.vicary.service.bot_response.AdminResponse;
+import org.vicary.service.bot_response.TwitterResponse;
 import org.vicary.service.quick_sender.QuickSender;
-import org.vicary.service.youtube.YoutubePattern;
+import org.vicary.pattern.youtube.YoutubePattern;
 import org.vicary.service.bot_response.YouTubeResponse;
 import org.vicary.service.mapper.UserMapper;
 import org.springframework.stereotype.Service;
@@ -26,9 +28,7 @@ public class UpdateReceiverService {
 
     private final QuickSender quickSender;
 
-    private final MessageEntityService messageEntityService;
-
-    private final YouTubeResponse youtubeResponse;
+    private final MessageEntityService messageEntityService;;
 
     private final UserMapper userMapper;
 
@@ -38,9 +38,13 @@ public class UpdateReceiverService {
 
     private final AdminResponse adminResponse;
 
+    private final YouTubeResponse youtubeResponse;
+
+    private final TwitterResponse twitterResponse;
+
     public void updateReceiver(Update update) {
         User user = update.getMessage().getFrom();
-        String text = update.getMessage().getText();
+        String text = update.getMessage().getText().trim();
         String userId = user.getId().toString();
         String chatId = update.getChatId();
 
@@ -62,17 +66,19 @@ public class UpdateReceiverService {
 
             try {
                 String url = Arrays.stream(text.trim().split(" ")).findFirst().orElse("");
+
                 if (YoutubePattern.checkUrlValidation(url))
                     youtubeResponse.response(update);
+                else if (TwitterPattern.checkUrlValidation(url))
+                    twitterResponse.response(update);
+
             } catch (WebClientResponseException ex) {
                 logger.warn("---------------------------");
                 logger.warn("Status code: " + ex.getStatusCode());
                 logger.warn("Description: " + ex.getStatusText());
                 logger.warn("---------------------------");
-                quickSender.message(chatId, "Sorry, but something goes wrong.", false);
             } catch (WebClientRequestException | IllegalArgumentException | NoSuchElementException | IOException ex) {
                 logger.warn("Expected exception: ", ex);
-                quickSender.message(chatId, "Sorry, but something goes wrong.", false);
             } catch (Exception ex) {
                 logger.warn("Unexpected exception: ", ex);
                 quickSender.message(chatId, "Sorry, but something goes wrong.", false);

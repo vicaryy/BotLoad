@@ -1,4 +1,4 @@
-package org.vicary.service.youtube;
+package org.vicary.pattern.youtube;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -25,5 +25,9 @@ public class YoutubePattern {
             return matcher.group(1).length() == 11;
         }
         return false;
+    }
+
+    public static String getUrl(String text) {
+        return Arrays.stream(text.split(" ")).findFirst().orElse("");
     }
 }

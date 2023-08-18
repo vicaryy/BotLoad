@@ -32,8 +32,20 @@ public class MarkdownV2 {
         return this;
     }
 
+    public MarkdownV2 newlineBefore(int amountOfLines) {
+        for (int i = 0; i < amountOfLines; i++)
+            sb.insert(0, "\n");
+        return this;
+    }
+
     public MarkdownV2 newlineAfter() {
         sb.insert(sb.length(), "\n");
+        return this;
+    }
+
+    public MarkdownV2 newlineAfter(int amountOfLines) {
+        for (int i = 0; i < amountOfLines; i++)
+            sb.insert(sb.length(), "\n");
         return this;
     }
 

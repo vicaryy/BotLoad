@@ -1,8 +1,8 @@
-package org.vicary.service.youtube;
+package org.vicary.command;
 
 import lombok.Getter;
 import org.springframework.stereotype.Component;
-import org.vicary.model.YouTubeFileResponse;
+import org.vicary.model.youtube.YouTubeFileResponse;
 
 @Component
 public class YouTubeCommand {
@@ -41,20 +41,8 @@ public class YouTubeCommand {
         return command;
     }
 
-    public String[] getFileDataCommand(String youtubeId){
+    public String[] getFileInfoCommand(String youtubeId){
         String[] command = {ytDlpCommand, fileInfoCommand, youtubeUrl + youtubeId};
         return command;
     }
-
-
-    public String[] getRenameFileCommand(String oldFileName, String newFileName) {
-        String[] command = {renameCommand, oldFileName, newFileName};
-        return command;
-    }
-
-    public String[] getRemoveFileCommand(String fileName) {
-        String[] command = {deleteCommand, fileName};
-        return command;
-    }
-
 }
