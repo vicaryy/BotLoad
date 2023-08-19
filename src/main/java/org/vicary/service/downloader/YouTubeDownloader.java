@@ -102,26 +102,25 @@ public class YouTubeDownloader {
                     }
                 }
             }
-        }
+            File downloadedFile = new File(filePath);
+            if (downloadedFile.exists()) {
+                Long downloadedFileSize = downloadedFile.length();
+                checkFileSize(downloadedFileSize, editMessageText, response.getYoutubeId());
 
-        File downloadedFile = new File(filePath);
-        if (downloadedFile.exists()) {
-            Long downloadedFileSize = downloadedFile.length();
-            checkFileSize(downloadedFileSize, editMessageText, response.getYoutubeId());
+                String oldFileName = downloadedFile.getName();
+                downloadedFile = correctFilePath(downloadedFile, extension);
 
-            String oldFileName = downloadedFile.getName();
-            downloadedFile = correctFilePath(downloadedFile, extension);
+                if (!oldFileName.equals(downloadedFile.getName()))
+                    editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getRenaming());
 
-            if (!oldFileName.equals(downloadedFile.getName()))
-                editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getRenaming());
-
-            response.setSize(downloadedFileSize);
-            response.setDownloadedFile(InputFile.builder()
-                    .file(downloadedFile)
-                    .build());
-        } else {
-            quickSender.editMessageText(editMessageText, info.getErrorInDownloading() + info.getTryAgainLater());
-            throw new NoSuchElementException(String.format("File '%s' did not download.", response.getYoutubeId()));
+                response.setSize(downloadedFileSize);
+                response.setDownloadedFile(InputFile.builder()
+                        .file(downloadedFile)
+                        .build());
+            } else {
+                quickSender.editMessageText(editMessageText, info.getErrorInDownloading() + info.getTryAgainLater());
+                throw new NoSuchElementException(String.format("File '%s' did not download.", response.getYoutubeId()));
+            }
         }
 
         // downloading thumbnail

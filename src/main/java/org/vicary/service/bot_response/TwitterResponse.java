@@ -1,7 +1,5 @@
 package org.vicary.service.bot_response;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.edit_message.EditMessageText;
-import org.vicary.api_request.send.SendDocument;
+import org.vicary.api_request.send.SendVideo;
 import org.vicary.entity.TwitterFileEntity;
 import org.vicary.entity.UserEntity;
 import org.vicary.format.MarkdownV2;
@@ -76,16 +74,21 @@ public class TwitterResponse {
         TwitterFileResponse response = twitterDownloader.download(request);
 
         // preparing document to send
-        SendDocument sendDocument = SendDocument.builder()
+//        SendDocument sendDocument = SendDocument.builder()
+//                .chatId(request.getChatId())
+//                .document(response.getDownloadedFile())
+//                .build();
+        SendVideo sendVideo = SendVideo.builder()
                 .chatId(request.getChatId())
-                .document(response.getDownloadedFile())
+                .video(response.getDownloadedFile())
+                .duration(response.getDuration())
                 .build();
 
         // sending document to telegram chat
         logger.info("[send] Sending file '{}' to chatId '{}'", response.getTwitterId(), request.getChatId());
         quickSender.chatAction(chatId, "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
-        Message sendFileMessage = requestService.sendRequest(sendDocument);
+        Message sendFileMessage = requestService.sendRequest(sendVideo);
         quickSender.editMessageText(editMessageText, getReceivedFileInfo(response));
         logger.info("[send] File sent successfully.");
 
@@ -102,35 +105,36 @@ public class TwitterResponse {
                     .build());
         }
         // deleting downloaded files
-        TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
+        if (response.getDownloadedFile().getFile() != null)
+            TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
     }
 
     public String getReceivedFileInfo(TwitterFileResponse response) {
-        StringBuilder fileInfo = new StringBuilder();
-
-        final String title = response.getTitle();
+        final int maxTitleLength = 250;
+        String title = response.getTitle();
         final String duration = Converter.secondsToMinutes(response.getDuration());
         final String size = Converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
         final String quality = response.getPremium() ? "Premium" : "Standard";
 
+        if (response.getTitle().length() > maxTitleLength)
+            title = title.substring(0, maxTitleLength) + "...";
+
+        StringBuilder fileInfo = new StringBuilder();
         fileInfo.append(MarkdownV2.apply(info.getReceived()).toItalic().newlineAfter().get());
-        if (title != null) {
-            fileInfo.append(info.getTitle());
-            fileInfo.append(MarkdownV2.apply(title).get());
-        }
-        if (duration != null) {
-            fileInfo.append(info.getDuration());
-            fileInfo.append(MarkdownV2.apply(duration).get());
-        }
-        if (size != null) {
-            fileInfo.append(info.getSize());
-            fileInfo.append(MarkdownV2.apply(size).get());
-        }
-        if (extension != null) {
-            fileInfo.append(info.getExtension());
-            fileInfo.append(MarkdownV2.apply(extension).get());
-        }
+
+        fileInfo.append(info.getTitle());
+        fileInfo.append(MarkdownV2.apply(title).get());
+
+        fileInfo.append(info.getDuration());
+        fileInfo.append(MarkdownV2.apply(duration).get());
+
+        fileInfo.append(info.getSize());
+        fileInfo.append(MarkdownV2.apply(size).get());
+
+        fileInfo.append(info.getExtension());
+        fileInfo.append(MarkdownV2.apply(extension).get());
+
         fileInfo.append(info.getQuality());
         fileInfo.append(MarkdownV2.apply(quality).get());
 

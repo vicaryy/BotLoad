@@ -114,7 +114,8 @@ public class YouTubeResponse {
         }
 
         // deleting downloaded files
-        TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
+        if (response.getDownloadedFile().getFile() != null)
+            TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
         TerminalExecutor.removeFile(response.getThumbnail().getFile());
     }
 

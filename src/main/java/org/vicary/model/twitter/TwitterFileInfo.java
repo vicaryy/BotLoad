@@ -20,6 +20,9 @@ public class TwitterFileInfo {
     @SerializedName("duration")
     private Double duration;
 
+    @SerializedName("uploader_url")
+    private String uploaderUrl;
+
     private final String extension = "mp4";
 
     public Integer getDuration() {

@@ -16,7 +16,7 @@ public class TerminalExecutor {
     private static final TerminalCommand commands = new TerminalCommand();
 
     public static void removeFile(File file) {
-        if (!file.exists()) {
+        if (file == null || !file.exists()) {
             logger.warn("File '{}' does not exists.", file.getName());
             return;
         }

@@ -10,14 +10,11 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.TwitterCommand;
 import org.vicary.entity.TwitterFileEntity;
-import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.TwitterDownloaderInfo;
 import org.vicary.model.twitter.TwitterFileInfo;
 import org.vicary.model.twitter.TwitterFileRequest;
 import org.vicary.model.twitter.TwitterFileResponse;
-import org.vicary.model.youtube.YouTubeFileInfo;
-import org.vicary.model.youtube.YouTubeFileResponse;
 import org.vicary.service.Converter;
 import org.vicary.service.TerminalExecutor;
 import org.vicary.service.TwitterFileService;
@@ -52,65 +49,64 @@ public class TwitterDownloader {
 
     public TwitterFileResponse download(TwitterFileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.directory(new File(commands.getPath()));
         EditMessageText editMessageText = request.getEditMessageText();
-        String extension = request.getExtension();
-
-        String filePath = "";
         String fileSize = null;
 
-        // getting youtube file info
+        // SENDING INFO ABOUT CONNECTING TO TWITTER
         editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToTwitter());
+
+        // GETTING TWITTER FILE INFO
         TwitterFileResponse response = getFileInfo(request, processBuilder);
-        response.setExtension(extension);
+        response.setExtension(request.getExtension());
         response.setPremium(request.getPremium());
         response.setUrl(request.getUrl());
 
-        // checks if file already exists in repository
+        // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
         response = getFileFromRepository(response);
+        if (response.getDownloadedFile() != null) {
+            return response;
+        }
 
-        // if file is not in repo then download FILE
-        if (response.getDownloadedFile() == null) {
-            filePath = String.format("%s%s.%s", commands.getPath(), response.getTitle(), extension);
-            editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
-            logger.info("[download] Downloading Twitter file '{}'", response.getTwitterId());
+        // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
+        // SENDING INFO ABOUT DOWNLOADING FILE
+        logger.info("[download] Downloading Twitter file '{}'", response.getTwitterId());
 
-            processBuilder.command(commands.downloadFile(response));
-            Process process = processBuilder.start();
-            boolean fileDownloaded = false;
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = br.readLine()) != null) {
+        String fileName = getFileNameFromTitle(response.getTitle());
+        String filePath = commands.getPath() + fileName;
+        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-                    if (!fileDownloaded) {
-                        editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
-                        if (request.getEditMessageText().getText().contains("100%")) {
-                            logger.info("[download] Successfully downloaded file '{}'", response.getTwitterId());
-                            fileDownloaded = true;
-                        }
+        processBuilder.command(commands.downloadFile(response.getUrl(), filePath));
+        boolean fileDownloaded = false;
+        Process process = processBuilder.start();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+                if (!fileDownloaded) {
+                    editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
+                    if (request.getEditMessageText().getText().contains("100%")) {
+                        logger.info("[download] Successfully downloaded file '{}'", response.getTwitterId());
+                        fileDownloaded = true;
                     }
+                }
 
-                    if (fileSize == null) {
-                        fileSize = getFileSize(line);
-                        if (fileSize != null && !checkFileSizeProcessBuilder(fileSize)) {
-                            editMessageText = quickSender.editMessageText(editMessageText, info.getFileTooBig() + info.getFileTooBigExplanation());
-                            logger.warn("Size of file '{}' is too big. File size: {}", response.getTwitterId(), fileSize);
-                            process.destroy();
-                        }
+                checkExtractingUrl(line, editMessageText);
+
+                if (fileSize == null) {
+                    fileSize = getFileSize(line);
+                    if (fileSize != null && !checkFileSizeProcessBuilder(fileSize)) {
+                        editMessageText = quickSender.editMessageText(editMessageText, info.getFileTooBig() + info.getFileTooBigExplanation());
+                        logger.warn("Size of file '{}' is too big. File size: {}", response.getTwitterId(), fileSize);
+                        process.destroy();
                     }
                 }
             }
         }
-
         File downloadedFile = new File(filePath);
         if (downloadedFile.exists()) {
             Long downloadedFileSize = downloadedFile.length();
             checkFileSize(downloadedFileSize, editMessageText, response.getTwitterId());
-
-            String oldFileName = downloadedFile.getName();
-            downloadedFile = correctFilePath(downloadedFile, extension);
-
-            if (!oldFileName.equals(downloadedFile.getName()))
-                editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getRenaming());
 
             response.setSize(downloadedFileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -124,25 +120,62 @@ public class TwitterDownloader {
         return response;
     }
 
+    public void checkExtractingUrl(String line, EditMessageText editMessageText) {
+        if (line.contains("Extracting URL:"))
+            if (!line.contains("twitter.com/")) {
+                quickSender.editMessageText(editMessageText, info.getNoVideo() + info.getNoVideoExplanation());
+                throw new IllegalArgumentException("Twitter URL without video but in description is link to other service.");
+            }
+    }
+
     public TwitterFileResponse getFileInfo(TwitterFileRequest request, ProcessBuilder processBuilder) throws IOException {
-        StringBuilder sb = new StringBuilder();
+        String fileInfoInJson = "";
+        int amountOfFiles = 0;
+        int multiVideoNumber = request.getMultiVideoNumber();
+        final int multiVideoMaxAmount = 15;
 
         processBuilder.command(commands.downloadFileInfo(request.getUrl()));
         Process process = processBuilder.start();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
-            while ((line = br.readLine()) != null)
-                sb.append(line);
+            while ((line = br.readLine()) != null) {
+                amountOfFiles++;
+
+                if(amountOfFiles > 1 && multiVideoNumber == 1) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideo() + info.getMultiVideoExplanation());
+                    throw new IllegalArgumentException(String.format("Twitter URL '%s' is a multi-video link and user do not specify which video he want.", request.getUrl()));
+                }
+
+                if (amountOfFiles > multiVideoMaxAmount) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideoAmountTooHigh() + info.getMultiVideoAmountTooHighExplanation());
+                    throw new IllegalArgumentException(String.format("Amount of multi-video Twitter URL '%s' is too high, more than 15.", request.getUrl()));
+                }
+
+                TwitterFileInfo fileInfo = gson.fromJson(line, TwitterFileInfo.class);
+                String uploaderUrl = fileInfo.getUploaderUrl();
+                if (uploaderUrl == null || !uploaderUrl.contains("twitter.com/")) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
+                    throw new IllegalArgumentException(String.format("No video in Twitter URL '%s' and other service URL in description.", request.getUrl()));
+                }
+
+                if (amountOfFiles == multiVideoNumber) {
+                    fileInfoInJson = line;
+                    process.destroy();
+                    break;
+                }
+            }
         } catch (IOException ex) {
             throw new IOException(ex.getMessage());
         }
 
-        if (sb.isEmpty()) {
+        logger.info("AMOUNT OF INFO FILES: {}", amountOfFiles);
+
+        if (fileInfoInJson.isEmpty()) {
             quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
-            throw new IllegalArgumentException(String.format("Twitter file info is null, twitter url '%s'", request.getUrl()));
+            throw new IllegalArgumentException(String.format("No video in Twitter URL '%s'", request.getUrl()));
         }
-        TwitterFileInfo twitterFileInfo = gson.fromJson(sb.toString(), TwitterFileInfo.class);
+        TwitterFileInfo twitterFileInfo = gson.fromJson(fileInfoInJson, TwitterFileInfo.class);
         return mapper.map(twitterFileInfo);
     }
 
@@ -178,10 +211,6 @@ public class TwitterDownloader {
         return editMessageText;
     }
 
-    public Boolean isFileConverting(String line) {
-        return line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/");
-    }
-
     public String getDownloadProgress(String line) {
         if (line.contains("[download]")) {
             String[] s = line.split(" ");
@@ -193,7 +222,7 @@ public class TwitterDownloader {
     }
 
 
-    public File correctFilePath(File file, String extension) {
+    public File correctFileName(File file, String extension) {
         int maxFileNameLength = 63;
         String oldFileName = file.getName();
         String newFileName = oldFileName;
@@ -208,6 +237,22 @@ public class TwitterDownloader {
             return file;
 
         return TerminalExecutor.renameFile(file, newFileName);
+    }
+
+    public String getFileNameFromTitle(String title) {
+        int maxFileNameLength = 59;
+        String newTitle = title;
+
+        if (newTitle.length() > maxFileNameLength)
+            newTitle = newTitle.substring(0, 59);
+
+        newTitle = newTitle.replaceAll("&|⧸⧹", "and");
+        newTitle = newTitle.replaceAll("[/⧸||｜–\\\\]", "-");
+
+        if (newTitle.length() > maxFileNameLength)
+            newTitle = newTitle.substring(0, 59);
+
+        return newTitle + ".mp4";
     }
 
     public boolean checkFileSizeProcessBuilder(String fileSize) {
