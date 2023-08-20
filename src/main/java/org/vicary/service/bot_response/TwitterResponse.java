@@ -41,6 +41,7 @@ public class TwitterResponse {
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
         final String twitterUrl = TwitterPattern.getUrl(text);
+        final int multiVideoNumber = getMultiVideoNumber(text);
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
                 .orElse(false);
@@ -49,6 +50,7 @@ public class TwitterResponse {
                 .url(twitterUrl)
                 .chatId(chatId)
                 .premium(premium)
+                .multiVideoNumber(multiVideoNumber)
                 .build();
 
         sendFile(request);
@@ -73,11 +75,7 @@ public class TwitterResponse {
         // getting youtube file
         TwitterFileResponse response = twitterDownloader.download(request);
 
-        // preparing document to send
-//        SendDocument sendDocument = SendDocument.builder()
-//                .chatId(request.getChatId())
-//                .document(response.getDownloadedFile())
-//                .build();
+        // preparing video to send
         SendVideo sendVideo = SendVideo.builder()
                 .chatId(request.getChatId())
                 .video(response.getDownloadedFile())
@@ -101,6 +99,7 @@ public class TwitterResponse {
                     .size(Converter.bytesToMB(response.getSize()))
                     .duration(Converter.secondsToMinutes(response.getDuration()))
                     .title(response.getTitle())
+                    .url(response.getUrl())
                     .fileId(sendFileMessage.getVideo().getFileId())
                     .build());
         }
@@ -139,5 +138,22 @@ public class TwitterResponse {
         fileInfo.append(MarkdownV2.apply(quality).get());
 
         return fileInfo.toString();
+    }
+
+    public int getMultiVideoNumber(String text) {
+        String[] array = text.split(" ");
+        int number = 0;
+        if (array.length > 1) {
+            String multiVideo = array[1];
+            if (multiVideo.startsWith("#")) {
+                multiVideo = multiVideo.substring(1);
+                try {
+                    number = Integer.parseInt(multiVideo);
+                } catch (NumberFormatException ex) {
+                    logger.info("User type wrong multi-video number '{}'.", array[1]);
+                }
+            }
+        }
+        return Math.max(number, 0);
     }
 }

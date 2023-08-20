@@ -19,7 +19,7 @@ public class TwitterFileRequest {
 
     private final String extension = "mp4";
 
-    private final Integer multiVideoNumber = 2;
+    private int multiVideoNumber;
 
     private EditMessageText editMessageText;
 }

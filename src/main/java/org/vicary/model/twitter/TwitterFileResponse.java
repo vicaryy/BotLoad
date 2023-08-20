@@ -28,5 +28,7 @@ public class TwitterFileResponse {
 
     private InputFile downloadedFile;
 
+    private Integer multiVideoNumber;
+
     private EditMessageText editMessageText;
 }

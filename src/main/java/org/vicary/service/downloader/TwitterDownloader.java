@@ -58,9 +58,6 @@ public class TwitterDownloader {
 
         // GETTING TWITTER FILE INFO
         TwitterFileResponse response = getFileInfo(request, processBuilder);
-        response.setExtension(request.getExtension());
-        response.setPremium(request.getPremium());
-        response.setUrl(request.getUrl());
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
         response = getFileFromRepository(response);
@@ -68,21 +65,20 @@ public class TwitterDownloader {
             return response;
         }
 
-        // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
-        // SENDING INFO ABOUT DOWNLOADING FILE
-        logger.info("[download] Downloading Twitter file '{}'", response.getTwitterId());
 
+        // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
         String fileName = getFileNameFromTitle(response.getTitle());
         String filePath = commands.getPath() + fileName;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-        processBuilder.command(commands.downloadFile(response.getUrl(), filePath));
+        processBuilder.command(commands.downloadFile(response.getUrl(), filePath, request.getMultiVideoNumber()));
         boolean fileDownloaded = false;
         Process process = processBuilder.start();
+        // SENDING INFO ABOUT DOWNLOADING FILE
+        logger.info("[download] Downloading Twitter file '{}'", response.getTwitterId());
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
                 if (!fileDownloaded) {
                     editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
                     if (request.getEditMessageText().getText().contains("100%")) {
@@ -116,6 +112,8 @@ public class TwitterDownloader {
             quickSender.editMessageText(editMessageText, info.getErrorInDownloading() + info.getTryAgainLater());
             throw new NoSuchElementException(String.format("File '%s' did not download.", response.getTwitterId()));
         }
+        response.setExtension(request.getExtension());
+        response.setPremium(request.getPremium());
         response.setEditMessageText(editMessageText);
         return response;
     }
@@ -131,7 +129,8 @@ public class TwitterDownloader {
     public TwitterFileResponse getFileInfo(TwitterFileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
         int amountOfFiles = 0;
-        int multiVideoNumber = request.getMultiVideoNumber();
+        int multiVideoNumber = request.getMultiVideoNumber() == 0 ? 1 : request.getMultiVideoNumber();
+        boolean specify = request.getMultiVideoNumber() != 0;
         final int multiVideoMaxAmount = 15;
 
         processBuilder.command(commands.downloadFileInfo(request.getUrl()));
@@ -142,7 +141,14 @@ public class TwitterDownloader {
             while ((line = br.readLine()) != null) {
                 amountOfFiles++;
 
-                if(amountOfFiles > 1 && multiVideoNumber == 1) {
+                TwitterFileInfo fileInfo = gson.fromJson(line, TwitterFileInfo.class);
+                String uploaderUrl = fileInfo.getUploaderUrl();
+                if (uploaderUrl == null || !uploaderUrl.contains("twitter.com/")) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
+                    throw new IllegalArgumentException(String.format("No video in Twitter URL '%s' and other service URL in description.", request.getUrl()));
+                }
+
+                if (amountOfFiles > 1 && !specify) {
                     quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideo() + info.getMultiVideoExplanation());
                     throw new IllegalArgumentException(String.format("Twitter URL '%s' is a multi-video link and user do not specify which video he want.", request.getUrl()));
                 }
@@ -152,30 +158,26 @@ public class TwitterDownloader {
                     throw new IllegalArgumentException(String.format("Amount of multi-video Twitter URL '%s' is too high, more than 15.", request.getUrl()));
                 }
 
-                TwitterFileInfo fileInfo = gson.fromJson(line, TwitterFileInfo.class);
-                String uploaderUrl = fileInfo.getUploaderUrl();
-                if (uploaderUrl == null || !uploaderUrl.contains("twitter.com/")) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
-                    throw new IllegalArgumentException(String.format("No video in Twitter URL '%s' and other service URL in description.", request.getUrl()));
-                }
-
                 if (amountOfFiles == multiVideoNumber) {
                     fileInfoInJson = line;
-                    process.destroy();
-                    break;
                 }
             }
         } catch (IOException ex) {
+            process.destroy();
             throw new IOException(ex.getMessage());
         }
 
-        logger.info("AMOUNT OF INFO FILES: {}", amountOfFiles);
+        if (fileInfoInJson.isEmpty() && multiVideoNumber > amountOfFiles) {
+            quickSender.editMessageText(request.getEditMessageText(), info.getReceivedWrongNumberInMultiVideo(amountOfFiles, multiVideoNumber));
+            throw new IllegalArgumentException(String.format("No video in multi-video Twitter URL '%s'", request.getUrl()));
+        }
 
         if (fileInfoInJson.isEmpty()) {
             quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
             throw new IllegalArgumentException(String.format("No video in Twitter URL '%s'", request.getUrl()));
         }
         TwitterFileInfo twitterFileInfo = gson.fromJson(fileInfoInJson, TwitterFileInfo.class);
+        System.out.println(twitterFileInfo);
         return mapper.map(twitterFileInfo);
     }
 

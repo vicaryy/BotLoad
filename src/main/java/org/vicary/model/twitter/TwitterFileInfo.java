@@ -1,15 +1,13 @@
 package org.vicary.model.twitter;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString
 public class TwitterFileInfo {
     @SerializedName("id")
     private String id;
@@ -22,6 +20,9 @@ public class TwitterFileInfo {
 
     @SerializedName("uploader_url")
     private String uploaderUrl;
+
+    @SerializedName("webpage_url")
+    private String URL;
 
     private final String extension = "mp4";
 

@@ -28,7 +28,8 @@ public class UpdateReceiverService {
 
     private final QuickSender quickSender;
 
-    private final MessageEntityService messageEntityService;;
+    private final MessageEntityService messageEntityService;
+    ;
 
     private final UserMapper userMapper;
 
@@ -43,6 +44,9 @@ public class UpdateReceiverService {
     private final TwitterResponse twitterResponse;
 
     public void updateReceiver(Update update) {
+        if (update.getMessage() == null)
+            return;
+
         User user = update.getMessage().getFrom();
         String text = update.getMessage().getText().trim();
         String userId = user.getId().toString();

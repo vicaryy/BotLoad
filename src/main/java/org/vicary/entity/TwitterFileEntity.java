@@ -37,6 +37,9 @@ public class TwitterFileEntity {
     @Column(name = "TITLE")
     private String title;
 
+    @Column(name = "URL")
+    private String url;
+
     @Column(name = "FILE_ID")
     @NonNull
     private String fileId;

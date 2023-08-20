@@ -15,10 +15,12 @@ public class TwitterCommand {
     private final String maxFileSize = "45M";
     private final String netrcCommand = "--netrc";
     private final String fileInfoCommand = "-j";
+    private final String multiVideoNumberCommand = "--playlist-items";
 
 
-    public String[] downloadFile(String url, String fileName) {
-        String[] command = {ytDlpCommand, netrcCommand, embedThumbnailCommand, maxFileSizeCommand, maxFileSize, pathCommand, fileName, url};
+    public String[] downloadFile(String url, String fileName, int multiVideoNumber) {
+        multiVideoNumber = multiVideoNumber == 0 ? 1 : multiVideoNumber;
+        String[] command = {ytDlpCommand, netrcCommand, multiVideoNumberCommand, String.valueOf(multiVideoNumber), embedThumbnailCommand, maxFileSizeCommand, maxFileSize, pathCommand, fileName, url};
         return command;
     }
 

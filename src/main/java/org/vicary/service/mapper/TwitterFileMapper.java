@@ -8,6 +8,7 @@ import org.vicary.model.twitter.TwitterFileResponse;
 public class TwitterFileMapper {
     public TwitterFileResponse map(TwitterFileInfo fileInfo) {
         return TwitterFileResponse.builder()
+                .url(fileInfo.getURL())
                 .twitterId(fileInfo.getId())
                 .title(fileInfo.getTitle())
                 .duration(fileInfo.getDuration())
