@@ -34,53 +34,65 @@ public class UserService {
     }
 
     public boolean isUserAdmin(String userId) {
-        UserEntity userEntity = findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("User by id: " + userId + " does not exists!"));
-        return userEntity.getAdmin();
+        Optional<UserEntity> userEntity = findByUserId(userId);
+        if (userEntity.isPresent()) {
+            return userEntity.get().getAdmin();
+        }
+        return false;
     }
 
     public boolean updateUserToPremiumByUserId(String userId) {
-        UserEntity updatedUser = findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("User by id: " + userId + " does not exists!"));
-        updatedUser.setPremium(true);
-        saveUser(updatedUser);
-        logger.info("User '{}' updated to Premium.", userId);
-        return true;
+        Optional<UserEntity> updatedUser = findByUserId(userId);
+        if (updatedUser.isPresent()) {
+            updatedUser.get().setPremium(true);
+            saveUser(updatedUser.get());
+            logger.info("User '{}' updated to Premium.", userId);
+            return true;
+        }
+        return false;
     }
 
     public boolean updateUserToPremiumByNick(String nick) {
-        UserEntity updatedUser = findByUserNick(nick)
-                .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + " does not exists!"));
-        updatedUser.setPremium(true);
-        saveUser(updatedUser);
-        logger.info("User '{}' updated to Premium.", nick);
-        return true;
+        Optional<UserEntity> updatedUser = findByUserNick(nick);
+        if (updatedUser.isPresent()) {
+            updatedUser.get().setPremium(true);
+            saveUser(updatedUser.get());
+            logger.info("User '{}' updated to Premium.", nick);
+            return true;
+        }
+        return false;
     }
 
     public boolean updateUserToStandardByNick(String nick) {
-        UserEntity updatedUser = findByUserNick(nick)
-                .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + " does not exists!"));
-        updatedUser.setPremium(false);
-        saveUser(updatedUser);
-        logger.info("User '{}' updated to Standard.", nick);
-        return true;
+        Optional<UserEntity> updatedUser = findByUserNick(nick);
+        if (updatedUser.isPresent()) {
+            updatedUser.get().setPremium(false);
+            saveUser(updatedUser.get());
+            logger.info("User '{}' updated to Standard.", nick);
+            return true;
+        }
+        return false;
     }
 
     public boolean updateUserToAdminByNick(String nick) {
-        UserEntity updatedUser = findByUserNick(nick)
-                .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + " does not exists!"));
-        updatedUser.setAdmin(true);
-        saveUser(updatedUser);
-        logger.info("User '{}' updated to Admin.", nick);
-        return true;
+        Optional<UserEntity> updatedUser = findByUserNick(nick);
+        if (updatedUser.isPresent()) {
+            updatedUser.get().setAdmin(true);
+            saveUser(updatedUser.get());
+            logger.info("User '{}' updated to Admin.", nick);
+            return true;
+        }
+        return false;
     }
 
     public boolean updateUserToNonAdminByNick(String nick) {
-        UserEntity updatedUser = findByUserNick(nick)
-                .orElseThrow(() -> new NoSuchElementException("User by nick: " + nick + " does not exists!"));
-        updatedUser.setAdmin(false);
-        saveUser(updatedUser);
-        logger.info("User '{}' updated to Non-Admin.", nick);
-        return true;
+        Optional<UserEntity> updatedUser = findByUserNick(nick);
+        if (updatedUser.isPresent()) {
+            updatedUser.get().setAdmin(false);
+            saveUser(updatedUser.get());
+            logger.info("User '{}' updated to Non-Admin.", nick);
+            return true;
+        }
+        return false;
     }
 }

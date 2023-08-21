@@ -1,4 +1,4 @@
-package org.vicary.pattern.youtube;
+package org.vicary.pattern;
 
 import java.util.Arrays;
 import java.util.regex.Matcher;
@@ -16,7 +16,7 @@ public class YoutubePattern {
         return null;
     }
 
-    public static boolean checkUrlValidation(String youtubeUrl) {
+    public static boolean checkURLValidation(String youtubeUrl) {
         Pattern pattern = Pattern.compile(
                 "http(?:s)?:\\/\\/(?:m.)?(?:www\\.)?youtu(?:\\.be\\/|(?:be-nocookie|be)\\.com\\/(?:watch|[\\w]+\\?(?:feature=[\\w]+.[\\w]+\\&)?v=|v\\/|e\\/|embed\\/|live\\/|shorts\\/|user\\/(?:[\\w#]+\\/)+))([^&#?\\n]+)",
                 Pattern.CASE_INSENSITIVE);

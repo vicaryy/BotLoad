@@ -1,4 +1,4 @@
-package org.vicary.service.bot_response;
+package org.vicary.service.response;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import org.vicary.info.YouTubeResponseInfo;
 import org.vicary.model.youtube.YouTubeFileResponse;
 import org.vicary.service.*;
 import org.vicary.service.quick_sender.QuickSender;
-import org.vicary.pattern.youtube.YoutubePattern;
+import org.vicary.pattern.YoutubePattern;
 import org.vicary.service.downloader.YouTubeDownloader;
 import org.vicary.model.youtube.YouTubeFileRequest;
 import org.springframework.stereotype.Service;

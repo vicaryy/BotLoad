@@ -18,8 +18,7 @@ public class MessageEntityService {
     private final MessageRepository repository;
     private final MessageMapper mapper;
 
-    public void save(Update update) {
-        MessageEntity messageEntity = mapper.map(update);
+    public void save(MessageEntity messageEntity) {
         repository.save(messageEntity);
     }
 

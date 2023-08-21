@@ -1,4 +1,4 @@
-package org.vicary.service.bot_response;
+package org.vicary.service.response;
 
 import lombok.RequiredArgsConstructor;
 import org.vicary.api_object.Update;

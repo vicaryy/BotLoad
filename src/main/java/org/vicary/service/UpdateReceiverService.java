@@ -8,12 +8,16 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
 import org.vicary.entity.ActiveRequestEntity;
-import org.vicary.pattern.twitter.TwitterPattern;
-import org.vicary.service.bot_response.AdminResponse;
-import org.vicary.service.bot_response.TwitterResponse;
+import org.vicary.entity.MessageEntity;
+import org.vicary.pattern.TikTokPattern;
+import org.vicary.pattern.TwitterPattern;
+import org.vicary.service.mapper.MessageMapper;
+import org.vicary.service.response.AdminResponse;
+import org.vicary.service.response.TikTokResponse;
+import org.vicary.service.response.TwitterResponse;
 import org.vicary.service.quick_sender.QuickSender;
-import org.vicary.pattern.youtube.YoutubePattern;
-import org.vicary.service.bot_response.YouTubeResponse;
+import org.vicary.pattern.YoutubePattern;
+import org.vicary.service.response.YouTubeResponse;
 import org.vicary.service.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
@@ -29,7 +33,6 @@ public class UpdateReceiverService {
     private final QuickSender quickSender;
 
     private final MessageEntityService messageEntityService;
-    ;
 
     private final UserMapper userMapper;
 
@@ -43,6 +46,10 @@ public class UpdateReceiverService {
 
     private final TwitterResponse twitterResponse;
 
+    private final TikTokResponse tiktokResponse;
+
+    private final MessageMapper messageMapper;
+
     public void updateReceiver(Update update) {
         if (update.getMessage() == null)
             return;
@@ -54,7 +61,7 @@ public class UpdateReceiverService {
 
 
         // SAVING MESSAGE TO REPOSITORY
-        messageEntityService.save(update);
+        messageEntityService.save(messageMapper.map(update));
         logger.info("Got message from user id '{}'", userId);
 
         // ADDING NEW USER TO USER REPOSITORY
@@ -69,12 +76,15 @@ public class UpdateReceiverService {
             var request = activeRequestService.saveActiveUser(new ActiveRequestEntity(userId));
 
             try {
-                String url = Arrays.stream(text.trim().split(" ")).findFirst().orElse("");
+                String URL = getURL(text);
 
-                if (YoutubePattern.checkUrlValidation(url))
+                if (YoutubePattern.checkURLValidation(URL))
                     youtubeResponse.response(update);
-                else if (TwitterPattern.checkUrlValidation(url))
+                else if (TwitterPattern.checkURLValidation(URL))
                     twitterResponse.response(update);
+                else if (TikTokPattern.checkURLValidation(URL))
+                    tiktokResponse.response(update);
+
 
             } catch (WebClientResponseException ex) {
                 logger.warn("---------------------------");
@@ -94,7 +104,11 @@ public class UpdateReceiverService {
 
             // ADMIN STUFF
             if (userService.isUserAdmin(userId))
-                adminResponse.response(update);
+                adminResponse.response(text, chatId);
         }
+    }
+
+    public String getURL(String text) {
+        return Arrays.stream(text.trim().split(" ")).findFirst().orElse("");
     }
 }

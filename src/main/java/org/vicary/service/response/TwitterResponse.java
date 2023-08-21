@@ -1,4 +1,4 @@
-package org.vicary.service.bot_response;
+package org.vicary.service.response;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -14,7 +14,7 @@ import org.vicary.format.MarkdownV2;
 import org.vicary.info.YouTubeResponseInfo;
 import org.vicary.model.twitter.TwitterFileRequest;
 import org.vicary.model.twitter.TwitterFileResponse;
-import org.vicary.pattern.twitter.TwitterPattern;
+import org.vicary.pattern.TwitterPattern;
 import org.vicary.service.*;
 import org.vicary.service.downloader.TwitterDownloader;
 import org.vicary.service.quick_sender.QuickSender;
