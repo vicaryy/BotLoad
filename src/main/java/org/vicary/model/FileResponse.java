@@ -1,4 +1,4 @@
-package org.vicary.model.youtube;
+package org.vicary.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,18 +11,20 @@ import org.vicary.api_request.edit_message.EditMessageText;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class YouTubeFileResponse {
-    private String youtubeId;
+public class FileResponse {
+    private String URL;
+
+    private String id;
 
     private String extension;
 
-    private Boolean premium;
+    private boolean premium;
 
     private String title;
 
-    private Integer duration;
+    private int duration;
 
-    private Long size;
+    private long size;
 
     private String artist;
 
@@ -31,6 +33,8 @@ public class YouTubeFileResponse {
     private String album;
 
     private String releaseYear;
+
+    private int multiVideoNumber;
 
     private InputFile downloadedFile;
 

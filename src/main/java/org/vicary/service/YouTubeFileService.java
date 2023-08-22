@@ -5,7 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.vicary.entity.YouTubeFileEntity;
-import org.vicary.model.youtube.YouTubeFileResponse;
+import org.vicary.model.FileResponse;
 import org.vicary.repository.YoutubeFileRepository;
 
 import java.util.Optional;
@@ -29,10 +29,10 @@ public class YouTubeFileService {
         return repository.existsByYoutubeIdAndExtensionAndQuality(youtubeId, extension, quality);
     }
 
-    public boolean existsInRepo(YouTubeFileResponse response) {
-        String youtubeId = response.getYoutubeId();
+    public boolean existsInRepo(FileResponse response) {
+        String youtubeId = response.getId();
         String extension = response.getExtension();
-        String quality = response.getPremium() ? "premium" : "standard";
+        String quality = response.isPremium() ? "premium" : "standard";
         return existsByYoutubeIdAndExtensionAndQuality(youtubeId, extension, quality);
     }
 }

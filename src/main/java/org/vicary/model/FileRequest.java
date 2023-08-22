@@ -1,4 +1,4 @@
-package org.vicary.model.twitter;
+package org.vicary.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,14 +10,14 @@ import org.vicary.api_request.edit_message.EditMessageText;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TwitterFileRequest {
-    private String url;
+public class FileRequest {
+    private String URL;
 
     private String chatId;
 
-    private Boolean premium;
+    private String extension;
 
-    private final String extension = "mp4";
+    private boolean premium;
 
     private int multiVideoNumber;
 

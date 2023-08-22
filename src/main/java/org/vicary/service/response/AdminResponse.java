@@ -15,16 +15,14 @@ public class AdminResponse {
     private final QuickSender quickSender;
 
     public void response(String text, String chatId) {
-        String userNick = getUserNick(text);
-
         if (text.startsWith("/set premium"))
-            setPremium(userNick, chatId);
+            setPremium(getUserNick(text), chatId);
         else if (text.startsWith("/set standard"))
-            setStandard(userNick, chatId);
+            setStandard(getUserNick(text), chatId);
         else if (text.startsWith("/set admin"))
-            setAdmin(userNick, chatId);
+            setAdmin(getUserNick(text), chatId);
         else if (text.startsWith("/set non-admin"))
-            setNonAdmin(userNick, chatId);
+            setNonAdmin(getUserNick(text), chatId);
     }
 
     public void setPremium(String userNick, String chatId) {

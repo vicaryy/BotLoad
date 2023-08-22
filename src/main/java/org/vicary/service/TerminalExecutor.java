@@ -3,17 +3,16 @@ package org.vicary.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.vicary.command.TerminalCommand;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-@Service
 public class TerminalExecutor {
     private static final Logger logger = LoggerFactory.getLogger(TerminalExecutor.class);
-    private static final TerminalCommand commands = new TerminalCommand();
+    private final static String REMOVE_COMMAND = "rm";
+    private final static String RENAME_COMMAND = "mv";
 
     public static void removeFile(File file) {
         if (file == null || !file.exists()) {
@@ -25,7 +24,7 @@ public class TerminalExecutor {
         File fileDirectory = new File(file.getParent());
 
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(commands.getRemoveFile(), fileName);
+        processBuilder.command(REMOVE_COMMAND, fileName);
         processBuilder.directory(fileDirectory);
         try {
             processBuilder.start();
@@ -40,7 +39,7 @@ public class TerminalExecutor {
         File fileDirectory = new File(file.getParent());
 
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(commands.getRenameCommand(), oldFileName, newFileName);
+        processBuilder.command(RENAME_COMMAND, oldFileName, newFileName);
         processBuilder.directory(fileDirectory);
         try {
             Process process = processBuilder.start();

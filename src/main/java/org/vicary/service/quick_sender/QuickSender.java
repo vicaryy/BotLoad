@@ -19,6 +19,7 @@ public class QuickSender {
     private static final Logger logger = LoggerFactory.getLogger(QuickSender.class);
 
     private final RequestService requestService;
+
     public void message(String chatId, String text, boolean markdownV2) {
         SendMessage sendMessage = SendMessage.builder()
                 .chatId(chatId)
@@ -46,14 +47,13 @@ public class QuickSender {
         return null;
     }
 
-    public EditMessageText editMessageText(EditMessageText editMessageText, String text) {
+    public void editMessageText(EditMessageText editMessageText, String text) {
         editMessageText.setText(text);
         try {
             requestService.sendRequestAsync(editMessageText);
         } catch (RestClientException ex) {
             logger.warn("Error in sending editMessageText request, message: {}", ex.getMessage());
         }
-        return editMessageText;
     }
 
     public void chatAction(String chatId, String action) {

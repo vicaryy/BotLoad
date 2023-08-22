@@ -1,24 +1,18 @@
-package org.vicary.model.youtube;
+package org.vicary.model;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class YouTubeFileInfo {
+public class FileInfo {
     @SerializedName("id")
-    private String youtubeId;
+    private String id;
 
     @SerializedName("title")
     private String title;
 
     @SerializedName("duration")
-    private Integer duration;
+    private double duration;
 
     @SerializedName("artist")
     private String artist;
@@ -31,4 +25,14 @@ public class YouTubeFileInfo {
 
     @SerializedName("release_year")
     private String releaseYear;
+
+    @SerializedName("uploader_url")
+    private String uploaderURL;
+
+    @SerializedName("webpage_url")
+    private String URL;
+
+    public int getDuration() {
+        return (int) Math.round(duration);
+    }
 }

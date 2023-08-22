@@ -8,16 +8,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
-import org.vicary.command.TwitterCommand;
+import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.TwitterFileEntity;
 import org.vicary.format.MarkdownV2;
-import org.vicary.info.TwitterDownloaderInfo;
-import org.vicary.model.twitter.TwitterFileInfo;
-import org.vicary.model.twitter.TwitterFileRequest;
-import org.vicary.model.twitter.TwitterFileResponse;
+import org.vicary.info.DownloaderInfo;
+import org.vicary.model.FileInfo;
+import org.vicary.model.FileRequest;
+import org.vicary.model.FileResponse;
 import org.vicary.service.Converter;
 import org.vicary.service.TwitterFileService;
-import org.vicary.service.mapper.TwitterFileMapper;
+import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
 
 import java.io.BufferedReader;
@@ -30,57 +30,55 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class TwitterDownloader {
-
     private final static Logger logger = LoggerFactory.getLogger(TwitterDownloader.class);
 
     private final QuickSender quickSender;
 
-    private final TwitterDownloaderInfo info;
+    private final DownloaderInfo info;
 
-    private final TwitterCommand commands;
+    private final YtDlpCommand commands;
 
     private final TwitterFileService twitterFileService;
 
-    private final TwitterFileMapper mapper;
+    private final FileInfoMapper mapper;
 
     private final Gson gson;
 
-    public TwitterFileResponse download(TwitterFileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
+    public FileResponse download(FileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.directory(new File(commands.getPath()));
+        processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
-        String fileSize = null;
 
         // SENDING INFO ABOUT CONNECTING TO TWITTER
-        editMessageText = quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToTwitter());
+        quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToTwitter());
 
         // GETTING TWITTER FILE INFO
-        TwitterFileResponse response = getFileInfo(request, processBuilder);
+        FileResponse response = getFileInfo(request, processBuilder);
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
         response = getFileFromRepository(response);
-        if (response.getDownloadedFile() != null) {
+        if (response.getDownloadedFile() != null)
             return response;
-        }
 
 
         // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
+        String fileSize = null;
         String fileName = getFileNameFromTitle(response.getTitle());
-        String filePath = commands.getPath() + fileName;
+        String filePath = commands.getDownloadDestination() + fileName;
+        boolean fileDownloaded = false;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-        processBuilder.command(commands.downloadFile(response.getUrl(), filePath, request.getMultiVideoNumber()));
-        boolean fileDownloaded = false;
+        processBuilder.command(commands.getDownloadTwitterFile(response));
         Process process = processBuilder.start();
         // SENDING INFO ABOUT DOWNLOADING FILE
-        logger.info("[download] Downloading Twitter file '{}'", response.getTwitterId());
+        logger.info("[download] Downloading Twitter file '{}'", response.getId());
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null) {
                 if (!fileDownloaded) {
-                    editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
+                    updateMessageTextDownload(request.getEditMessageText(), line);
                     if (request.getEditMessageText().getText().contains("100%")) {
-                        logger.info("[download] Successfully downloaded file '{}'", response.getTwitterId());
+                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
                         fileDownloaded = true;
                     }
                 }
@@ -90,8 +88,8 @@ public class TwitterDownloader {
                 if (fileSize == null) {
                     fileSize = getFileSize(line);
                     if (fileSize != null && !checkFileSizeProcessBuilder(fileSize)) {
-                        editMessageText = quickSender.editMessageText(editMessageText, info.getFileTooBig() + info.getFileTooBigExplanation());
-                        logger.warn("Size of file '{}' is too big. File size: {}", response.getTwitterId(), fileSize);
+                        quickSender.editMessageText(editMessageText, info.getFileTooBig());
+                        logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), fileSize);
                         process.destroy();
                     }
                 }
@@ -99,19 +97,17 @@ public class TwitterDownloader {
         }
         File downloadedFile = new File(filePath);
         if (downloadedFile.exists()) {
-            Long downloadedFileSize = downloadedFile.length();
-            checkFileSize(downloadedFileSize, editMessageText, response.getTwitterId());
+            long downloadedFileSize = downloadedFile.length();
+            checkFileSize(downloadedFileSize, editMessageText, response.getId());
 
             response.setSize(downloadedFileSize);
             response.setDownloadedFile(InputFile.builder()
                     .file(downloadedFile)
                     .build());
         } else {
-            quickSender.editMessageText(editMessageText, info.getErrorInDownloading() + info.getTryAgainLater());
-            throw new NoSuchElementException(String.format("File '%s' did not download.", response.getTwitterId()));
+            quickSender.editMessageText(editMessageText, info.getErrorInDownloading());
+            throw new NoSuchElementException(String.format("File '%s' did not download.", response.getId()));
         }
-        response.setExtension(request.getExtension());
-        response.setPremium(request.getPremium());
         response.setEditMessageText(editMessageText);
         return response;
     }
@@ -119,19 +115,19 @@ public class TwitterDownloader {
     public void checkExtractingUrl(String line, EditMessageText editMessageText) {
         if (line.contains("Extracting URL:"))
             if (!line.contains("twitter.com/")) {
-                quickSender.editMessageText(editMessageText, info.getNoVideo() + info.getNoVideoExplanation());
+                quickSender.editMessageText(editMessageText, info.getNoVideo());
                 throw new IllegalArgumentException("Twitter URL without video but in description is link to other service.");
             }
     }
 
-    public TwitterFileResponse getFileInfo(TwitterFileRequest request, ProcessBuilder processBuilder) throws IOException {
+    public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
         int amountOfFiles = 0;
         int multiVideoNumber = request.getMultiVideoNumber() == 0 ? 1 : request.getMultiVideoNumber();
         boolean specify = request.getMultiVideoNumber() != 0;
         final int multiVideoMaxAmount = 15;
 
-        processBuilder.command(commands.downloadFileInfo(request.getUrl()));
+        processBuilder.command(commands.getDownloadFileInfoTwitter(request.getURL()));
         Process process = processBuilder.start();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -139,21 +135,21 @@ public class TwitterDownloader {
             while ((line = br.readLine()) != null) {
                 amountOfFiles++;
 
-                TwitterFileInfo fileInfo = gson.fromJson(line, TwitterFileInfo.class);
-                String uploaderUrl = fileInfo.getUploaderUrl();
+                FileInfo fileInfo = gson.fromJson(line, FileInfo.class);
+                String uploaderUrl = fileInfo.getUploaderURL();
                 if (uploaderUrl == null || !uploaderUrl.contains("twitter.com/")) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
-                    throw new IllegalArgumentException(String.format("No video in Twitter URL '%s' and other service URL in description.", request.getUrl()));
+                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
+                    throw new IllegalArgumentException(String.format("No video in Twitter URL '%s' and other service URL in description.", request.getURL()));
                 }
 
                 if (amountOfFiles > 1 && !specify) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideo() + info.getMultiVideoExplanation());
-                    throw new IllegalArgumentException(String.format("Twitter URL '%s' is a multi-video link and user do not specify which video he want.", request.getUrl()));
+                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideo());
+                    throw new IllegalArgumentException(String.format("Twitter URL '%s' is a multi-video link and user do not specify which video he want.", request.getURL()));
                 }
 
                 if (amountOfFiles > multiVideoMaxAmount) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideoAmountTooHigh() + info.getMultiVideoAmountTooHighExplanation());
-                    throw new IllegalArgumentException(String.format("Amount of multi-video Twitter URL '%s' is too high, more than 15.", request.getUrl()));
+                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideoAmountTooHigh());
+                    throw new IllegalArgumentException(String.format("Amount of multi-video Twitter URL '%s' is too high, more than 15.", request.getURL()));
                 }
 
                 if (amountOfFiles == multiVideoNumber) {
@@ -165,22 +161,25 @@ public class TwitterDownloader {
             throw new IOException(ex.getMessage());
         }
 
+        if (amountOfFiles == 0) {
+            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
+            throw new IllegalArgumentException(String.format("No video in Twitter URL '%s'", request.getURL()));
+        }
+
         if (fileInfoInJson.isEmpty() && multiVideoNumber > amountOfFiles) {
             quickSender.editMessageText(request.getEditMessageText(), info.getReceivedWrongNumberInMultiVideo(amountOfFiles, multiVideoNumber));
-            throw new IllegalArgumentException(String.format("No video in multi-video Twitter URL '%s'", request.getUrl()));
+            throw new IllegalArgumentException(String.format("No video in multi-video Twitter URL '%s'", request.getURL()));
         }
 
-        if (fileInfoInJson.isEmpty()) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo() + info.getNoVideoExplanation());
-            throw new IllegalArgumentException(String.format("No video in Twitter URL '%s'", request.getUrl()));
-        }
-        TwitterFileInfo twitterFileInfo = gson.fromJson(fileInfoInJson, TwitterFileInfo.class);
-        System.out.println(twitterFileInfo);
-        return mapper.map(twitterFileInfo);
+        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+        FileResponse fileResponse = mapper.map(fileInfo);
+        fileResponse.setExtension(request.getExtension());
+        fileResponse.setPremium(request.isPremium());
+        return fileResponse;
     }
 
-    public TwitterFileResponse getFileFromRepository(TwitterFileResponse response) {
-        Optional<TwitterFileEntity> twitterFileEntity = twitterFileService.findByTwitterId(response.getTwitterId());
+    public FileResponse getFileFromRepository(FileResponse response) {
+        Optional<TwitterFileEntity> twitterFileEntity = twitterFileService.findByTwitterId(response.getId());
 
         if (twitterFileEntity.isPresent() && Converter.MBToBytes(twitterFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
@@ -192,7 +191,7 @@ public class TwitterDownloader {
         return response;
     }
 
-    public EditMessageText updateMessageTextDownload(EditMessageText editMessageText, String line) {
+    public void updateMessageTextDownload(EditMessageText editMessageText, String line) {
         String progress = getDownloadProgress(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
@@ -201,14 +200,13 @@ public class TwitterDownloader {
 
             for (String s : splitOldText)
                 if (s.equals(splitOldText[splitOldText.length - 1]))
-                    newText.append("\\[" + progress + "\\]_");
+                    newText.append("\\[").append(progress).append("\\]_");
                 else
-                    newText.append(s + " ");
+                    newText.append(s).append(" ");
 
             if (!oldText.contentEquals(newText))
                 quickSender.editMessageText(editMessageText, newText.toString());
         }
-        return editMessageText;
     }
 
     public String getDownloadProgress(String line) {
@@ -256,7 +254,7 @@ public class TwitterDownloader {
     public void checkFileSize(Long size, EditMessageText editMessageText, String youtubeId) {
         long fileSize = size / (1024 * 1024);
         if (fileSize > 50) {
-            quickSender.editMessageText(editMessageText, info.getFileTooBig() + info.getFileTooBigExplanation());
+            quickSender.editMessageText(editMessageText, info.getFileTooBig());
             logger.warn("Size of file '{}' is too big. File size: {}MB", youtubeId, fileSize);
             throw new IllegalArgumentException("File size cannot be more than 50MB." +
                                                "\n Your file size: " + fileSize + "MB.");

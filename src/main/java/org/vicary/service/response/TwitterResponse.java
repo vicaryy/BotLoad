@@ -11,9 +11,9 @@ import org.vicary.api_request.send.SendVideo;
 import org.vicary.entity.TwitterFileEntity;
 import org.vicary.entity.UserEntity;
 import org.vicary.format.MarkdownV2;
-import org.vicary.info.YouTubeResponseInfo;
-import org.vicary.model.twitter.TwitterFileRequest;
-import org.vicary.model.twitter.TwitterFileResponse;
+import org.vicary.info.ResponseInfo;
+import org.vicary.model.FileRequest;
+import org.vicary.model.FileResponse;
 import org.vicary.pattern.TwitterPattern;
 import org.vicary.service.*;
 import org.vicary.service.downloader.TwitterDownloader;
@@ -26,7 +26,7 @@ public class TwitterResponse {
 
     private final TwitterDownloader twitterDownloader;
 
-    private final YouTubeResponseInfo info;
+    private final ResponseInfo info;
 
     private final TwitterFileService twitterFileService;
 
@@ -35,6 +35,8 @@ public class TwitterResponse {
     private final UserService userService;
 
     private final QuickSender quickSender;
+
+    private final static String EXTENSION = "mp4";
 
     public void response(Update update) throws Exception {
         final String chatId = update.getChatId();
@@ -46,34 +48,31 @@ public class TwitterResponse {
                 .map(UserEntity::getPremium)
                 .orElse(false);
 
-        final TwitterFileRequest request = TwitterFileRequest.builder()
-                .url(twitterUrl)
+        quickSender.chatAction(chatId, "typing");
+        Message botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
+        EditMessageText editMessageText = EditMessageText.builder()
                 .chatId(chatId)
-                .premium(premium)
+                .messageId(botMessageInfo.getMessageId())
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(false)
+                .build();
+
+        final FileRequest request = FileRequest.builder()
+                .URL(twitterUrl)
+                .chatId(chatId)
+                .premium(false)
+                .extension(EXTENSION)
                 .multiVideoNumber(multiVideoNumber)
+                .editMessageText(editMessageText)
                 .build();
 
         sendFile(request);
     }
 
-    public void sendFile(TwitterFileRequest request) throws Exception {
-        final String chatId = request.getChatId();
-
-        Message botMessageInfo;
-        botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
-        quickSender.chatAction(chatId, "typing");
-
-        // setting editMessageText to request
-        EditMessageText editMessageText = EditMessageText.builder()
-                .chatId(request.getChatId())
-                .messageId(botMessageInfo.getMessageId())
-                .text(info.getGotTheLink() + info.getHoldOn())
-                .parseMode("MarkdownV2")
-                .build();
-        request.setEditMessageText(editMessageText);
-
+    public void sendFile(FileRequest request) throws Exception {
         // getting youtube file
-        TwitterFileResponse response = twitterDownloader.download(request);
+        FileResponse response = twitterDownloader.download(request);
 
         // preparing video to send
         SendVideo sendVideo = SendVideo.builder()
@@ -83,23 +82,23 @@ public class TwitterResponse {
                 .build();
 
         // sending document to telegram chat
-        logger.info("[send] Sending file '{}' to chatId '{}'", response.getTwitterId(), request.getChatId());
-        quickSender.chatAction(chatId, "upload_document");
+        logger.info("[send] Sending file '{}' to chatId '{}'", response.getId(), request.getChatId());
+        quickSender.chatAction(request.getChatId(), "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
         Message sendFileMessage = requestService.sendRequest(sendVideo);
-        quickSender.editMessageText(editMessageText, getReceivedFileInfo(response));
+        quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response));
         logger.info("[send] File sent successfully.");
 
         // saving file to repository
-        if (!twitterFileService.existsByTwitterId(response.getTwitterId())) {
+        if (!twitterFileService.existsByTwitterId(response.getId())) {
             twitterFileService.saveEntity(TwitterFileEntity.builder()
-                    .twitterId(response.getTwitterId())
+                    .twitterId(response.getId())
                     .extension(response.getExtension())
-                    .quality(response.getPremium() ? "premium" : "standard")
+                    .quality(response.isPremium() ? "premium" : "standard")
                     .size(Converter.bytesToMB(response.getSize()))
                     .duration(Converter.secondsToMinutes(response.getDuration()))
                     .title(response.getTitle())
-                    .url(response.getUrl())
+                    .url(response.getURL())
                     .fileId(sendFileMessage.getVideo().getFileId())
                     .build());
         }
@@ -108,13 +107,13 @@ public class TwitterResponse {
             TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
     }
 
-    public String getReceivedFileInfo(TwitterFileResponse response) {
+    public String getReceivedFileInfo(FileResponse response) {
         final int maxTitleLength = 250;
         String title = response.getTitle();
         final String duration = Converter.secondsToMinutes(response.getDuration());
         final String size = Converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
-        final String quality = response.getPremium() ? "Premium" : "Standard";
+        final String quality = response.isPremium() ? "Premium" : "Standard";
 
         if (response.getTitle().length() > maxTitleLength)
             title = title.substring(0, maxTitleLength) + "...";
@@ -148,7 +147,7 @@ public class TwitterResponse {
             if (multiVideo.startsWith("#")) {
                 multiVideo = multiVideo.substring(1);
                 try {
-                    number = Integer.parseInt(multiVideo);
+                        number = Integer.parseInt(multiVideo);
                 } catch (NumberFormatException ex) {
                     logger.info("User type wrong multi-video number '{}'.", array[1]);
                 }

@@ -10,13 +10,13 @@ import org.vicary.api_request.send.SendAudio;
 import org.vicary.entity.UserEntity;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.format.MarkdownV2;
-import org.vicary.info.YouTubeResponseInfo;
-import org.vicary.model.youtube.YouTubeFileResponse;
+import org.vicary.info.ResponseInfo;
+import org.vicary.model.FileRequest;
+import org.vicary.model.FileResponse;
 import org.vicary.service.*;
 import org.vicary.service.quick_sender.QuickSender;
 import org.vicary.pattern.YoutubePattern;
 import org.vicary.service.downloader.YouTubeDownloader;
-import org.vicary.model.youtube.YouTubeFileRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -28,7 +28,7 @@ public class YouTubeResponse {
 
     private final YouTubeDownloader youtubeDownloader;
 
-    private final YouTubeResponseInfo info;
+    private final ResponseInfo info;
 
     private final YouTubeFileService youTubeFileService;
 
@@ -44,14 +44,13 @@ public class YouTubeResponse {
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
         final String extension = getExtension(text);
-        final String youtubeUrl = YoutubePattern.getUrl(text);
-        final String youtubeId = YoutubePattern.getYoutubeId(youtubeUrl);
+        final String youtubeURL = YoutubePattern.getUrl(text);
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
                 .orElse(false);
 
-        final YouTubeFileRequest request = YouTubeFileRequest.builder()
-                .youtubeId(youtubeId)
+        final FileRequest request = FileRequest.builder()
+                .URL(youtubeURL)
                 .chatId(chatId)
                 .extension(extension)
                 .premium(premium)
@@ -63,7 +62,7 @@ public class YouTubeResponse {
             quickSender.message(chatId, info.getWrongExtension(), false);
     }
 
-    public void sendFile(YouTubeFileRequest request) throws Exception {
+    public void sendFile(FileRequest request) throws Exception {
         // preparing message and chat action to send
         final String chatId = request.getChatId();
 
@@ -80,7 +79,7 @@ public class YouTubeResponse {
         request.setEditMessageText(editMessageText);
 
         // getting youtube file
-        YouTubeFileResponse response = youtubeDownloader.download(request);
+        FileResponse response = youtubeDownloader.download(request);
 
         // preparing audio object to send
         SendAudio sendAudio = SendAudio.builder()
@@ -93,7 +92,7 @@ public class YouTubeResponse {
                 .build();
 
         // sending audio to telegram chat
-        logger.info("[send] Sending file '{}' to chatId '{}'", request.getYoutubeId(), request.getChatId());
+        logger.info("[send] Sending file '{}' to chatId '{}'", response.getId(), chatId);
         quickSender.chatAction(chatId, "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
         Message sendFileMessage = requestService.sendRequest(sendAudio);
@@ -103,9 +102,9 @@ public class YouTubeResponse {
         // saving file to repository
         if (!youTubeFileService.existsInRepo(response)) {
             youTubeFileService.saveYouTubeFile(YouTubeFileEntity.builder()
-                    .youtubeId(response.getYoutubeId())
+                    .youtubeId(response.getId())
                     .extension(response.getExtension())
-                    .quality(response.getPremium() ? "premium" : "standard")
+                    .quality(response.isPremium() ? "premium" : "standard")
                     .size(Converter.bytesToMB(response.getSize()))
                     .duration(Converter.secondsToMinutes(response.getDuration()))
                     .title(response.getTitle())
@@ -119,7 +118,7 @@ public class YouTubeResponse {
         TerminalExecutor.removeFile(response.getThumbnail().getFile());
     }
 
-    public String getReceivedFileInfo(YouTubeFileResponse response) {
+    public String getReceivedFileInfo(FileResponse response) {
         StringBuilder fileInfo = new StringBuilder();
 
         final String title = response.getTitle();
@@ -130,7 +129,7 @@ public class YouTubeResponse {
         final String duration = Converter.secondsToMinutes(response.getDuration());
         final String size = Converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
-        final String quality = response.getPremium() ? "Premium" : "Standard";
+        final String quality = response.isPremium() ? "Premium" : "Standard";
 
         fileInfo.append(MarkdownV2.apply(info.getReceived()).toItalic().newlineAfter().get());
         if (track == null) {
