@@ -9,16 +9,16 @@ import lombok.*;
 @AllArgsConstructor
 @RequiredArgsConstructor
 @NoArgsConstructor
-@Table(name = "TWITTER_FILES")
-public class TwitterFileEntity {
+@Table(name = "INSTAGRAM_FILES")
+public class InstagramFileEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID")
     private Long id;
 
-    @Column(name = "TWITTER_ID")
+    @Column(name = "INSTAGRAM_ID")
     @NonNull
-    private String twitterId;
+    private String instagramId;
 
     @Column(name = "EXTENSION")
     @NonNull

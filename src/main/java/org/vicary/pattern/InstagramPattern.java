@@ -2,10 +2,9 @@ package org.vicary.pattern;
 
 import java.util.Arrays;
 
-public class TwitterPattern {
-
-    public static boolean checkURLValidation(String twitterURL) {
-        return twitterURL.contains("twitter.com/");
+public class InstagramPattern {
+    public static boolean checkURLValidation(String instagramURL) {
+        return instagramURL.contains("instagram.com/");
     }
 
     public static String getURL(String text) {

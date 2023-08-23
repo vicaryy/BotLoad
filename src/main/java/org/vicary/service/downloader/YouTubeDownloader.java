@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.vicary.pattern.YoutubePattern;
 import org.vicary.service.Converter;
 import org.vicary.service.TerminalExecutor;
-import org.vicary.service.YouTubeFileService;
+import org.vicary.service.file_service.YouTubeFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
 
@@ -62,12 +62,12 @@ public class YouTubeDownloader {
             return response;
 
         // if file is not in repo then download FILE
-        String filePath = getFileNameFromTitle(response.getTitle(), response.getExtension());
+        String fileName = getFileNameFromTitle(response.getTitle(), response.getExtension());
         String fileSize = null;
         boolean fileDownloaded = false;
         boolean fileConverted = false;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
-        processBuilder.command(commands.getDownloadYouTubeFile(response));
+        processBuilder.command(commands.getDownloadYouTubeFile(fileName, response.getId(), response.getExtension(), response.isPremium()));
         Process process = processBuilder.start();
         logger.info("[download] Downloading YouTube file '{}'", response.getId());
 
@@ -99,7 +99,7 @@ public class YouTubeDownloader {
                 }
             }
         }
-        File downloadedFile = new File(filePath);
+        File downloadedFile = new File(fileName);
         if (downloadedFile.exists()) {
             long downloadedFileSize = downloadedFile.length();
             checkFileSize(downloadedFileSize, editMessageText, response.getId());

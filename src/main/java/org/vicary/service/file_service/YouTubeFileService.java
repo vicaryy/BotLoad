@@ -1,4 +1,4 @@
-package org.vicary.service;
+package org.vicary.service.file_service;
 
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;

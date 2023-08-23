@@ -15,6 +15,8 @@ public class ResponseInfo {
 
     private final String error = MarkdownV2.apply("Sorry but something goes wrong.").toBold().get();
 
+    private final String hellaBigNumber = MarkdownV2.apply("Oh come on, that's hella big number.").toBold().get();
+
     private final String wrongExtension = "Sorry but I can't identify the extension.";
 
     private final String received = "Here's your file";

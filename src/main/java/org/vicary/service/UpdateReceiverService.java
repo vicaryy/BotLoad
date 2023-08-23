@@ -9,15 +9,13 @@ import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
 import org.vicary.entity.ActiveRequestEntity;
 import org.vicary.entity.MessageEntity;
+import org.vicary.pattern.InstagramPattern;
 import org.vicary.pattern.TikTokPattern;
 import org.vicary.pattern.TwitterPattern;
 import org.vicary.service.mapper.MessageMapper;
-import org.vicary.service.response.AdminResponse;
-import org.vicary.service.response.TikTokResponse;
-import org.vicary.service.response.TwitterResponse;
+import org.vicary.service.response.*;
 import org.vicary.service.quick_sender.QuickSender;
 import org.vicary.pattern.YoutubePattern;
-import org.vicary.service.response.YouTubeResponse;
 import org.vicary.service.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
@@ -47,6 +45,8 @@ public class UpdateReceiverService {
     private final TwitterResponse twitterResponse;
 
     private final TikTokResponse tiktokResponse;
+
+    private final InstagramResponse instagramResponse;
 
     private final MessageMapper messageMapper;
 
@@ -84,6 +84,9 @@ public class UpdateReceiverService {
                     twitterResponse.response(update);
                 else if (TikTokPattern.checkURLValidation(URL))
                     tiktokResponse.response(update);
+                else if (InstagramPattern.checkURLValidation(URL))
+                    instagramResponse.response(update);
+
 
 
             } catch (WebClientResponseException ex) {

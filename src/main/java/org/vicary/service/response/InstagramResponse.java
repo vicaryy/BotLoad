@@ -8,28 +8,28 @@ import org.vicary.api_object.Update;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendVideo;
-import org.vicary.entity.TikTokFileEntity;
+import org.vicary.entity.InstagramFileEntity;
 import org.vicary.entity.UserEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
-import org.vicary.pattern.TwitterPattern;
+import org.vicary.pattern.InstagramPattern;
 import org.vicary.service.*;
-import org.vicary.service.downloader.TikTokDownloader;
-import org.vicary.service.file_service.TikTokFileService;
+import org.vicary.service.downloader.InstagramDownloader;
+import org.vicary.service.file_service.InstagramFileService;
 import org.vicary.service.quick_sender.QuickSender;
 
 @Service
 @RequiredArgsConstructor
-public class TikTokResponse {
-    private final static Logger logger = LoggerFactory.getLogger(TikTokResponse.class);
+public class InstagramResponse {
+    private final static Logger logger = LoggerFactory.getLogger(TwitterResponse.class);
 
-    private final TikTokDownloader tiktokDownloader;
+    private final InstagramDownloader instagramDownloader;
 
     private final ResponseInfo info;
 
-    private final TikTokFileService tiktokFileService;
+    private final InstagramFileService instagramFileService;
 
     private final RequestService requestService;
 
@@ -43,7 +43,8 @@ public class TikTokResponse {
         final String chatId = update.getChatId();
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
-        final String tiktokUrl = TwitterPattern.getURL(text);
+        final String instagramURL = InstagramPattern.getURL(text);
+        final int multiVideoNumber = getMultiVideoNumber(text);
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
                 .orElse(false);
@@ -59,10 +60,11 @@ public class TikTokResponse {
                 .build();
 
         final FileRequest request = FileRequest.builder()
-                .URL(tiktokUrl)
+                .URL(instagramURL)
                 .chatId(chatId)
                 .premium(false)
                 .extension(EXTENSION)
+                .multiVideoNumber(multiVideoNumber)
                 .editMessageText(editMessageText)
                 .build();
 
@@ -70,8 +72,8 @@ public class TikTokResponse {
     }
 
     public void sendFile(FileRequest request) throws Exception {
-        // getting tiktok file
-        FileResponse response = tiktokDownloader.download(request);
+        // getting instagram file
+        FileResponse response = instagramDownloader.download(request);
 
         // preparing video to send
         SendVideo sendVideo = SendVideo.builder()
@@ -89,9 +91,9 @@ public class TikTokResponse {
         logger.info("[send] File sent successfully.");
 
         // saving file to repository
-        if (!tiktokFileService.existsByTikTokId(response.getId())) {
-            tiktokFileService.saveEntity(TikTokFileEntity.builder()
-                    .tiktokId(response.getId())
+        if (!instagramFileService.existsByTwitterId(response.getId())) {
+            instagramFileService.saveEntity(InstagramFileEntity.builder()
+                    .instagramId(response.getId())
                     .extension(response.getExtension())
                     .quality(response.isPremium() ? "premium" : "standard")
                     .size(Converter.bytesToMB(response.getSize()))
@@ -136,5 +138,22 @@ public class TikTokResponse {
         fileInfo.append(MarkdownV2.apply(quality).get());
 
         return fileInfo.toString();
+    }
+
+    public int getMultiVideoNumber(String text) {
+        String[] array = text.split(" ");
+        int number = 0;
+        if (array.length > 1) {
+            String multiVideo = array[1];
+            if (multiVideo.startsWith("#")) {
+                multiVideo = multiVideo.substring(1);
+                try {
+                    number = Integer.parseInt(multiVideo);
+                } catch (NumberFormatException ex) {
+                    logger.info("User type wrong multi-video number '{}'.", array[1]);
+                }
+            }
+        }
+        return Math.max(number, 0);
     }
 }

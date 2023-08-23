@@ -16,6 +16,7 @@ public class FileInfoMapper {
                 .track(fileInfo.getTrack())
                 .album(fileInfo.getAlbum())
                 .releaseYear(fileInfo.getReleaseYear())
+                .URL(fileInfo.getURL())
                 .build();
     }
 }

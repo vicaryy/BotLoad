@@ -1,6 +1,8 @@
 package org.vicary.service.downloader;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,14 +11,16 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
-import org.vicary.entity.TikTokFileEntity;
+import org.vicary.entity.InstagramFileEntity;
+import org.vicary.entity.TwitterFileEntity;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.service.Converter;
-import org.vicary.service.file_service.TikTokFileService;
+import org.vicary.service.file_service.InstagramFileService;
+import org.vicary.service.file_service.TwitterFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
 
@@ -29,9 +33,8 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class TikTokDownloader {
-
-    private final static Logger logger = LoggerFactory.getLogger(TikTokDownloader.class);
+public class InstagramDownloader {
+    private final static Logger logger = LoggerFactory.getLogger(TwitterDownloader.class);
 
     private final QuickSender quickSender;
 
@@ -39,7 +42,7 @@ public class TikTokDownloader {
 
     private final YtDlpCommand commands;
 
-    private final TikTokFileService tiktokFileService;
+    private final InstagramFileService instagramFileService;
 
     private final FileInfoMapper mapper;
 
@@ -50,10 +53,10 @@ public class TikTokDownloader {
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
 
-        // SENDING INFO ABOUT CONNECTING TO TIKTOK
-        quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToTikTok());
+        // SENDING INFO ABOUT CONNECTING TO TWITTER
+        quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToInstagram());
 
-        // GETTING TIKTOK FILE INFO
+        // GETTING TWITTER FILE INFO
         FileResponse response = getFileInfo(request, processBuilder);
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
@@ -69,15 +72,15 @@ public class TikTokDownloader {
         boolean fileDownloaded = false;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-        processBuilder.command(commands.getDownloadTikTokFile(fileName, response.getURL()));
+        processBuilder.command(commands.getDownloadInstagramFile(fileName, response.getURL(), response.getMultiVideoNumber()));
         Process process = processBuilder.start();
         // SENDING INFO ABOUT DOWNLOADING FILE
-        logger.info("[download] Downloading TikTok file '{}'", response.getId());
+        logger.info("[download] Downloading Instagram file '{}'", response.getId());
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null) {
                 if (!fileDownloaded) {
-                    editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
+                    updateMessageTextDownload(request.getEditMessageText(), line);
                     if (request.getEditMessageText().getText().contains("100%")) {
                         logger.info("[download] Successfully downloaded file '{}'", response.getId());
                         fileDownloaded = true;
@@ -113,6 +116,10 @@ public class TikTokDownloader {
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
+        int amountOfFiles = 0;
+        int multiVideoNumber = request.getMultiVideoNumber() == 0 ? 1 : request.getMultiVideoNumber();
+        boolean specify = request.getMultiVideoNumber() != 0;
+        final int multiVideoMaxAmount = 15;
 
         processBuilder.command(commands.getDownloadFileInfo(request.getURL()));
         Process process = processBuilder.start();
@@ -120,44 +127,68 @@ public class TikTokDownloader {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null) {
-                fileInfoInJson = line;
+                amountOfFiles++;
+
+//                Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
+//                JsonElement jsonElement = gson1.fromJson(line, JsonElement.class);
+//                System.out.println(gson1.toJson(jsonElement));
+                FileInfo fileInfo = gson.fromJson(line, FileInfo.class);
+                String webpageURL = fileInfo.getURL();
+                if (webpageURL == null || !webpageURL.contains("instagram.com/")) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
+                    throw new IllegalArgumentException(String.format("No video in Instagram URL '%s' and other service URL in description.", request.getURL()));
+                }
+
+                if (amountOfFiles > 1 && !specify) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideo());
+                    throw new IllegalArgumentException(String.format("Instagram URL '%s' is a multi-video link and user do not specify which video he want.", request.getURL()));
+                }
+
+                if (amountOfFiles > multiVideoMaxAmount) {
+                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideoAmountTooHigh());
+                    throw new IllegalArgumentException(String.format("Amount of multi-video Instagram URL '%s' is too high, more than 15.", request.getURL()));
+                }
+
+                if (amountOfFiles == multiVideoNumber) {
+                    fileInfoInJson = line;
+                }
             }
         } catch (IOException ex) {
             process.destroy();
             throw new IOException(ex.getMessage());
         }
 
-        if (fileInfoInJson.isEmpty()) {
+        if (amountOfFiles == 0) {
             quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-            throw new IllegalArgumentException(String.format("No video in TikTok URL '%s'", request.getURL()));
+            throw new IllegalArgumentException(String.format("No video in Instagram URL '%s'", request.getURL()));
+        }
+
+        if (fileInfoInJson.isEmpty() && multiVideoNumber > amountOfFiles) {
+            quickSender.editMessageText(request.getEditMessageText(), info.getReceivedWrongNumberInMultiVideo(amountOfFiles, multiVideoNumber));
+            throw new IllegalArgumentException(String.format("No video in multi-video Instagram URL '%s'", request.getURL()));
         }
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
-        String uploaderUrl = fileInfo.getUploaderURL();
-        if (uploaderUrl == null || !uploaderUrl.contains("tiktok.com/")) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-            throw new IllegalArgumentException(String.format("No video in TikTok URL '%s' and other service URL in description.", request.getURL()));
-        }
-        FileResponse response = mapper.map(fileInfo);
-        response.setExtension(request.getExtension());
-        response.setPremium(request.isPremium());
-        return response;
+        FileResponse fileResponse = mapper.map(fileInfo);
+        fileResponse.setExtension(request.getExtension());
+        fileResponse.setPremium(request.isPremium());
+        return fileResponse;
     }
 
     public FileResponse getFileFromRepository(FileResponse response) {
-        Optional<TikTokFileEntity> tiktokFile = tiktokFileService.findByTwitterId(response.getId());
+        Optional<InstagramFileEntity> instagramFileEntity = instagramFileService.findByInstagramId(response.getId());
 
-        if (tiktokFile.isPresent() && Converter.MBToBytes(tiktokFile.get().getSize()) < 20000000) {
+        if (instagramFileEntity.isPresent() && Converter.MBToBytes(instagramFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
-                    .fileId(tiktokFile.get().getFileId())
+                    .fileId(instagramFileEntity.get().getFileId())
                     .build();
             response.setDownloadedFile(file);
-            response.setSize(Converter.MBToBytes(tiktokFile.get().getSize()));
+            response.setSize(Converter.MBToBytes(instagramFileEntity.get().getSize()));
         }
         return response;
     }
 
-    public EditMessageText updateMessageTextDownload(EditMessageText editMessageText, String line) {
+    public void updateMessageTextDownload(EditMessageText editMessageText, String line) {
         String progress = getDownloadProgress(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
@@ -173,7 +204,6 @@ public class TikTokDownloader {
             if (!oldText.contentEquals(newText))
                 quickSender.editMessageText(editMessageText, newText.toString());
         }
-        return editMessageText;
     }
 
     public String getDownloadProgress(String line) {

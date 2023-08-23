@@ -24,45 +24,58 @@ public class YtDlpCommand {
     private final String downloadDestination = "/Users/vicary/desktop/folder/";
 
 
-    public String[] getDownloadYouTubeFile(FileResponse response) {
+    public String[] getDownloadYouTubeFile(String fileName, String youtubeId, String extension, boolean premium) {
         return new String[]{
                 YT_DLP,
                 FILE_EXTENSION,
                 AUDIO_FORMAT,
-                response.getExtension(),
+                extension,
                 AUDIO_QUALITY,
-                response.isPremium() ? "0" : "5",
+                premium ? "0" : "5",
                 EMBED_THUMBNAIL,
                 MAX_FILE_SIZE,
                 MAX_FILE_SIZE_IN_MB,
                 PATH,
-                String.format("%s%s.%s", downloadDestination, response.getTitle(), response.getExtension()),
-                youtubeUrl + response.getId()};
+                downloadDestination + fileName,
+                youtubeUrl + youtubeId};
     }
 
-    public String[] getDownloadTwitterFile(FileResponse response) {
+    public String[] getDownloadTwitterFile(String fileName, String URL, int multiVideoNumber) {
         return new String[]{
                 YT_DLP,
                 NETRC,
                 PLAYLIST_ITEMS,
-                String.valueOf(response.getMultiVideoNumber() == 0 ? 1 : response.getMultiVideoNumber()),
+                String.valueOf(multiVideoNumber == 0 ? 1 : multiVideoNumber),
                 EMBED_THUMBNAIL,
                 MAX_FILE_SIZE,
                 MAX_FILE_SIZE_IN_MB,
                 PATH,
-                response.getTitle(),
-                response.getURL()};
+                fileName,
+                URL};
     }
 
-    public String[] getDownloadTikTokFile(FileResponse response) {
+    public String[] getDownloadTikTokFile(String fileName, String URL) {
         return new String[]{
                 YT_DLP,
                 EMBED_THUMBNAIL,
                 MAX_FILE_SIZE,
                 MAX_FILE_SIZE_IN_MB,
                 PATH,
-                response.getTitle(),
-                response.getURL()};
+                fileName,
+                URL};
+    }
+
+    public String[] getDownloadInstagramFile(String fileName, String URL, int multiVideoNumber) {
+        return new String[]{
+                YT_DLP,
+                PLAYLIST_ITEMS,
+                String.valueOf(multiVideoNumber == 0 ? 1 : multiVideoNumber),
+                EMBED_THUMBNAIL,
+                MAX_FILE_SIZE,
+                MAX_FILE_SIZE_IN_MB,
+                PATH,
+                fileName,
+                URL};
     }
 
     public String[] getDownloadYouTubeThumbnail(String thumbnailName, String youtubeId) {

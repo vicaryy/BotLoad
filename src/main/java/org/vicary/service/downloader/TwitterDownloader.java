@@ -16,7 +16,7 @@ import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.service.Converter;
-import org.vicary.service.TwitterFileService;
+import org.vicary.service.file_service.TwitterFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
 
@@ -68,7 +68,7 @@ public class TwitterDownloader {
         boolean fileDownloaded = false;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-        processBuilder.command(commands.getDownloadTwitterFile(response));
+        processBuilder.command(commands.getDownloadTwitterFile(fileName, response.getURL(), response.getMultiVideoNumber()));
         Process process = processBuilder.start();
         // SENDING INFO ABOUT DOWNLOADING FILE
         logger.info("[download] Downloading Twitter file '{}'", response.getId());
@@ -82,8 +82,6 @@ public class TwitterDownloader {
                         fileDownloaded = true;
                     }
                 }
-
-                checkExtractingUrl(line, editMessageText);
 
                 if (fileSize == null) {
                     fileSize = getFileSize(line);
@@ -110,14 +108,6 @@ public class TwitterDownloader {
         }
         response.setEditMessageText(editMessageText);
         return response;
-    }
-
-    public void checkExtractingUrl(String line, EditMessageText editMessageText) {
-        if (line.contains("Extracting URL:"))
-            if (!line.contains("twitter.com/")) {
-                quickSender.editMessageText(editMessageText, info.getNoVideo());
-                throw new IllegalArgumentException("Twitter URL without video but in description is link to other service.");
-            }
     }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {

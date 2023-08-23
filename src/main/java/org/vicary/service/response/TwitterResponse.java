@@ -17,6 +17,7 @@ import org.vicary.model.FileResponse;
 import org.vicary.pattern.TwitterPattern;
 import org.vicary.service.*;
 import org.vicary.service.downloader.TwitterDownloader;
+import org.vicary.service.file_service.TwitterFileService;
 import org.vicary.service.quick_sender.QuickSender;
 
 @Service
@@ -42,7 +43,7 @@ public class TwitterResponse {
         final String chatId = update.getChatId();
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
-        final String twitterUrl = TwitterPattern.getUrl(text);
+        final String twitterURL = TwitterPattern.getURL(text);
         final int multiVideoNumber = getMultiVideoNumber(text);
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
@@ -55,11 +56,11 @@ public class TwitterResponse {
                 .messageId(botMessageInfo.getMessageId())
                 .text(info.getGotTheLink() + info.getHoldOn())
                 .parseMode("MarkdownV2")
-                .disableWebPagePreview(false)
+                .disableWebPagePreview(true)
                 .build();
 
         final FileRequest request = FileRequest.builder()
-                .URL(twitterUrl)
+                .URL(twitterURL)
                 .chatId(chatId)
                 .premium(false)
                 .extension(EXTENSION)
@@ -98,7 +99,7 @@ public class TwitterResponse {
                     .size(Converter.bytesToMB(response.getSize()))
                     .duration(Converter.secondsToMinutes(response.getDuration()))
                     .title(response.getTitle())
-                    .url(response.getURL())
+                    .URL(response.getURL())
                     .fileId(sendFileMessage.getVideo().getFileId())
                     .build());
         }
@@ -149,6 +150,7 @@ public class TwitterResponse {
                 try {
                         number = Integer.parseInt(multiVideo);
                 } catch (NumberFormatException ex) {
+                    System.out.println(ex.getMessage());
                     logger.info("User type wrong multi-video number '{}'.", array[1]);
                 }
             }

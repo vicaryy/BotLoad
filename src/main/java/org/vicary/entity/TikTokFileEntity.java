@@ -38,7 +38,7 @@ public class TikTokFileEntity {
     private String title;
 
     @Column(name = "URL")
-    private String url;
+    private String URL;
 
     @Column(name = "FILE_ID")
     @NonNull
