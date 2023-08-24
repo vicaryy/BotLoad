@@ -1,5 +1,7 @@
 package org.vicary.service.response;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,11 +88,17 @@ public class InstagramResponse {
         logger.info("[send] Sending file '{}' to chatId '{}'", response.getId(), request.getChatId());
         quickSender.chatAction(request.getChatId(), "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
-        Message sendFileMessage = requestService.sendRequest(sendVideo);
+        Message sentFileMessage = requestService.sendRequest(sendVideo);
         quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response));
         logger.info("[send] File sent successfully.");
 
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        System.out.println(gson.toJson(sentFileMessage));
         // saving file to repository
+        if (response.getDuration() == 0) {
+            if (sentFileMessage.getVideo() != null)
+                response.setDuration(sentFileMessage.getVideo().getDuration());
+        }
         if (!instagramFileService.existsByTwitterId(response.getId())) {
             instagramFileService.saveEntity(InstagramFileEntity.builder()
                     .instagramId(response.getId())
@@ -100,7 +108,7 @@ public class InstagramResponse {
                     .duration(Converter.secondsToMinutes(response.getDuration()))
                     .title(response.getTitle())
                     .URL(response.getURL())
-                    .fileId(sendFileMessage.getVideo().getFileId())
+                    .fileId(sentFileMessage.getVideo().getFileId())
                     .build());
         }
         // deleting downloaded files

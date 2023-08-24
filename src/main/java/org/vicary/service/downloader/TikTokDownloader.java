@@ -16,6 +16,7 @@ import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.service.Converter;
+import org.vicary.service.FileManager;
 import org.vicary.service.file_service.TikTokFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
@@ -63,8 +64,8 @@ public class TikTokDownloader {
 
 
         // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
-        String fileSize = null;
-        String fileName = getFileNameFromTitle(response.getTitle());
+        String fileSizeInProgress = null;
+        String fileName = FileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
         String filePath = commands.getDownloadDestination() + fileName;
         boolean fileDownloaded = false;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
@@ -84,11 +85,11 @@ public class TikTokDownloader {
                     }
                 }
 
-                if (fileSize == null) {
-                    fileSize = getFileSize(line);
-                    if (fileSize != null && !checkFileSizeProcessBuilder(fileSize)) {
+                if (fileSizeInProgress == null) {
+                    fileSizeInProgress = FileManager.getFileSizeInProcess(line);
+                    if (fileSizeInProgress != null && !FileManager.checkFileSizeProcess(fileSizeInProgress)) {
                         quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                        logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), fileSize);
+                        logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), fileSizeInProgress);
                         process.destroy();
                     }
                 }
@@ -96,10 +97,15 @@ public class TikTokDownloader {
         }
         File downloadedFile = new File(filePath);
         if (downloadedFile.exists()) {
-            long downloadedFileSize = downloadedFile.length();
-            checkFileSize(downloadedFileSize, editMessageText, response.getId());
+            long fileSize = downloadedFile.length();
+            if (!FileManager.isFileSizeValid(fileSize)) {
+                quickSender.editMessageText(editMessageText, info.getFileTooBig());
+                logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), Converter.bytesToMB(fileSize));
+                throw new IllegalArgumentException("File size cannot be more than 50MB." +
+                                                   "\nFile size: " + Converter.bytesToMB(fileSize));
+            }
 
-            response.setSize(downloadedFileSize);
+            response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
                     .file(downloadedFile)
                     .build());
@@ -158,7 +164,7 @@ public class TikTokDownloader {
     }
 
     public EditMessageText updateMessageTextDownload(EditMessageText editMessageText, String line) {
-        String progress = getDownloadProgress(line);
+        String progress = FileManager.getDownloadFileProgressInProcess(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
@@ -175,67 +181,4 @@ public class TikTokDownloader {
         }
         return editMessageText;
     }
-
-    public String getDownloadProgress(String line) {
-        if (line.contains("[download]")) {
-            String[] s = line.split(" ");
-            for (String a : s)
-                if (a.contains("%"))
-                    return MarkdownV2.apply(a).get();
-        }
-        return null;
-    }
-
-    public String getFileNameFromTitle(String title) {
-        int maxFileNameLength = 59;
-        String newTitle = title;
-
-        if (newTitle.length() > maxFileNameLength)
-            newTitle = newTitle.substring(0, 59);
-
-        newTitle = newTitle.replaceAll("&|⧸⧹", "and");
-        newTitle = newTitle.replaceAll("[/⧸||｜–\\\\]", "-");
-
-        if (newTitle.length() > maxFileNameLength)
-            newTitle = newTitle.substring(0, 59);
-
-        return newTitle + ".mp4";
-    }
-
-    public boolean checkFileSizeProcessBuilder(String fileSize) {
-        if (fileSize.endsWith("KiB"))
-            return true;
-        if (!fileSize.endsWith("MiB"))
-            return false;
-
-        StringBuilder sb = new StringBuilder();
-        sb.append(0);
-        for (char c : fileSize.toCharArray()) {
-            if (c == '.')
-                break;
-            sb.append(c);
-        }
-        return Integer.parseInt(sb.toString()) <= 45;
-    }
-
-    public void checkFileSize(Long size, EditMessageText editMessageText, String youtubeId) {
-        long fileSize = size / (1024 * 1024);
-        if (fileSize > 50) {
-            quickSender.editMessageText(editMessageText, info.getFileTooBig());
-            logger.warn("Size of file '{}' is too big. File size: {}MB", youtubeId, fileSize);
-            throw new IllegalArgumentException("File size cannot be more than 50MB." +
-                                               "\n Your file size: " + fileSize + "MB.");
-        }
-    }
-
-    public String getFileSize(String line) {
-        if (line.contains("[download]")) {
-            String[] s = line.split(" ");
-            for (String a : s)
-                if (a.contains("MiB") || a.contains("KiB"))
-                    return a;
-        }
-        return null;
-    }
-
 }

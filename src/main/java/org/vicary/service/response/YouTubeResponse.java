@@ -86,11 +86,12 @@ public class YouTubeResponse {
         SendAudio sendAudio = SendAudio.builder()
                 .chatId(request.getChatId())
                 .audio(response.getDownloadedFile())
-                .thumbnail(response.getThumbnail())
                 .title(response.getTrack())
                 .performer(response.getArtist())
                 .duration(response.getDuration())
                 .build();
+        if (response.getDownloadedFile().getFileId() == null)
+            sendAudio.setThumbnail(response.getThumbnail());
 
         // sending audio to telegram chat
         logger.info("[send] Sending file '{}' to chatId '{}'", response.getId(), chatId);
@@ -116,7 +117,8 @@ public class YouTubeResponse {
         // deleting downloaded files
         if (response.getDownloadedFile().getFile() != null)
             TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
-        TerminalExecutor.removeFile(response.getThumbnail().getFile());
+        if (response.getThumbnail() != null)
+            TerminalExecutor.removeFile(response.getThumbnail().getFile());
     }
 
     public String getReceivedFileInfo(FileResponse response) {
