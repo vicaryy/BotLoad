@@ -12,6 +12,7 @@ import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendVideo;
 import org.vicary.entity.InstagramFileEntity;
 import org.vicary.entity.UserEntity;
+import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
@@ -158,7 +159,9 @@ public class InstagramResponse {
                 try {
                     number = Integer.parseInt(multiVideo);
                 } catch (NumberFormatException ex) {
-                    logger.info("User type wrong multi-video number '{}'.", array[1]);
+                    throw new InvalidBotRequestException(
+                            info.getWrongMultiVideoNumber(),
+                            String.format("User specify wrong multi-video number '%s'", array[1]));
                 }
             }
         }

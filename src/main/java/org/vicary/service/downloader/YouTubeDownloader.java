@@ -1,15 +1,15 @@
 package org.vicary.service.downloader;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.YouTubeFileEntity;
+import org.vicary.exception.DownloadedFileNotFoundException;
+import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -48,9 +47,8 @@ public class YouTubeDownloader {
     private final Gson gson;
 
 
-    public FileResponse download(FileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
-        Gson gson1 = new GsonBuilder().setPrettyPrinting().create();
-        System.out.println(gson1.toJson(request));
+    public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
+        logger.info("Request: {}", request);
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
@@ -95,9 +93,10 @@ public class YouTubeDownloader {
                 if (fileSizeInProcess == null) {
                     fileSizeInProcess = FileManager.getFileSizeInProcess(line);
                     if (fileSizeInProcess != null && !FileManager.checkFileSizeProcess(fileSizeInProcess)) {
-                        quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                        logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), fileSizeInProcess);
                         process.destroy();
+                        throw new InvalidBotRequestException(
+                                info.getFileTooBig(),
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
                     }
                 }
             }
@@ -106,10 +105,9 @@ public class YouTubeDownloader {
         if (downloadedFile.exists()) {
             long fileSize = downloadedFile.length();
             if (!FileManager.isFileSizeValid(fileSize)) {
-                quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), Converter.bytesToMB(fileSize));
-                throw new IllegalArgumentException("File size cannot be more than 50MB." +
-                                                   "\nFile size: " + Converter.bytesToMB(fileSize));
+                throw new InvalidBotRequestException(
+                        info.getFileTooBig(),
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -117,7 +115,9 @@ public class YouTubeDownloader {
                     .build());
         } else {
             quickSender.editMessageText(editMessageText, info.getErrorInDownloading());
-            throw new NoSuchElementException(String.format("File '%s' did not download.", response.getId()));
+            throw new DownloadedFileNotFoundException(
+                    info.getErrorInDownloading(),
+                    String.format("File '' has not been downloaded", response.getId()));
         }
 
         // downloading thumbnail
@@ -150,7 +150,7 @@ public class YouTubeDownloader {
                 .build());
         // setting other stuff
         response.setEditMessageText(editMessageText);
-        System.out.println(response);
+        logger.info("RESPONSE: {}", response);
         return response;
     }
 

@@ -9,6 +9,7 @@ import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendAudio;
 import org.vicary.entity.UserEntity;
 import org.vicary.entity.YouTubeFileEntity;
+import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
@@ -57,10 +58,7 @@ public class YouTubeResponse {
                 .premium(premium)
                 .build();
 
-        if (availableExtensions.contains(extension))
             sendFile(request);
-        else
-            quickSender.message(chatId, info.getWrongExtension(), false);
     }
 
     public void sendFile(FileRequest request) throws Exception {
@@ -174,9 +172,17 @@ public class YouTubeResponse {
     }
 
     public String getExtension(String text) {
-        String[] textArray = text.trim().split(" ");
-        if (textArray.length > 1)
-            return textArray[1].toLowerCase();
+        String[] textArray = text.toLowerCase().trim().split(" ");
+        if (textArray.length > 1) {
+            if (availableExtensions.contains(textArray[1])) {
+                if (availableExtensions.contains(textArray[1]))
+                    return textArray[1];
+                else
+                    throw new InvalidBotRequestException(
+                            info.getWrongExtension(),
+                            String.format("User specify wrong extension '%s'.", textArray[1]));
+            }
+        }
         return "mp3";
     }
 }

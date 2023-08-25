@@ -2,7 +2,6 @@ package org.vicary.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,6 +11,8 @@ import java.io.InputStreamReader;
 public class TerminalExecutor {
     private static final Logger logger = LoggerFactory.getLogger(TerminalExecutor.class);
     private final static String REMOVE_COMMAND = "rm";
+    private final static String REMOVE_COMMAND_ALL_FILES = "-f";
+    private final static String REMOVE_COMMAND_ALL_FILES_STAR = "*";
     private final static String RENAME_COMMAND = "mv";
 
     public static void removeFile(File file) {
@@ -31,6 +32,18 @@ public class TerminalExecutor {
             logger.info("[remove] Removing original file {}", fileName);
         } catch (IOException ex) {
             logger.warn("[remove] Failed in removing file {}: {}", fileName, ex.getMessage());
+        }
+    }
+
+    public static void removeAllFiles(File fileDirectory) {
+        ProcessBuilder processBuilder = new ProcessBuilder();
+        processBuilder.command(REMOVE_COMMAND, REMOVE_COMMAND_ALL_FILES, REMOVE_COMMAND_ALL_FILES_STAR);
+        processBuilder.directory(fileDirectory);
+        try {
+            processBuilder.start();
+            logger.info("[remove] Removing all files in folder {}", fileDirectory.getPath());
+        } catch (IOException ex) {
+            logger.warn("[remove] Failed in removing all files in folder {}", fileDirectory.getPath());
         }
     }
 

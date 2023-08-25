@@ -19,6 +19,8 @@ public class ResponseInfo {
 
     private final String wrongExtension = "Sorry but I can't identify the extension.";
 
+    private final String wrongMultiVideoNumber = "Sorry but your multi-video number is invalid,\n please try again.";
+
     private final String received = "Here's your file";
 
     private final String title = MarkdownV2.apply("Title: ").toBold().newlineBefore().get();

@@ -8,7 +8,8 @@ import org.springframework.web.reactive.function.client.WebClientResponseExcepti
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
 import org.vicary.entity.ActiveRequestEntity;
-import org.vicary.entity.MessageEntity;
+import org.vicary.exception.DownloadedFileNotFoundException;
+import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.pattern.InstagramPattern;
 import org.vicary.pattern.TikTokPattern;
 import org.vicary.pattern.TwitterPattern;
@@ -94,7 +95,10 @@ public class UpdateReceiverService {
                 logger.warn("Status code: " + ex.getStatusCode());
                 logger.warn("Description: " + ex.getStatusText());
                 logger.warn("---------------------------");
-            } catch (WebClientRequestException | IllegalArgumentException | NoSuchElementException | IOException ex) {
+            } catch (DownloadedFileNotFoundException | InvalidBotRequestException ex) {
+                logger.warn(ex.getLoggerMessage());
+                quickSender.message(chatId, ex.getMessage(), false);
+            } catch (WebClientRequestException | NoSuchElementException | IOException ex) {
                 logger.warn("Expected exception: ", ex);
             } catch (Exception ex) {
                 logger.warn("Unexpected exception: ", ex);
