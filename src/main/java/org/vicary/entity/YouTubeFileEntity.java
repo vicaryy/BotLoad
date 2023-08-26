@@ -37,6 +37,9 @@ public class YouTubeFileEntity {
     @Column(name = "TITLE")
     private String title;
 
+    @Column(name = "URL")
+    private String URL;
+
     @Column(name = "FILE_ID")
     @NonNull
     private String fileId;

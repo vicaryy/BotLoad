@@ -40,5 +40,9 @@ public class FileResponse {
 
     private InputFile thumbnail;
 
+    private String telegramFileId;
+
+    private String chatId;
+
     private EditMessageText editMessageText;
 }

@@ -10,6 +10,8 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.TwitterFileEntity;
+import org.vicary.exception.DownloadedFileNotFoundException;
+import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
@@ -25,12 +27,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class TwitterDownloader {
+public class TwitterDownloader implements Downloader {
     private final static Logger logger = LoggerFactory.getLogger(TwitterDownloader.class);
 
     private final QuickSender quickSender;
@@ -45,7 +49,10 @@ public class TwitterDownloader {
 
     private final Gson gson;
 
-    public FileResponse download(FileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
+    private final List<String> availableExtensions = List.of("mp4");
+
+
+    public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
@@ -87,9 +94,10 @@ public class TwitterDownloader {
                 if (fileSizeInProcess == null) {
                     fileSizeInProcess = FileManager.getFileSizeInProcess(line);
                     if (fileSizeInProcess != null && !FileManager.checkFileSizeProcess(fileSizeInProcess)) {
-                        quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                        logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), fileSizeInProcess);
                         process.destroy();
+                        throw new InvalidBotRequestException(
+                                info.getFileTooBig(),
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
                     }
                 }
             }
@@ -98,22 +106,26 @@ public class TwitterDownloader {
         if (downloadedFile.exists()) {
             long fileSize = downloadedFile.length();
             if (!FileManager.isFileSizeValid(fileSize)) {
-                quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), Converter.bytesToMB(fileSize));
-                throw new IllegalArgumentException("File size cannot be more than 50MB." +
-                                                   "\nFile size: " + Converter.bytesToMB(fileSize));
+                throw new InvalidBotRequestException(
+                        info.getFileTooBig(),
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
             }
-
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
                     .file(downloadedFile)
                     .build());
         } else {
-            quickSender.editMessageText(editMessageText, info.getErrorInDownloading());
-            throw new NoSuchElementException(String.format("File '%s' did not download.", response.getId()));
+            throw new DownloadedFileNotFoundException(
+                    info.getErrorInDownloading(),
+                    String.format("File '%s' has not been downloaded", response.getId()));
         }
         response.setEditMessageText(editMessageText);
         return response;
+    }
+
+    @Override
+    public List<String> getAvailableExtensions() {
+        return availableExtensions;
     }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
@@ -134,18 +146,21 @@ public class TwitterDownloader {
                 FileInfo fileInfo = gson.fromJson(line, FileInfo.class);
                 String uploaderUrl = fileInfo.getUploaderURL();
                 if (uploaderUrl == null || !uploaderUrl.contains("twitter.com/")) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-                    throw new IllegalArgumentException(String.format("No video in Twitter URL '%s' and other service URL in description.", request.getURL()));
+                    throw new InvalidBotRequestException(
+                            info.getNoVideo(),
+                            String.format("No video in Twitter URL '%s' and other service URL in description.", request.getURL()));
                 }
 
                 if (amountOfFiles > 1 && !specify) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideo());
-                    throw new IllegalArgumentException(String.format("Twitter URL '%s' is a multi-video link and user do not specify which video he want.", request.getURL()));
+                    throw new InvalidBotRequestException(
+                            info.getMultiVideo(),
+                            String.format("Twitter URL '%s' is a multi-video link and user do not specify which video he want.", request.getURL()));
                 }
 
                 if (amountOfFiles > multiVideoMaxAmount) {
-                    quickSender.editMessageText(request.getEditMessageText(), info.getMultiVideoAmountTooHigh());
-                    throw new IllegalArgumentException(String.format("Amount of multi-video Twitter URL '%s' is too high, more than 15.", request.getURL()));
+                    throw new InvalidBotRequestException(
+                            info.getMultiVideoAmountTooHigh(),
+                            String.format("Amount of multi-video Twitter URL '%s' is too high, more than 15.", request.getURL()));
                 }
 
                 if (amountOfFiles == multiVideoNumber) {
@@ -158,13 +173,15 @@ public class TwitterDownloader {
         }
 
         if (amountOfFiles == 0) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-            throw new IllegalArgumentException(String.format("No video in Twitter URL '%s'", request.getURL()));
+            throw new InvalidBotRequestException(
+                    info.getNoVideo(),
+                    String.format("No video in Twitter URL '%s'", request.getURL()));
         }
 
         if (fileInfoInJson.isEmpty() && multiVideoNumber > amountOfFiles) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getReceivedWrongNumberInMultiVideo(amountOfFiles, multiVideoNumber));
-            throw new IllegalArgumentException(String.format("No video in multi-video Twitter URL '%s'", request.getURL()));
+            throw new InvalidBotRequestException(
+                    info.getReceivedWrongNumberInMultiVideo(amountOfFiles, multiVideoNumber),
+                    String.format("No video in multi-video Twitter URL '%s'", request.getURL()));
         }
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);

@@ -10,7 +10,8 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.TikTokFileEntity;
-import org.vicary.format.MarkdownV2;
+import org.vicary.exception.DownloadedFileNotFoundException;
+import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
@@ -25,12 +26,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class TikTokDownloader {
+public class TikTokDownloader implements Downloader {
 
     private final static Logger logger = LoggerFactory.getLogger(TikTokDownloader.class);
 
@@ -46,7 +49,11 @@ public class TikTokDownloader {
 
     private final Gson gson;
 
-    public FileResponse download(FileRequest request) throws WebClientRequestException, IllegalArgumentException, NoSuchElementException, IOException {
+    private final List<String> availableExtensions = List.of("mp4");
+
+
+    @Override
+    public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
@@ -88,9 +95,10 @@ public class TikTokDownloader {
                 if (fileSizeInProgress == null) {
                     fileSizeInProgress = FileManager.getFileSizeInProcess(line);
                     if (fileSizeInProgress != null && !FileManager.checkFileSizeProcess(fileSizeInProgress)) {
-                        quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                        logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), fileSizeInProgress);
                         process.destroy();
+                        throw new InvalidBotRequestException(
+                                info.getFileTooBig(),
+                                String.format("Size of file '%s' is too big. File size: %s", response.getId(), fileSizeInProgress));
                     }
                 }
             }
@@ -99,22 +107,26 @@ public class TikTokDownloader {
         if (downloadedFile.exists()) {
             long fileSize = downloadedFile.length();
             if (!FileManager.isFileSizeValid(fileSize)) {
-                quickSender.editMessageText(editMessageText, info.getFileTooBig());
-                logger.warn("Size of file '{}' is too big. File size: {}", response.getId(), Converter.bytesToMB(fileSize));
-                throw new IllegalArgumentException("File size cannot be more than 50MB." +
-                                                   "\nFile size: " + Converter.bytesToMB(fileSize));
+                throw new InvalidBotRequestException(
+                        info.getFileTooBig(),
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
             }
-
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
                     .file(downloadedFile)
                     .build());
         } else {
-            quickSender.editMessageText(editMessageText, info.getErrorInDownloading());
-            throw new NoSuchElementException(String.format("File '%s' did not download.", response.getId()));
+            throw new DownloadedFileNotFoundException(
+                    info.getErrorInDownloading(),
+                    String.format("File '%s' has not been downloaded", response.getId()));
         }
         response.setEditMessageText(editMessageText);
         return response;
+    }
+
+    @Override
+    public List<String> getAvailableExtensions() {
+        return availableExtensions;
     }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
@@ -134,15 +146,17 @@ public class TikTokDownloader {
         }
 
         if (fileInfoInJson.isEmpty()) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-            throw new IllegalArgumentException(String.format("No video in TikTok URL '%s'", request.getURL()));
+            throw new InvalidBotRequestException(
+                    info.getNoVideo(),
+                    String.format("No video in TikTok URL '%s'", request.getURL()));
         }
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
         String uploaderUrl = fileInfo.getUploaderURL();
         if (uploaderUrl == null || !uploaderUrl.contains("tiktok.com/")) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-            throw new IllegalArgumentException(String.format("No video in TikTok URL '%s' and other service URL in description.", request.getURL()));
+            throw new InvalidBotRequestException(
+                    info.getNoVideo(),
+                    String.format("No video in TikTok URL '%s' and other service URL in description.", request.getURL()));
         }
         FileResponse response = mapper.map(fileInfo);
         response.setExtension(request.getExtension());

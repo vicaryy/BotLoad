@@ -7,16 +7,18 @@ import org.springframework.stereotype.Service;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.model.FileResponse;
 import org.vicary.repository.YoutubeFileRepository;
+import org.vicary.service.Converter;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class YouTubeFileService {
+public class YouTubeFileService implements FileService{
     private static final Logger logger = LoggerFactory.getLogger(YouTubeFileService.class);
+
     private final YoutubeFileRepository repository;
 
-    public YouTubeFileEntity saveYouTubeFile(YouTubeFileEntity youTubeFileEntity) {
+    public YouTubeFileEntity save(YouTubeFileEntity youTubeFileEntity) {
         logger.info("New YouTube file '{}' saved to repository.", youTubeFileEntity.getFileId());
         return repository.save(youTubeFileEntity);
     }
@@ -27,6 +29,20 @@ public class YouTubeFileService {
 
     public boolean existsByYoutubeIdAndExtensionAndQuality(String youtubeId, String extension, String quality) {
         return repository.existsByYoutubeIdAndExtensionAndQuality(youtubeId, extension, quality);
+    }
+
+    @Override
+    public void saveInRepo(FileResponse response) {
+        save(YouTubeFileEntity.builder()
+                .youtubeId(response.getId())
+                .extension(response.getExtension())
+                .quality(response.isPremium() ? "premium" : "standard")
+                .size(Converter.bytesToMB(response.getSize()))
+                .duration(Converter.secondsToMinutes(response.getDuration()))
+                .title(response.getTitle())
+                .URL(response.getURL())
+                .fileId(response.getTelegramFileId())
+                .build());
     }
 
     public boolean existsInRepo(FileResponse response) {

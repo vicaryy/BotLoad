@@ -26,12 +26,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class YouTubeDownloader {
+public class YouTubeDownloader implements Downloader {
     private final static Logger logger = LoggerFactory.getLogger(YouTubeDownloader.class);
 
     private final YouTubeFileService youTubeFileService;
@@ -46,9 +48,10 @@ public class YouTubeDownloader {
 
     private final Gson gson;
 
+    private final List<String> availableExtensions = List.of("mp3");
 
+    @Override
     public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
-        logger.info("Request: {}", request);
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
@@ -114,10 +117,9 @@ public class YouTubeDownloader {
                     .file(downloadedFile)
                     .build());
         } else {
-            quickSender.editMessageText(editMessageText, info.getErrorInDownloading());
             throw new DownloadedFileNotFoundException(
                     info.getErrorInDownloading(),
-                    String.format("File '' has not been downloaded", response.getId()));
+                    String.format("File '%s' has not been downloaded", response.getId()));
         }
 
         // downloading thumbnail
@@ -150,8 +152,12 @@ public class YouTubeDownloader {
                 .build());
         // setting other stuff
         response.setEditMessageText(editMessageText);
-        logger.info("RESPONSE: {}", response);
         return response;
+    }
+
+    @Override
+    public List<String> getAvailableExtensions() {
+        return availableExtensions;
     }
 
     public FileResponse getFileFromRepository(FileResponse response) {
@@ -185,8 +191,9 @@ public class YouTubeDownloader {
             throw new IOException(ex.getMessage());
         }
         if (fileInfoInJson.isEmpty()) {
-            quickSender.editMessageText(request.getEditMessageText(), info.getNoVideo());
-            throw new IllegalArgumentException(String.format("No video in YouTube URL '%s'", request.getURL()));
+            throw new InvalidBotRequestException(
+                    info.getNoVideo(),
+                    String.format("No video in YouTube URL '%s'", request.getURL()));
         }
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
