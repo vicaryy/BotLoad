@@ -27,7 +27,7 @@ public class LinkResponse {
     private final RequestService requestService;
 
     private final QuickSender quickSender;
-    
+
 
     public void sendFile(FileRequest request, Downloader downloader, FileService fileService) throws Exception {
         final String chatId = request.getChatId();
@@ -48,7 +48,7 @@ public class LinkResponse {
             sendFileMessage = requestService.sendRequest(getSendVideo(response));
             response.setTelegramFileId(sendFileMessage.getVideo().getFileId());
         }
-        quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response));
+        quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response, downloader.getServiceName()));
         logger.info("[send] File sent successfully.");
 
         // saving file to repository
@@ -65,7 +65,7 @@ public class LinkResponse {
         logger.debug("\n{}", response);
     }
 
-    public String getReceivedFileInfo(FileResponse response) {
+    public String getReceivedFileInfo(FileResponse response, String serviceName) {
         StringBuilder fileInfo = new StringBuilder();
 
         final String title = response.getTitle();
@@ -76,28 +76,35 @@ public class LinkResponse {
         final String duration = Converter.secondsToMinutes(response.getDuration());
         final String size = Converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
-        final String quality = response.isPremium() ? "Premium" : "Standard";
+        final String quality = response.isPremium() ? "premium" : "standard";
+        final boolean youtube = serviceName.equals("youtube");
 
         fileInfo.append(MarkdownV2.apply(info.getReceived()).toItalic().newlineAfter().get());
-        if (track == null) {
+        if (youtube) {
+            if (track == null) {
+                fileInfo.append(info.getTitle());
+                fileInfo.append(MarkdownV2.apply(title).get());
+            }
+            if (artist != null) {
+                fileInfo.append(info.getArtist());
+                fileInfo.append(MarkdownV2.apply(artist).get());
+            }
+            if (track != null) {
+                fileInfo.append(info.getTrack());
+                fileInfo.append(MarkdownV2.apply(track).get());
+            }
+            if (album != null) {
+                fileInfo.append(info.getAlbum());
+                fileInfo.append(MarkdownV2.apply(album).get());
+            }
+            if (releaseYear != null) {
+                fileInfo.append(info.getReleaseYear());
+                fileInfo.append(MarkdownV2.apply(releaseYear).get());
+            }
+        }
+        if (!youtube) {
             fileInfo.append(info.getTitle());
             fileInfo.append(MarkdownV2.apply(title).get());
-        }
-        if (artist != null) {
-            fileInfo.append(info.getArtist());
-            fileInfo.append(MarkdownV2.apply(artist).get());
-        }
-        if (track != null) {
-            fileInfo.append(info.getTrack());
-            fileInfo.append(MarkdownV2.apply(track).get());
-        }
-        if (album != null) {
-            fileInfo.append(info.getAlbum());
-            fileInfo.append(MarkdownV2.apply(album).get());
-        }
-        if (releaseYear != null) {
-            fileInfo.append(info.getReleaseYear());
-            fileInfo.append(MarkdownV2.apply(releaseYear).get());
         }
         if (duration != null) {
             fileInfo.append(info.getDuration());

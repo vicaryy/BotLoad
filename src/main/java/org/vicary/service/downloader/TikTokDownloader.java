@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
@@ -26,10 +25,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -84,6 +83,7 @@ public class TikTokDownloader implements Downloader {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null) {
+                logger.debug(line);
                 if (!fileDownloaded) {
                     editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
                     if (request.getEditMessageText().getText().contains("100%")) {
@@ -92,14 +92,11 @@ public class TikTokDownloader implements Downloader {
                     }
                 }
 
-                if (fileSizeInProgress == null) {
-                    fileSizeInProgress = FileManager.getFileSizeInProcess(line);
-                    if (fileSizeInProgress != null && !FileManager.checkFileSizeProcess(fileSizeInProgress)) {
-                        process.destroy();
-                        throw new InvalidBotRequestException(
-                                info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File size: %s", response.getId(), fileSizeInProgress));
-                    }
+                if (isFileSizeTooBigInProcess(line)) {
+                    process.destroy();
+                    throw new InvalidBotRequestException(
+                            info.getFileTooBig(),
+                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(getFileSizeInProcess(line))));
                 }
             }
         }
@@ -127,6 +124,27 @@ public class TikTokDownloader implements Downloader {
     @Override
     public List<String> getAvailableExtensions() {
         return availableExtensions;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "tiktok";
+    }
+
+    public boolean isFileSizeTooBigInProcess(String line) {
+        return line.startsWith("[download] File is larger than max-filesize");
+    }
+
+    public Long getFileSizeInProcess(String line) {
+        long size = 0;
+        if (line.startsWith("[download] File is larger than max-filesize")) {
+            String[] arraySplit = line.split("\\(");
+            size = Arrays.stream(arraySplit[1].split(" "))
+                    .findFirst()
+                    .map(Long::parseLong)
+                    .orElse(0L);
+        }
+        return size;
     }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
@@ -158,6 +176,11 @@ public class TikTokDownloader implements Downloader {
                     info.getNoVideo(),
                     String.format("No video in TikTok URL '%s' and other service URL in description.", request.getURL()));
         }
+        if (fileInfo.isLive()) {
+            throw new InvalidBotRequestException(
+                    info.getLiveVideo(),
+                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+        }
         FileResponse response = mapper.map(fileInfo);
         response.setExtension(request.getExtension());
         response.setPremium(request.isPremium());
@@ -165,7 +188,7 @@ public class TikTokDownloader implements Downloader {
     }
 
     public FileResponse getFileFromRepository(FileResponse response) {
-        Optional<TikTokFileEntity> tiktokFile = tiktokFileService.findByTwitterId(response.getId());
+        Optional<TikTokFileEntity> tiktokFile = tiktokFileService.findByTikTokId(response.getId());
 
         if (tiktokFile.isPresent() && Converter.MBToBytes(tiktokFile.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()

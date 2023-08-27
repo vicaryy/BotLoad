@@ -13,4 +13,6 @@ public interface Downloader {
     FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException;
 
     List<String> getAvailableExtensions();
+
+    String getServiceName();
 }

@@ -27,8 +27,11 @@ public class DownloaderInfo {
     private final String noVideo = MarkdownV2.apply("No video!").toBold().newlineAfter(2).get()
                                    + MarkdownV2.apply("Sorry but i can't find video in your link.").get();
 
-    private final String errorInDownloading = MarkdownV2.apply("Sorry but i can't download this file.").toBold().newlineAfter().get()
+    private final String errorInDownloading = MarkdownV2.apply("Sorry but i can't download this file.\n\n").toBold().get()
                                               + MarkdownV2.apply("Try again later.").get();
+
+    private final String liveVideo = MarkdownV2.apply("Live video!\n\n").toBold().get()
+                                     + MarkdownV2.apply("Sorry but i can't download live videos.").get();
 
     private final String multiVideo = MarkdownV2.apply("Multi-video link.").toBold().newlineAfter(2).get()
                                       + MarkdownV2.apply("This link contains multiple videos, you need to specify which one you want to download." +

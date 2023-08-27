@@ -5,14 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.TwitterFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
-import org.vicary.format.MarkdownV2;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
@@ -27,10 +25,10 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -91,14 +89,11 @@ public class TwitterDownloader implements Downloader {
                     }
                 }
 
-                if (fileSizeInProcess == null) {
-                    fileSizeInProcess = FileManager.getFileSizeInProcess(line);
-                    if (fileSizeInProcess != null && !FileManager.checkFileSizeProcess(fileSizeInProcess)) {
-                        process.destroy();
-                        throw new InvalidBotRequestException(
-                                info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
-                    }
+                if (isFileSizeTooBigInProcess(line)) {
+                    process.destroy();
+                    throw new InvalidBotRequestException(
+                            info.getFileTooBig(),
+                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(getFileSizeInProcess(line))));
                 }
             }
         }
@@ -123,9 +118,30 @@ public class TwitterDownloader implements Downloader {
         return response;
     }
 
+    public boolean isFileSizeTooBigInProcess(String line) {
+        return line.startsWith("[download] File is larger than max-filesize");
+    }
+
+    public Long getFileSizeInProcess(String line) {
+        long size = 0;
+        if (line.startsWith("[download] File is larger than max-filesize")) {
+            String[] arraySplit = line.split("\\(");
+            size = Arrays.stream(arraySplit[1].split(" "))
+                    .findFirst()
+                    .map(Long::parseLong)
+                    .orElse(0L);
+        }
+        return size;
+    }
+
     @Override
     public List<String> getAvailableExtensions() {
         return availableExtensions;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "twitter";
     }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
@@ -185,6 +201,13 @@ public class TwitterDownloader implements Downloader {
         }
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+
+        if (fileInfo.isLive()) {
+            throw new InvalidBotRequestException(
+                    info.getLiveVideo(),
+                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+        }
+
         FileResponse fileResponse = mapper.map(fileInfo);
         fileResponse.setMultiVideoNumber(multiVideoNumber);
         fileResponse.setExtension(request.getExtension());

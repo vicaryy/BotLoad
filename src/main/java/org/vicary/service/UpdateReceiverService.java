@@ -96,11 +96,11 @@ public class UpdateReceiverService {
             // ADDING USER TO ACTIVE REQUESTS REPO
             var request = activeRequestService.saveActiveUser(new ActiveRequestEntity(userId));
 
+            String URL = getURL(text);
+            Downloader downloader = null;
+            FileService fileService = null;
+            FileRequest fileRequest = null;
             try {
-                String URL = getURL(text);
-                Downloader downloader = null;
-                FileService fileService = null;
-
                 if (YoutubePattern.checkURLValidation(URL)) {
                     downloader = youtubeDownloader;
                     fileService = youtubeFileService;
@@ -120,7 +120,7 @@ public class UpdateReceiverService {
 
                 if (downloader != null) {
                     Message botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
-                    FileRequest fileRequest = getFileRequest(update, downloader, botMessageInfo.getMessageId());
+                    fileRequest = getFileRequest(update, downloader, botMessageInfo.getMessageId());
                     quickSender.chatAction(chatId, "typing");
                     linkResponse.sendFile(fileRequest, downloader, fileService);
                 }
@@ -132,7 +132,7 @@ public class UpdateReceiverService {
                 logger.warn("---------------------------");
             } catch (DownloadedFileNotFoundException | InvalidBotRequestException ex) {
                 logger.warn(ex.getLoggerMessage());
-                quickSender.message(chatId, ex.getMessage(), false);
+                quickSender.editMessageText(fileRequest.getEditMessageText(), ex.getMessage());
             } catch (WebClientRequestException | NoSuchElementException | IOException ex) {
                 logger.warn("Expected exception: ", ex);
             } catch (Exception ex) {
@@ -208,6 +208,6 @@ public class UpdateReceiverService {
     }
 
     public String getURL(String text) {
-        return Arrays.stream(text.trim().split(" ")).findFirst().orElse("");
+        return Arrays.stream(text.split(" ")).findFirst().orElse("");
     }
 }

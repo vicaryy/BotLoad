@@ -1,6 +1,8 @@
 package org.vicary.service.file_service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.vicary.entity.TikTokFileEntity;
 import org.vicary.model.FileResponse;
@@ -13,13 +15,15 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TikTokFileService implements FileService {
 
+    private final static Logger logger = LoggerFactory.getLogger(TikTokFileService.class);
+
     private final TikTokFileRepository repository;
 
     public TikTokFileEntity saveEntity(TikTokFileEntity tikTokFileEntity) {
         return repository.save(tikTokFileEntity);
     }
 
-    public Optional<TikTokFileEntity> findByTwitterId(String tiktokId) {
+    public Optional<TikTokFileEntity> findByTikTokId(String tiktokId) {
         return repository.findByTiktokId(tiktokId);
     }
 

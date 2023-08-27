@@ -127,6 +127,11 @@ public class InstagramDownloader implements Downloader {
         return availableExtensions;
     }
 
+    @Override
+    public String getServiceName() {
+        return "instagram";
+    }
+
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
         int amountOfFiles = 0;

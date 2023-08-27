@@ -160,6 +160,11 @@ public class YouTubeDownloader implements Downloader {
         return availableExtensions;
     }
 
+    @Override
+    public String getServiceName() {
+        return "youtube";
+    }
+
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<YouTubeFileEntity> youTubeFileEntity = youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
                 response.getId(),
@@ -197,6 +202,13 @@ public class YouTubeDownloader implements Downloader {
         }
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+
+        if (fileInfo.isLive()) {
+            throw new InvalidBotRequestException(
+                    info.getLiveVideo(),
+                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+        }
+
         FileResponse fileResponse = mapper.map(fileInfo);
         fileResponse.setPremium(request.isPremium());
         fileResponse.setExtension(request.getExtension());

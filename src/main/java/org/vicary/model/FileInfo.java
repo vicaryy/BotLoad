@@ -29,6 +29,9 @@ public class FileInfo {
     @SerializedName("uploader_url")
     private String uploaderURL;
 
+    @SerializedName("is_live")
+    private boolean isLive;
+
     @SerializedName("webpage_url")
     private String URL;
 
