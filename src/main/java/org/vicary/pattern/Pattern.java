@@ -1,8 +1,11 @@
 package org.vicary.pattern;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Arrays;
 import java.util.regex.Matcher;
 
+@Component
 public class Pattern {
     public String getYoutubeId(String youtubeURL) {
         java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
