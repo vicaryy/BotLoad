@@ -15,7 +15,7 @@ import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.springframework.stereotype.Service;
-import org.vicary.pattern.YoutubePattern;
+import org.vicary.pattern.Pattern;
 import org.vicary.service.Converter;
 import org.vicary.service.FileManager;
 import org.vicary.service.file_service.YouTubeFileService;
@@ -29,7 +29,6 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +47,8 @@ public class YouTubeDownloader implements Downloader {
 
     private final Gson gson;
 
+    private final Pattern pattern;
+
     private final List<String> availableExtensions = List.of("mp3");
 
     @Override
@@ -55,6 +56,7 @@ public class YouTubeDownloader implements Downloader {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
+        quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getConnectingToYoutube());
 
         // getting youtube file info
         FileResponse response = getFileInfo(request, processBuilder);
@@ -183,11 +185,10 @@ public class YouTubeDownloader implements Downloader {
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
-        String youtubeId = YoutubePattern.getYoutubeId(request.getURL());
+        String youtubeId = pattern.getYoutubeId(request.getURL());
 
         processBuilder.command(commands.getDownloadFileInfo(youtubeId));
         Process process = processBuilder.start();
-        quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getConnectingToYoutube());
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null)
@@ -195,18 +196,20 @@ public class YouTubeDownloader implements Downloader {
         } catch (IOException ex) {
             throw new IOException(ex.getMessage());
         }
-        if (fileInfoInJson.isEmpty()) {
+
+        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+
+        if (fileInfo == null) {
             throw new InvalidBotRequestException(
                     info.getNoVideo(),
                     String.format("No video in YouTube URL '%s'", request.getURL()));
         }
 
-        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
 
         if (fileInfo.isLive()) {
             throw new InvalidBotRequestException(
                     info.getLiveVideo(),
-                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+                    String.format("Live video in YouTube URL '%s'.", request.getURL()));
         }
 
         FileResponse fileResponse = mapper.map(fileInfo);

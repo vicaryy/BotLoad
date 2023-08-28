@@ -26,10 +26,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -98,6 +95,13 @@ public class InstagramDownloader implements Downloader {
                                 info.getFileTooBig(),
                                 String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
                     }
+                }
+
+                if (isFileSizeTooBigInProcess(line)) {
+                    process.destroy();
+                    throw new InvalidBotRequestException(
+                            info.getFileTooBig(),
+                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(getFileSizeInProcess(line))));
                 }
             }
         }
@@ -176,7 +180,9 @@ public class InstagramDownloader implements Downloader {
             throw new IOException(ex.getMessage());
         }
 
-        if (amountOfFiles == 0) {
+        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+
+        if (fileInfo == null) {
             throw new InvalidBotRequestException(
                     info.getNoVideo(),
                     String.format("No video in Instagram URL '%s'", request.getURL()));
@@ -188,7 +194,13 @@ public class InstagramDownloader implements Downloader {
                     String.format("No video in multi-video Instagram URL '%s'", request.getURL()));
         }
 
-        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+        if (fileInfo.isLive()) {
+            throw new InvalidBotRequestException(
+                    info.getLiveVideo(),
+                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+        }
+
+
         FileResponse fileResponse = mapper.map(fileInfo);
         fileResponse.setMultiVideoNumber(multiVideoNumber);
         fileResponse.setExtension(request.getExtension());
@@ -207,6 +219,22 @@ public class InstagramDownloader implements Downloader {
             response.setSize(Converter.MBToBytes(instagramFileEntity.get().getSize()));
         }
         return response;
+    }
+
+    public boolean isFileSizeTooBigInProcess(String line) {
+        return line.startsWith("[download] File is larger than max-filesize");
+    }
+
+    public Long getFileSizeInProcess(String line) {
+        long size = 0;
+        if (line.startsWith("[download] File is larger than max-filesize")) {
+            String[] arraySplit = line.split("\\(");
+            size = Arrays.stream(arraySplit[1].split(" "))
+                    .findFirst()
+                    .map(Long::parseLong)
+                    .orElse(0L);
+        }
+        return size;
     }
 
     public void updateDownloadProgressInMessageText(EditMessageText editMessageText, String line) {

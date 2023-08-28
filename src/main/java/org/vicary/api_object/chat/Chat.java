@@ -1,15 +1,14 @@
 package org.vicary.api_object.chat;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import org.vicary.api_object.ApiObject;
 import org.vicary.api_object.message.Message;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
 public class Chat implements ApiObject {
     @JsonProperty("id")
     private Integer id;
@@ -94,7 +93,4 @@ public class Chat implements ApiObject {
 
     @JsonProperty("location")
     private ChatLocation location;
-
-    private Chat() {
-    }
 }

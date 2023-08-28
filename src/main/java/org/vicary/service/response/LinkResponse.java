@@ -44,9 +44,14 @@ public class LinkResponse {
         if (response.getExtension().equals("mp3")) {
             sendFileMessage = requestService.sendRequest(getSendAudio(response));
             response.setTelegramFileId(sendFileMessage.getAudio().getFileId());
+            if (response.getDuration() == 0)
+                response.setDuration(sendFileMessage.getAudio().getDuration());
         } else if (response.getExtension().equals("mp4")) {
             sendFileMessage = requestService.sendRequest(getSendVideo(response));
             response.setTelegramFileId(sendFileMessage.getVideo().getFileId());
+            if (response.getDuration() == 0)
+                response.setDuration(sendFileMessage.getVideo().getDuration());
+            logger.debug(sendFileMessage.toString());
         }
         quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response, downloader.getServiceName()));
         logger.info("[send] File sent successfully.");
@@ -106,7 +111,7 @@ public class LinkResponse {
             fileInfo.append(info.getTitle());
             fileInfo.append(MarkdownV2.apply(title).get());
         }
-        if (duration != null) {
+        if (!duration.equals("0:00")) {
             fileInfo.append(info.getDuration());
             fileInfo.append(MarkdownV2.apply(duration).get());
         }

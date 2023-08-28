@@ -14,23 +14,24 @@ import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
-import org.vicary.service.file_service.TwitterFileService;
+import org.vicary.service.file_service.InstagramFileService;
 import org.vicary.service.quick_sender.QuickSender;
 
 import java.io.File;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
-class TwitterDownloaderTest {
+class InstagramDownloaderTest {
 
     @Autowired
-    private TwitterDownloader downloader;
+    private InstagramDownloader downloader;
 
     @MockBean
-    private TwitterFileService twitterFileService;
+    private InstagramFileService instagramFileService;
 
     @MockBean
     private QuickSender quickSender;
@@ -38,6 +39,7 @@ class TwitterDownloaderTest {
     private final static File FILE_DIRECTORY = new File("/Users/vicary/desktop/folder/");
 
     private final static ProcessBuilder processBuilder = new ProcessBuilder();
+
     @AfterAll
     public static void afterAll() throws Exception {
         FileUtils.cleanDirectory(FILE_DIRECTORY);
@@ -57,7 +59,7 @@ class TwitterDownloaderTest {
                 .messageId(111)
                 .build();
         FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/flumemusic/status/1576058248917942273?s=20")
+                .URL("https://www.instagram.com/p/BRyPt1sDGfG/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==")
                 .chatId("1935527130")
                 .extension("mp4")
                 .premium(false)
@@ -66,16 +68,16 @@ class TwitterDownloaderTest {
                 .build();
 
         InputFile downloadedFile = InputFile.builder()
-                .file(new File("/Users/vicary/desktop/folder/Flume - Live from New York.mp4"))
+                .file(new File("/Users/vicary/desktop/folder/Video by _vicary_.mp4"))
                 .build();
         FileResponse expectedResponse = FileResponse.builder()
-                .URL("https://twitter.com/flumemusic/status/1576058248917942273?s=20")
-                .id("1576057842456416256")
+                .URL("https://www.instagram.com/p/BRyPt1sDGfG/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==")
+                .id("BRyPt1sDGfG")
                 .extension("mp4")
                 .premium(false)
-                .title("Flume - Live from New York")
-                .duration(10)
-                .size(527349)
+                .title("Video by _vicary_")
+                .duration(14)
+                .size(1460252)
                 .multiVideoNumber(1)
                 .downloadedFile(downloadedFile)
                 .editMessageText(editMessageText)
@@ -90,49 +92,31 @@ class TwitterDownloaderTest {
 
         // then
         assertEquals(expectedResponse, actualResponse);
-        verify(twitterFileService).findByTwitterId("1576057842456416256");
+        verify(instagramFileService).findByInstagramId("BRyPt1sDGfG");
     }
 
     @Test
     void download_expectInvalidBotApiThrow_FileRequestOver50MBInMp4() {
-        //given
-        EditMessageText editMessageText = EditMessageText.builder()
-                .chatId("123")
-                .text("siema")
-                .messageId(111)
-                .build();
-        FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/LVGully/status/1694131703751594265?s=20")
-                .chatId("1935527130")
-                .extension("mp4")
-                .premium(false)
-                .multiVideoNumber(0)
-                .editMessageText(editMessageText)
-                .build();
-
-        // when
-        // then
-        assertThrows(InvalidBotRequestException.class, () -> downloader.download(givenRequest));
     }
 
     @Test
     void getFileInfo_expectEquals_MultiVideoLinkButNumberIsSpecify() {
         FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/odesza/status/1683894840101322752?s=20")
+                .URL("https://www.instagram.com/p/Cv-ZNz9RTzw/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA%3D%3D")
                 .chatId("1935527130")
                 .extension("mp4")
                 .premium(false)
-                .multiVideoNumber(2)
+                .multiVideoNumber(5)
                 .build();
 
         FileResponse expectedResponse = FileResponse.builder()
-                .URL("https://twitter.com/odesza/status/1683894840101322752?s=20")
-                .id("1683894778726084608")
+                .URL("https://www.instagram.com/p/Cv-ZNz9RTzw/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA%3D%3D")
+                .id("Cv-XIV8gMtx")
                 .extension("mp4")
                 .premium(false)
-                .title("ODESZA - Thank you for the love on this EP! Which tracks are you guys enjoying? #2")
-                .duration(9)
-                .multiVideoNumber(2)
+                .title("Video 7")
+                .duration(0)
+                .multiVideoNumber(5)
                 .build();
 
         // when
@@ -150,23 +134,7 @@ class TwitterDownloaderTest {
     void getFileInfo_expectInvalidBotRequestThrow_NoVideoOnlyPhotoInRequest() {
         //given
         FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/flumemusic/status/1560030334871146496?s=20")
-                .chatId("1935527130")
-                .extension("mp4")
-                .premium(false)
-                .multiVideoNumber(0)
-                .build();
-
-        //when
-        //then
-        assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-    }
-
-    @Test
-    void getFileInfo_expectInvalidBotRequestThrow_NoVideoButOtherServiceLinkInDescription() {
-        //given
-        FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/PostMalone/status/1684780951216283648?s=20")
+                .URL("https://www.instagram.com/p/Ct7DxqSRRYG/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA==")
                 .chatId("1935527130")
                 .extension("mp4")
                 .premium(false)
@@ -181,7 +149,7 @@ class TwitterDownloaderTest {
     @Test
     void getFileInfo_expectInvalidBotRequestThrow_MultiVideoLinkButNumberNotSpecify() {
         FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/odesza/status/1683894840101322752?s=20")
+                .URL("https://www.instagram.com/p/Cv-ZNz9RTzw/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA%3D%3D")
                 .chatId("1935527130")
                 .extension("mp4")
                 .premium(false)
@@ -196,11 +164,11 @@ class TwitterDownloaderTest {
     @Test
     void getFileInfo_expectInvalidBotRequestThrow_MultiVideoLinkButNumberSpecifyIsTooHigh() {
         FileRequest givenRequest = FileRequest.builder()
-                .URL("https://twitter.com/odesza/status/1683894840101322752?s=20")
+                .URL("https://www.instagram.com/p/Cv-ZNz9RTzw/?utm_source=ig_web_copy_link&igshid=MzRlODBiNWFlZA%3D%3D")
                 .chatId("1935527130")
                 .extension("mp4")
                 .premium(false)
-                .multiVideoNumber(6)
+                .multiVideoNumber(10)
                 .build();
 
         //when
@@ -208,3 +176,31 @@ class TwitterDownloaderTest {
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

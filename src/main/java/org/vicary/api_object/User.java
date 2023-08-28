@@ -2,10 +2,7 @@ package org.vicary.api_object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
-
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
 public class User implements ApiObject {
     @JsonProperty("id")
     private Long id;

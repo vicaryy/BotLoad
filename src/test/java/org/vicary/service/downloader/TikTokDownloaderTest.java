@@ -1,17 +1,23 @@
 package org.vicary.service.downloader;
 
+import com.google.gson.Gson;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.junit.runner.Runner;
+import org.mockito.Mockito;
+import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
+import org.vicary.command.YtDlpCommand;
 import org.vicary.exception.InvalidBotRequestException;
+import org.vicary.info.DownloaderInfo;
+import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.service.file_service.TikTokFileService;
@@ -20,6 +26,7 @@ import org.vicary.service.quick_sender.QuickSender;
 import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.verify;
 
 @RunWith(Runner.class)
@@ -124,7 +131,7 @@ class TikTokDownloaderTest {
         //given
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId("123")
-                .text("siema")
+                .text("test")
                 .messageId(111)
                 .build();
         FileRequest givenRequest = FileRequest.builder()
@@ -140,5 +147,42 @@ class TikTokDownloaderTest {
         // when
         // then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
+    }
+
+    @Test
+    void getFileInfo_expectInvalidBotApiThrow_LiveVideoInFileRequestInMp4() {
+        //given
+        Gson gson = mock(Gson.class);
+        TikTokDownloader tikTokDownloader = new TikTokDownloader(
+                null,
+                new DownloaderInfo(),
+                new YtDlpCommand(),
+                null,
+                null,
+                gson);
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId("123")
+                .text("test")
+                .messageId(111)
+                .build();
+        FileRequest givenRequest = FileRequest.builder()
+                .URL("https://www.tiktok.com/@kexnjii/video/7178592761845717?is_from_webapp=1&sender_device=pc&web_id=7252294415770289690")
+                .chatId("1935527130")
+                .extension("mp4")
+                .premium(false)
+                .multiVideoNumber(0)
+                .editMessageText(editMessageText)
+                .build();
+
+        String fileInfoInString = "";
+        FileInfo receivedFileInfo = FileInfo.builder()
+                .uploaderURL("tiktok.com/")
+                .isLive(true)
+                .build();
+
+        // when
+        when(gson.fromJson(fileInfoInString, FileInfo.class)).thenReturn(receivedFileInfo);
+        // then
+        assertThrows(InvalidBotRequestException.class, () -> tikTokDownloader.getFileInfo(givenRequest, processBuilder));
     }
 }

@@ -1,5 +1,6 @@
 package org.vicary.service.downloader;
 
+import com.google.gson.Gson;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -11,16 +12,20 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
+import org.vicary.command.YtDlpCommand;
 import org.vicary.exception.InvalidBotRequestException;
+import org.vicary.info.DownloaderInfo;
+import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
+import org.vicary.pattern.Pattern;
 import org.vicary.service.file_service.YouTubeFileService;
 import org.vicary.service.quick_sender.QuickSender;
 
 import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
@@ -242,5 +247,43 @@ class YouTubeDownloaderTest {
 
         // then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
+    }
+
+    @Test
+    void getFileInfo_expectInvalidBotApiThrow_LiveVideoInFileRequestInMp4() {
+        //given
+        Gson gson = mock(Gson.class);
+        YouTubeDownloader youtubeDownloader = new YouTubeDownloader(
+                null,
+                null,
+                new YtDlpCommand(),
+                new DownloaderInfo(),
+                null,
+                gson,
+                new Pattern());
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId("123")
+                .text("test")
+                .messageId(111)
+                .build();
+        FileRequest givenRequest = FileRequest.builder()
+                .URL("https://youtu.be/psNARNT1Y2Q?si=ApAseIvSQ-xSrnTi")
+                .chatId("1935527130")
+                .extension("mp4")
+                .premium(false)
+                .multiVideoNumber(0)
+                .editMessageText(editMessageText)
+                .build();
+
+        String fileInfoInString = "";
+        FileInfo receivedFileInfo = FileInfo.builder()
+                .uploaderURL("youtube.com/")
+                .isLive(true)
+                .build();
+
+        // when
+        when(gson.fromJson(fileInfoInString, FileInfo.class)).thenReturn(receivedFileInfo);
+        // then
+        assertThrows(InvalidBotRequestException.class, () -> youtubeDownloader.getFileInfo(givenRequest, processBuilder));
     }
 }

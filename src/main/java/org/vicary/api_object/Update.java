@@ -16,6 +16,10 @@ import org.vicary.api_object.poll.PollAnswer;
 @Getter
 @ToString
 @EqualsAndHashCode
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Update implements ApiObject {
     /**
      * This object represents an incoming update.
@@ -81,9 +85,6 @@ public class Update implements ApiObject {
     @JsonProperty("chat_join_request")
     private ChatJoinRequest chatJoinRequest;
 
-
-    private Update() {
-    }
 
     public String getChatId() {
         return message.getChat().getId().toString();

@@ -163,24 +163,27 @@ public class TikTokDownloader implements Downloader {
             throw new IOException(ex.getMessage());
         }
 
-        if (fileInfoInJson.isEmpty()) {
+        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+
+        if (fileInfo == null) {
             throw new InvalidBotRequestException(
                     info.getNoVideo(),
                     String.format("No video in TikTok URL '%s'", request.getURL()));
         }
 
-        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
         String uploaderUrl = fileInfo.getUploaderURL();
         if (uploaderUrl == null || !uploaderUrl.contains("tiktok.com/")) {
             throw new InvalidBotRequestException(
                     info.getNoVideo(),
                     String.format("No video in TikTok URL '%s' and other service URL in description.", request.getURL()));
         }
+
         if (fileInfo.isLive()) {
             throw new InvalidBotRequestException(
                     info.getLiveVideo(),
                     String.format("Live video in TikTok URL '%s'.", request.getURL()));
         }
+
         FileResponse response = mapper.map(fileInfo);
         response.setExtension(request.getExtension());
         response.setPremium(request.isPremium());

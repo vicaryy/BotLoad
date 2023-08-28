@@ -15,15 +15,12 @@ import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
-import org.vicary.pattern.InstagramPattern;
-import org.vicary.pattern.TikTokPattern;
-import org.vicary.pattern.TwitterPattern;
+import org.vicary.pattern.Pattern;
 import org.vicary.service.downloader.*;
 import org.vicary.service.file_service.*;
 import org.vicary.service.mapper.MessageMapper;
 import org.vicary.service.response.*;
 import org.vicary.service.quick_sender.QuickSender;
-import org.vicary.pattern.YoutubePattern;
 import org.vicary.service.mapper.UserMapper;
 import org.springframework.stereotype.Service;
 
@@ -71,6 +68,8 @@ public class UpdateReceiverService {
 
     private final LinkResponse linkResponse;
 
+    private final Pattern pattern;
+
     public void updateReceiver(Update update) {
         if (update.getMessage() == null)
             return;
@@ -101,19 +100,16 @@ public class UpdateReceiverService {
             FileService fileService = null;
             FileRequest fileRequest = null;
             try {
-                if (YoutubePattern.checkURLValidation(URL)) {
+                if (pattern.isYouTubeURLValid(URL)) {
                     downloader = youtubeDownloader;
                     fileService = youtubeFileService;
-                }
-                else if (TwitterPattern.checkURLValidation(URL)) {
+                } else if (pattern.isTwitterURLValid(URL)) {
                     downloader = twitterDownloader;
                     fileService = twitterFileService;
-                }
-                else if (TikTokPattern.checkURLValidation(URL)) {
+                } else if (pattern.isTikTokURLValid(URL)) {
                     downloader = tiktokDownloader;
                     fileService = tiktokFileService;
-                }
-                else if (InstagramPattern.checkURLValidation(URL)) {
+                } else if (pattern.isInstagramURLValid(URL)) {
                     downloader = instagramDownloader;
                     fileService = instagramFileService;
                 }
@@ -203,6 +199,9 @@ public class UpdateReceiverService {
                 throw new InvalidBotRequestException(
                         info.getWrongExtension(),
                         String.format("User specify wrong extension '%s'.", textArray[1]));
+        } else if (textArray.length > 2 && !textArray[2].startsWith("#")) {
+            if (availableExtensions.contains(textArray[2]))
+                return textArray[2];
         }
         return availableExtensions.stream().findFirst().get();
     }

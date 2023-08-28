@@ -1,9 +1,11 @@
 package org.vicary.model;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class FileInfo {
     @SerializedName("id")
     private String id;
