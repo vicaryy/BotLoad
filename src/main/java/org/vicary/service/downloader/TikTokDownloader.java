@@ -48,6 +48,8 @@ public class TikTokDownloader implements Downloader {
 
     private final Gson gson;
 
+    private final Converter converter;
+
     private final List<String> availableExtensions = List.of("mp4");
 
 
@@ -70,7 +72,6 @@ public class TikTokDownloader implements Downloader {
 
 
         // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
-        String fileSizeInProgress = null;
         String fileName = FileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
         String filePath = commands.getDownloadDestination() + fileName;
         boolean fileDownloaded = false;
@@ -96,7 +97,7 @@ public class TikTokDownloader implements Downloader {
                     process.destroy();
                     throw new InvalidBotRequestException(
                             info.getFileTooBig(),
-                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(getFileSizeInProcess(line))));
+                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(getFileSizeInProcess(line))));
                 }
             }
         }
@@ -106,7 +107,7 @@ public class TikTokDownloader implements Downloader {
             if (!FileManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -193,12 +194,12 @@ public class TikTokDownloader implements Downloader {
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<TikTokFileEntity> tiktokFile = tiktokFileService.findByTikTokId(response.getId());
 
-        if (tiktokFile.isPresent() && Converter.MBToBytes(tiktokFile.get().getSize()) < 20000000) {
+        if (tiktokFile.isPresent() && converter.MBToBytes(tiktokFile.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
                     .fileId(tiktokFile.get().getFileId())
                     .build();
             response.setDownloadedFile(file);
-            response.setSize(Converter.MBToBytes(tiktokFile.get().getSize()));
+            response.setSize(converter.MBToBytes(tiktokFile.get().getSize()));
         }
         return response;
     }

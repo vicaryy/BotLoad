@@ -1,13 +1,10 @@
 package org.vicary.api_object;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
+@Builder
 public class Audio implements ApiObject {
     @JsonProperty("file_id")
     private String fileId;
@@ -35,7 +32,4 @@ public class Audio implements ApiObject {
 
     @JsonProperty("thumbnail")
     private PhotoSize thumbnail;
-
-    private Audio() {
-    }
 }

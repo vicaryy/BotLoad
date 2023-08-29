@@ -2,6 +2,7 @@ package org.vicary.service.downloader;
 
 import com.google.gson.Gson;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
+import org.checkerframework.checker.units.qual.C;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.pattern.Pattern;
+import org.vicary.service.Converter;
 import org.vicary.service.file_service.YouTubeFileService;
 import org.vicary.service.quick_sender.QuickSender;
 
@@ -260,7 +262,8 @@ class YouTubeDownloaderTest {
                 new DownloaderInfo(),
                 null,
                 gson,
-                new Pattern());
+                new Pattern(),
+                new Converter());
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId("123")
                 .text("test")

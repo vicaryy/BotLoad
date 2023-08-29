@@ -16,6 +16,8 @@ import java.util.Optional;
 public class InstagramFileService implements FileService {
     private final InstagramFileRepository repository;
 
+    private final Converter converter;
+
     public InstagramFileEntity saveEntity(InstagramFileEntity instagramFileEntity) {
         return repository.save(instagramFileEntity);
     }
@@ -34,8 +36,8 @@ public class InstagramFileService implements FileService {
                 .instagramId(response.getId())
                 .extension(response.getExtension())
                 .quality(response.isPremium() ? "premium" : "standard")
-                .size(Converter.bytesToMB(response.getSize()))
-                .duration(Converter.secondsToMinutes(response.getDuration()))
+                .size(converter.bytesToMB(response.getSize()))
+                .duration(converter.secondsToMinutes(response.getDuration()))
                 .title(response.getTitle())
                 .URL(response.getURL())
                 .fileId(response.getTelegramFileId())

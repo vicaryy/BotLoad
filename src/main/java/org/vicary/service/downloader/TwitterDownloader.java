@@ -47,6 +47,8 @@ public class TwitterDownloader implements Downloader {
 
     private final Gson gson;
 
+    private final Converter converter;
+
     private final List<String> availableExtensions = List.of("mp4");
 
 
@@ -93,7 +95,7 @@ public class TwitterDownloader implements Downloader {
                     process.destroy();
                     throw new InvalidBotRequestException(
                             info.getFileTooBig(),
-                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(getFileSizeInProcess(line))));
+                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(getFileSizeInProcess(line))));
                 }
             }
         }
@@ -103,7 +105,7 @@ public class TwitterDownloader implements Downloader {
             if (!FileManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -218,12 +220,12 @@ public class TwitterDownloader implements Downloader {
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<TwitterFileEntity> twitterFileEntity = twitterFileService.findByTwitterId(response.getId());
 
-        if (twitterFileEntity.isPresent() && Converter.MBToBytes(twitterFileEntity.get().getSize()) < 20000000) {
+        if (twitterFileEntity.isPresent() && converter.MBToBytes(twitterFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
                     .fileId(twitterFileEntity.get().getFileId())
                     .build();
             response.setDownloadedFile(file);
-            response.setSize(Converter.MBToBytes(twitterFileEntity.get().getSize()));
+            response.setSize(converter.MBToBytes(twitterFileEntity.get().getSize()));
         }
         return response;
     }

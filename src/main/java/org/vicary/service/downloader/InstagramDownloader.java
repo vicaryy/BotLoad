@@ -5,7 +5,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
@@ -44,6 +43,8 @@ public class InstagramDownloader implements Downloader {
     private final FileInfoMapper mapper;
 
     private final Gson gson;
+
+    private final Converter converter;
 
     private final List<String> availableExtensions = List.of("mp4");
 
@@ -101,7 +102,7 @@ public class InstagramDownloader implements Downloader {
                     process.destroy();
                     throw new InvalidBotRequestException(
                             info.getFileTooBig(),
-                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(getFileSizeInProcess(line))));
+                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(getFileSizeInProcess(line))));
                 }
             }
         }
@@ -111,7 +112,7 @@ public class InstagramDownloader implements Downloader {
             if (!FileManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -211,12 +212,12 @@ public class InstagramDownloader implements Downloader {
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<InstagramFileEntity> instagramFileEntity = instagramFileService.findByInstagramId(response.getId());
 
-        if (instagramFileEntity.isPresent() && Converter.MBToBytes(instagramFileEntity.get().getSize()) < 20000000) {
+        if (instagramFileEntity.isPresent() && converter.MBToBytes(instagramFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
                     .fileId(instagramFileEntity.get().getFileId())
                     .build();
             response.setDownloadedFile(file);
-            response.setSize(Converter.MBToBytes(instagramFileEntity.get().getSize()));
+            response.setSize(converter.MBToBytes(instagramFileEntity.get().getSize()));
         }
         return response;
     }

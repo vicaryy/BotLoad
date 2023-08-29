@@ -18,6 +18,8 @@ public class YouTubeFileService implements FileService{
 
     private final YoutubeFileRepository repository;
 
+    private final Converter converter;
+
     public YouTubeFileEntity save(YouTubeFileEntity youTubeFileEntity) {
         logger.info("New YouTube file '{}' saved to repository.", youTubeFileEntity.getFileId());
         return repository.save(youTubeFileEntity);
@@ -37,8 +39,8 @@ public class YouTubeFileService implements FileService{
                 .youtubeId(response.getId())
                 .extension(response.getExtension())
                 .quality(response.isPremium() ? "premium" : "standard")
-                .size(Converter.bytesToMB(response.getSize()))
-                .duration(Converter.secondsToMinutes(response.getDuration()))
+                .size(converter.bytesToMB(response.getSize()))
+                .duration(converter.secondsToMinutes(response.getDuration()))
                 .title(response.getTitle())
                 .URL(response.getURL())
                 .fileId(response.getTelegramFileId())

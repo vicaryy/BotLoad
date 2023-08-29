@@ -49,6 +49,8 @@ public class YouTubeDownloader implements Downloader {
 
     private final Pattern pattern;
 
+    private final Converter converter;
+
     private final List<String> availableExtensions = List.of("mp3");
 
     @Override
@@ -112,7 +114,7 @@ public class YouTubeDownloader implements Downloader {
             if (!FileManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), Converter.bytesToMB(fileSize)));
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -173,12 +175,12 @@ public class YouTubeDownloader implements Downloader {
                 response.getExtension(),
                 response.isPremium() ? "premium" : "standard");
 
-        if (youTubeFileEntity.isPresent() && Converter.MBToBytes(youTubeFileEntity.get().getSize()) < 20000000) {
+        if (youTubeFileEntity.isPresent() && converter.MBToBytes(youTubeFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
                     .fileId(youTubeFileEntity.get().getFileId())
                     .build();
             response.setDownloadedFile(file);
-            response.setSize(Converter.MBToBytes(youTubeFileEntity.get().getSize()));
+            response.setSize(converter.MBToBytes(youTubeFileEntity.get().getSize()));
         }
         return response;
     }

@@ -2,12 +2,14 @@ package org.vicary.service;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+@Component
 public class TerminalExecutor {
     private static final Logger logger = LoggerFactory.getLogger(TerminalExecutor.class);
     private final static String REMOVE_COMMAND = "rm";
@@ -15,7 +17,7 @@ public class TerminalExecutor {
     private final static String REMOVE_COMMAND_ALL_FILES_STAR = "*";
     private final static String RENAME_COMMAND = "mv";
 
-    public static void removeFile(File file) {
+    public void removeFile(File file) {
         if (file == null || !file.exists()) {
             logger.warn("File '{}' does not exists.", file.getName());
             return;
@@ -35,19 +37,7 @@ public class TerminalExecutor {
         }
     }
 
-    public static void removeAllFiles(File fileDirectory) {
-        ProcessBuilder processBuilder = new ProcessBuilder();
-        processBuilder.command(REMOVE_COMMAND, REMOVE_COMMAND_ALL_FILES, REMOVE_COMMAND_ALL_FILES_STAR);
-        processBuilder.directory(fileDirectory);
-        try {
-            processBuilder.start();
-            logger.info("[remove] Removing all files in folder {}", fileDirectory.getPath());
-        } catch (IOException ex) {
-            logger.warn("[remove] Failed in removing all files in folder {}", fileDirectory.getPath());
-        }
-    }
-
-    public static File renameFile(File file, String newFileName) {
+    public File renameFile(File file, String newFileName) {
         String oldFileName = file.getName();
         File fileDirectory = new File(file.getParent());
 

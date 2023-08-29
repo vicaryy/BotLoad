@@ -14,6 +14,8 @@ import java.util.Optional;
 public class TwitterFileService implements FileService{
     private final TwitterFileRepository repository;
 
+    private final Converter converter;
+
     public TwitterFileEntity saveEntity(TwitterFileEntity twitterFileEntity) {
         return repository.save(twitterFileEntity);
     }
@@ -32,8 +34,8 @@ public class TwitterFileService implements FileService{
                 .twitterId(response.getId())
                 .extension(response.getExtension())
                 .quality(response.isPremium() ? "premium" : "standard")
-                .size(Converter.bytesToMB(response.getSize()))
-                .duration(Converter.secondsToMinutes(response.getDuration()))
+                .size(converter.bytesToMB(response.getSize()))
+                .duration(converter.secondsToMinutes(response.getDuration()))
                 .title(response.getTitle())
                 .URL(response.getURL())
                 .fileId(response.getTelegramFileId())

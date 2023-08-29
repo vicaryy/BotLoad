@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vicary.api_object.message.Message;
-import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.api_request.send.SendAudio;
 import org.vicary.api_request.send.SendVideo;
 import org.vicary.format.MarkdownV2;
@@ -27,6 +26,10 @@ public class LinkResponse {
     private final RequestService requestService;
 
     private final QuickSender quickSender;
+
+    private final Converter converter;
+
+    private final TerminalExecutor terminalExecutor;
 
 
     public void sendFile(FileRequest request, Downloader downloader, FileService fileService) throws Exception {
@@ -51,7 +54,6 @@ public class LinkResponse {
             response.setTelegramFileId(sendFileMessage.getVideo().getFileId());
             if (response.getDuration() == 0)
                 response.setDuration(sendFileMessage.getVideo().getDuration());
-            logger.debug(sendFileMessage.toString());
         }
         quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response, downloader.getServiceName()));
         logger.info("[send] File sent successfully.");
@@ -63,11 +65,9 @@ public class LinkResponse {
 
         // deleting downloaded files
         if (response.getDownloadedFile().getFile() != null)
-            TerminalExecutor.removeFile(response.getDownloadedFile().getFile());
+            terminalExecutor.removeFile(response.getDownloadedFile().getFile());
         if (response.getThumbnail() != null)
-            TerminalExecutor.removeFile(response.getThumbnail().getFile());
-        logger.debug("\n{}", request);
-        logger.debug("\n{}", response);
+            terminalExecutor.removeFile(response.getThumbnail().getFile());
     }
 
     public String getReceivedFileInfo(FileResponse response, String serviceName) {
@@ -78,8 +78,8 @@ public class LinkResponse {
         final String track = response.getTrack();
         final String album = response.getAlbum();
         final String releaseYear = response.getReleaseYear();
-        final String duration = Converter.secondsToMinutes(response.getDuration());
-        final String size = Converter.bytesToMB(response.getSize());
+        final String duration = converter.secondsToMinutes(response.getDuration());
+        final String size = converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
         final String quality = response.isPremium() ? "premium" : "standard";
         final boolean youtube = serviceName.equals("youtube");

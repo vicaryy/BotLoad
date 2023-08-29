@@ -71,8 +71,10 @@ public class UpdateReceiverService {
     private final Pattern pattern;
 
     public void updateReceiver(Update update) {
-        if (update.getMessage() == null)
-            return;
+        if (update.getMessage() == null) {
+            logger.warn("Got update without Message object.");
+            throw new InvalidBotRequestException(null, null);
+        }
 
         User user = update.getMessage().getFrom();
         String text = update.getMessage().getText().trim();
@@ -100,24 +102,26 @@ public class UpdateReceiverService {
             FileService fileService = null;
             FileRequest fileRequest = null;
             try {
-                if (pattern.isYouTubeURLValid(URL)) {
+                if (pattern.isYouTubeURL(URL)) {
                     downloader = youtubeDownloader;
                     fileService = youtubeFileService;
-                } else if (pattern.isTwitterURLValid(URL)) {
+                } else if (pattern.isTwitterURL(URL)) {
                     downloader = twitterDownloader;
                     fileService = twitterFileService;
-                } else if (pattern.isTikTokURLValid(URL)) {
+                } else if (pattern.isTikTokURL(URL)) {
                     downloader = tiktokDownloader;
                     fileService = tiktokFileService;
-                } else if (pattern.isInstagramURLValid(URL)) {
+                } else if (pattern.isInstagramURL(URL)) {
                     downloader = instagramDownloader;
                     fileService = instagramFileService;
                 }
 
                 if (downloader != null) {
                     Message botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
-                    fileRequest = getFileRequest(update, downloader, botMessageInfo.getMessageId());
                     quickSender.chatAction(chatId, "typing");
+
+                    fileRequest = getFileRequest(update, downloader, botMessageInfo.getMessageId());
+
                     linkResponse.sendFile(fileRequest, downloader, fileService);
                 }
 
@@ -133,7 +137,7 @@ public class UpdateReceiverService {
                 logger.warn("Expected exception: ", ex);
             } catch (Exception ex) {
                 logger.warn("Unexpected exception: ", ex);
-                quickSender.message(chatId, "Sorry, but something goes wrong.", false);
+                quickSender.editMessageText(fileRequest.getEditMessageText(), "Sorry, but something goes wrong.");
             } finally {
                 // DELETE USER FROM ACTIVE REQUESTS
                 activeRequestService.deleteById(request.getId());

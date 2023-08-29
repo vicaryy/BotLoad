@@ -18,10 +18,7 @@ import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.downloader.*;
-import org.vicary.service.file_service.InstagramFileService;
-import org.vicary.service.file_service.TikTokFileService;
-import org.vicary.service.file_service.TwitterFileService;
-import org.vicary.service.file_service.YouTubeFileService;
+import org.vicary.service.file_service.*;
 import org.vicary.service.mapper.MessageMapper;
 import org.vicary.service.mapper.UserMapper;
 import org.vicary.service.quick_sender.QuickSender;
@@ -40,7 +37,26 @@ class UpdateReceiverServiceTest {
     private UpdateReceiverService updateReceiverService;
 
     @Autowired
+    private YouTubeDownloader youtubeDownloader;
+    @Autowired
+    private TwitterDownloader twitterDownloader;
+    @Autowired
+    private TikTokDownloader tiktokDownloader;
+    @Autowired
+    private InstagramDownloader instagramDownloader;
+
+    @Autowired
+    private InstagramFileService instagramFileService;
+    @Autowired
+    private TikTokFileService tiktokFileService;
+    @Autowired
+    private TwitterFileService twitterFileService;
+    @Autowired
+    private YouTubeFileService youtubeFileService;
+
+    @Autowired
     private ResponseInfo info;
+
 
     @MockBean
     private QuickSender quickSender;
@@ -64,30 +80,6 @@ class UpdateReceiverServiceTest {
     private MessageMapper messageMapper;
 
     @MockBean
-    private YouTubeDownloader youtubeDownloader;
-
-    @MockBean
-    private TwitterDownloader twitterDownloader;
-
-    @MockBean
-    private TikTokDownloader tiktokDownloader;
-
-    @MockBean
-    private InstagramDownloader instagramDownloader;
-
-    @MockBean
-    private InstagramFileService instagramFileService;
-
-    @MockBean
-    private TikTokFileService tiktokFileService;
-
-    @MockBean
-    private TwitterFileService twitterFileService;
-
-    @MockBean
-    private YouTubeFileService youtubeFileService;
-
-    @MockBean
     private LinkResponse linkResponse;
 
     @MockBean
@@ -96,14 +88,13 @@ class UpdateReceiverServiceTest {
     @Test
     void updateReceiver_expectVerifies_UpdateWithYouTubeRequest() {
         String text = "https://www.youtube.com/watch?v=RvRhUHTV_8k mp3";
+        String expectedURL = "https://www.youtube.com/watch?v=RvRhUHTV_8k";
+        String expectedExtension = "mp3";
         String chatId = "123456";
         Long userId = 123L;
         int messageId = 321;
         User user = new User();
         user.setId(userId);
-        user.setFirstName("Wiktor");
-        user.setUsername("Cholewa");
-        user.setLanguageCode("pl");
         Chat chat = new Chat();
         chat.setId(Integer.parseInt(chatId));
         Message message = new Message();
@@ -111,18 +102,240 @@ class UpdateReceiverServiceTest {
         message.setFrom(user);
         message.setChat(chat);
 
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(true)
+                .build();
+
         Update update = new Update();
         update.setMessage(message);
 
         MessageEntity messageEntity = MessageEntity.builder().message(text).build();
         ActiveRequestEntity activeRequestEntity = new ActiveRequestEntity(userId.toString());
+
+        Downloader expectedDownloader = youtubeDownloader;
+        FileService expectedFileService = youtubeFileService;
+        FileRequest expectedFileRequest = FileRequest.builder()
+                .URL(expectedURL)
+                .chatId(chatId)
+                .extension(expectedExtension)
+                .multiVideoNumber(0)
+                .premium(false)
+                .editMessageText(editMessageText)
+                .build();
         //when
         when(messageMapper.map(update)).thenReturn(messageEntity);
         when(activeRequestService.saveActiveUser(activeRequestEntity)).thenReturn(activeRequestEntity);
+        when(pattern.isYouTubeURL(expectedURL)).thenReturn(true);
+        when(quickSender.messageWithReturn(chatId, editMessageText.getText(), true)).thenReturn(Message.builder().messageId(messageId).build());
 
         updateReceiverService.updateReceiver(update);
+
         //then
         verify(messageEntityService).save(messageEntity);
+        verify(userService).existsByUserId(userId.toString());
+        verify(activeRequestService).existsByUserId(userId.toString());
+        verify(activeRequestService).saveActiveUser(activeRequestEntity);
+        try {
+            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void updateReceiver_expectVerifies_UpdateWithTwitterRequest() {
+        String text = "https://www.twitter.com";
+        String expectedURL = "https://www.twitter.com";
+        String expectedExtension = "mp4";
+        String chatId = "123456";
+        Long userId = 123L;
+        int messageId = 321;
+        User user = new User();
+        user.setId(userId);
+        Chat chat = new Chat();
+        chat.setId(Integer.parseInt(chatId));
+        Message message = new Message();
+        message.setText(text);
+        message.setFrom(user);
+        message.setChat(chat);
+
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(true)
+                .build();
+
+        Update update = new Update();
+        update.setMessage(message);
+
+        MessageEntity messageEntity = MessageEntity.builder().message(text).build();
+        ActiveRequestEntity activeRequestEntity = new ActiveRequestEntity(userId.toString());
+
+        Downloader expectedDownloader = twitterDownloader;
+        FileService expectedFileService = twitterFileService;
+        FileRequest expectedFileRequest = FileRequest.builder()
+                .URL(expectedURL)
+                .chatId(chatId)
+                .extension(expectedExtension)
+                .multiVideoNumber(0)
+                .premium(false)
+                .editMessageText(editMessageText)
+                .build();
+        //when
+        when(messageMapper.map(update)).thenReturn(messageEntity);
+        when(activeRequestService.saveActiveUser(activeRequestEntity)).thenReturn(activeRequestEntity);
+        when(pattern.isTwitterURL(expectedURL)).thenReturn(true);
+        when(quickSender.messageWithReturn(chatId, editMessageText.getText(), true)).thenReturn(Message.builder().messageId(messageId).build());
+
+        updateReceiverService.updateReceiver(update);
+
+        //then
+        verify(messageEntityService).save(messageEntity);
+        verify(userService).existsByUserId(userId.toString());
+        verify(activeRequestService).existsByUserId(userId.toString());
+        verify(activeRequestService).saveActiveUser(activeRequestEntity);
+        try {
+            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void updateReceiver_expectVerifies_UpdateWithTikTokRequest() {
+        String text = "https://www.tiktok.com";
+        String expectedURL = "https://www.tiktok.com";
+        String expectedExtension = "mp4";
+        String chatId = "123456";
+        Long userId = 123L;
+        int messageId = 321;
+        User user = new User();
+        user.setId(userId);
+        Chat chat = new Chat();
+        chat.setId(Integer.parseInt(chatId));
+        Message message = new Message();
+        message.setText(text);
+        message.setFrom(user);
+        message.setChat(chat);
+
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(true)
+                .build();
+
+        Update update = new Update();
+        update.setMessage(message);
+
+        MessageEntity messageEntity = MessageEntity.builder().message(text).build();
+        ActiveRequestEntity activeRequestEntity = new ActiveRequestEntity(userId.toString());
+
+        Downloader expectedDownloader = tiktokDownloader;
+        FileService expectedFileService = tiktokFileService;
+        FileRequest expectedFileRequest = FileRequest.builder()
+                .URL(expectedURL)
+                .chatId(chatId)
+                .extension(expectedExtension)
+                .multiVideoNumber(0)
+                .premium(false)
+                .editMessageText(editMessageText)
+                .build();
+        //when
+        when(messageMapper.map(update)).thenReturn(messageEntity);
+        when(activeRequestService.saveActiveUser(activeRequestEntity)).thenReturn(activeRequestEntity);
+        when(pattern.isTikTokURL(expectedURL)).thenReturn(true);
+        when(quickSender.messageWithReturn(chatId, editMessageText.getText(), true)).thenReturn(Message.builder().messageId(messageId).build());
+
+        updateReceiverService.updateReceiver(update);
+
+        //then
+        verify(messageEntityService).save(messageEntity);
+        verify(userService).existsByUserId(userId.toString());
+        verify(activeRequestService).existsByUserId(userId.toString());
+        verify(activeRequestService).saveActiveUser(activeRequestEntity);
+        try {
+            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void updateReceiver_expectVerifies_UpdateWithInstagramRequest() {
+        String text = "https://www.instagram.com";
+        String expectedURL = "https://www.instagram.com";
+        String expectedExtension = "mp4";
+        String chatId = "123456";
+        Long userId = 123L;
+        int messageId = 321;
+        User user = new User();
+        user.setId(userId);
+        Chat chat = new Chat();
+        chat.setId(Integer.parseInt(chatId));
+        Message message = new Message();
+        message.setText(text);
+        message.setFrom(user);
+        message.setChat(chat);
+
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(true)
+                .build();
+
+        Update update = new Update();
+        update.setMessage(message);
+
+        MessageEntity messageEntity = MessageEntity.builder().message(text).build();
+        ActiveRequestEntity activeRequestEntity = new ActiveRequestEntity(userId.toString());
+
+        Downloader expectedDownloader = instagramDownloader;
+        FileService expectedFileService = instagramFileService;
+        FileRequest expectedFileRequest = FileRequest.builder()
+                .URL(expectedURL)
+                .chatId(chatId)
+                .extension(expectedExtension)
+                .multiVideoNumber(0)
+                .premium(false)
+                .editMessageText(editMessageText)
+                .build();
+        //when
+        when(messageMapper.map(update)).thenReturn(messageEntity);
+        when(activeRequestService.saveActiveUser(activeRequestEntity)).thenReturn(activeRequestEntity);
+        when(pattern.isInstagramURL(expectedURL)).thenReturn(true);
+        when(quickSender.messageWithReturn(chatId, editMessageText.getText(), true)).thenReturn(Message.builder().messageId(messageId).build());
+
+        updateReceiverService.updateReceiver(update);
+
+        //then
+        verify(messageEntityService).save(messageEntity);
+        verify(userService).existsByUserId(userId.toString());
+        verify(activeRequestService).existsByUserId(userId.toString());
+        verify(activeRequestService).saveActiveUser(activeRequestEntity);
+        try {
+            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    void updateReceiver_expectThrowInvalidBotRequest_UpdateWithoutMessage() {
+        //given
+        Update update = new Update();
+        //when
+        //then
+        assertThrows(InvalidBotRequestException.class, () -> updateReceiverService.updateReceiver(update));
     }
 
     @Test
@@ -143,7 +356,7 @@ class UpdateReceiverServiceTest {
 
         Update update = new Update();
         update.setMessage(message);
-        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null);
+        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null, new Converter());
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId(update.getChatId())
                 .messageId(messageId)

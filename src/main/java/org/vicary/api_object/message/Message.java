@@ -21,6 +21,7 @@ import java.util.Optional;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 public class Message implements ApiObject {
     @JsonProperty("message_id")
     private Integer messageId;

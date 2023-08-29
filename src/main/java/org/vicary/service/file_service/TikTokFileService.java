@@ -19,6 +19,8 @@ public class TikTokFileService implements FileService {
 
     private final TikTokFileRepository repository;
 
+    private final Converter converter;
+
     public TikTokFileEntity saveEntity(TikTokFileEntity tikTokFileEntity) {
         return repository.save(tikTokFileEntity);
     }
@@ -37,8 +39,8 @@ public class TikTokFileService implements FileService {
                 .tiktokId(response.getId())
                 .extension(response.getExtension())
                 .quality(response.isPremium() ? "premium" : "standard")
-                .size(Converter.bytesToMB(response.getSize()))
-                .duration(Converter.secondsToMinutes(response.getDuration()))
+                .size(converter.bytesToMB(response.getSize()))
+                .duration(converter.secondsToMinutes(response.getDuration()))
                 .title(response.getTitle())
                 .URL(response.getURL())
                 .fileId(response.getTelegramFileId())
