@@ -21,49 +21,49 @@ public class QuickSender {
     private final RequestService requestService;
 
     public void message(String chatId, String text, boolean markdownV2) {
-        SendMessage sendMessage = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode(markdownV2 ? "MarkdownV2" : "")
-                .build();
         try {
+            SendMessage sendMessage = SendMessage.builder()
+                    .chatId(chatId)
+                    .text(text)
+                    .parseMode(markdownV2 ? "MarkdownV2" : "")
+                    .build();
             requestService.sendRequestAsync(sendMessage);
-        } catch (RestClientException ex) {
+        } catch (Exception ex) {
             logger.warn("Error in sending message request, message: {}", ex.getMessage());
         }
     }
 
     public Message messageWithReturn(String chatId, String text, boolean markdownV2) {
-        SendMessage sendMessage = SendMessage.builder()
-                .chatId(chatId)
-                .text(text)
-                .parseMode(markdownV2 ? "MarkdownV2" : "")
-                .build();
         try {
+            SendMessage sendMessage = SendMessage.builder()
+                    .chatId(chatId)
+                    .text(text)
+                    .parseMode(markdownV2 ? "MarkdownV2" : "")
+                    .build();
             return requestService.sendRequest(sendMessage);
-        } catch (WebClientRequestException | WebClientResponseException ex) {
+        } catch (Exception ex) {
             logger.warn("Error in sending message with return request, message: {}", ex.getMessage());
+            return null;
         }
-        return null;
     }
 
     public void editMessageText(EditMessageText editMessageText, String text) {
-        editMessageText.setText(text);
         try {
+            editMessageText.setText(text);
             requestService.sendRequestAsync(editMessageText);
-        } catch (RestClientException ex) {
+        } catch (Exception ex) {
             logger.warn("Error in sending editMessageText request, message: {}", ex.getMessage());
         }
     }
 
     public void chatAction(String chatId, String action) {
-        SendChatAction sendChatAction = SendChatAction.builder()
-                .chatId(chatId)
-                .action(action)
-                .build();
         try {
+            SendChatAction sendChatAction = SendChatAction.builder()
+                    .chatId(chatId)
+                    .action(action)
+                    .build();
             requestService.sendRequestAsync(sendChatAction);
-        } catch (RestClientException ex) {
+        } catch (Exception ex) {
             logger.warn("Error in sending chatAction request, message: {}", ex.getMessage());
         }
     }

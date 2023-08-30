@@ -17,10 +17,10 @@ public class TerminalExecutor {
     private final static String REMOVE_COMMAND_ALL_FILES_STAR = "*";
     private final static String RENAME_COMMAND = "mv";
 
-    public void removeFile(File file) {
+    public boolean removeFile(File file) {
         if (file == null || !file.exists()) {
-            logger.warn("File '{}' does not exists.", file.getName());
-            return;
+            logger.warn("File to remove does not exists.");
+            return false;
         }
 
         String fileName = file.getName();
@@ -30,10 +30,13 @@ public class TerminalExecutor {
         processBuilder.command(REMOVE_COMMAND, fileName);
         processBuilder.directory(fileDirectory);
         try {
-            processBuilder.start();
+            Process process = processBuilder.start();
+            process.waitFor();
             logger.info("[remove] Removing original file {}", fileName);
-        } catch (IOException ex) {
+            return true;
+        } catch (IOException | InterruptedException ex) {
             logger.warn("[remove] Failed in removing file {}: {}", fileName, ex.getMessage());
+            return false;
         }
     }
 

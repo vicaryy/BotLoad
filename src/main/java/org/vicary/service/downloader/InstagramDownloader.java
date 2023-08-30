@@ -61,7 +61,7 @@ public class InstagramDownloader implements Downloader {
         FileResponse response = getFileInfo(request, processBuilder);
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
-        response = getFileFromRepository(response);
+        getFileFromRepository(response);
         if (response.getDownloadedFile() != null)
             return response;
 
@@ -206,6 +206,7 @@ public class InstagramDownloader implements Downloader {
         fileResponse.setMultiVideoNumber(multiVideoNumber);
         fileResponse.setExtension(request.getExtension());
         fileResponse.setPremium(request.isPremium());
+        fileResponse.setEditMessageText(request.getEditMessageText());
         return fileResponse;
     }
 

@@ -12,7 +12,7 @@ import org.vicary.end_point.EndPoint;
 import java.util.List;
 
 @Data
-@RequiredArgsConstructor
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class SendVideo implements ApiRequest<Message> {

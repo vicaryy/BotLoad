@@ -64,7 +64,7 @@ public class TwitterDownloader implements Downloader {
         FileResponse response = getFileInfo(request, processBuilder);
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
-        response = getFileFromRepository(response);
+        getFileFromRepository(response);
         if (response.getDownloadedFile() != null)
             return response;
 
@@ -116,7 +116,6 @@ public class TwitterDownloader implements Downloader {
                     info.getErrorInDownloading(),
                     String.format("File '%s' has not been downloaded", response.getId()));
         }
-        response.setEditMessageText(editMessageText);
         return response;
     }
 
@@ -214,6 +213,7 @@ public class TwitterDownloader implements Downloader {
         fileResponse.setMultiVideoNumber(multiVideoNumber);
         fileResponse.setExtension(request.getExtension());
         fileResponse.setPremium(request.isPremium());
+        fileResponse.setEditMessageText(request.getEditMessageText());
         return fileResponse;
     }
 

@@ -64,7 +64,7 @@ public class YouTubeDownloader implements Downloader {
         FileResponse response = getFileInfo(request, processBuilder);
 
         // checks if file already exists in repository
-        response = getFileFromRepository(response);
+        getFileFromRepository(response);
         if (response.getDownloadedFile() != null)
             return response;
 
@@ -154,8 +154,6 @@ public class YouTubeDownloader implements Downloader {
                 .file(new File(thumbnailPath))
                 .isThumbnail(true)
                 .build());
-        // setting other stuff
-        response.setEditMessageText(editMessageText);
         return response;
     }
 
@@ -217,6 +215,7 @@ public class YouTubeDownloader implements Downloader {
         FileResponse fileResponse = mapper.map(fileInfo);
         fileResponse.setPremium(request.isPremium());
         fileResponse.setExtension(request.getExtension());
+        fileResponse.setEditMessageText(request.getEditMessageText());
         return fileResponse;
     }
 

@@ -133,11 +133,12 @@ public class UpdateReceiverService {
             } catch (DownloadedFileNotFoundException | InvalidBotRequestException ex) {
                 logger.warn(ex.getLoggerMessage());
                 quickSender.editMessageText(fileRequest.getEditMessageText(), ex.getMessage());
-            } catch (WebClientRequestException | NoSuchElementException | IOException ex) {
+            } catch (WebClientRequestException | NoSuchElementException | IllegalArgumentException | IOException ex) {
                 logger.warn("Expected exception: ", ex);
+                quickSender.editMessageText(fileRequest.getEditMessageText(), info.getError());
             } catch (Exception ex) {
                 logger.warn("Unexpected exception: ", ex);
-                quickSender.editMessageText(fileRequest.getEditMessageText(), "Sorry, but something goes wrong.");
+                quickSender.editMessageText(fileRequest.getEditMessageText(), info.getError());
             } finally {
                 // DELETE USER FROM ACTIVE REQUESTS
                 activeRequestService.deleteById(request.getId());

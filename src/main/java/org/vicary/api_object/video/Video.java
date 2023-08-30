@@ -1,15 +1,14 @@
 package org.vicary.api_object.video;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 import org.vicary.api_object.ApiObject;
 import org.vicary.api_object.PhotoSize;
 
-@Getter
-@ToString
-@EqualsAndHashCode
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Video implements ApiObject {
     @JsonProperty("file_id")
     private String fileId;
@@ -37,7 +36,4 @@ public class Video implements ApiObject {
 
     @JsonProperty("file_size")
     private Integer fileSize;
-
-    private Video() {
-    }
 }

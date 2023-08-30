@@ -1,5 +1,7 @@
 package org.vicary.service.thread;
 
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -19,13 +21,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Service
+@RequiredArgsConstructor
 public class UpdatePollingThread implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(UpdatePollingThread.class);
+
     private final UpdateReceiverService updateReceiverService;
+
     private final ActiveRequestService activeRequestService;
+
     private final WebClient client;
-    private final Thread thread;
-    private final ExecutorService executorService;
+    private final ExecutorService cachedExecutor = Executors.newCachedThreadPool();
+    private final ExecutorService singleExecutor = Executors.newSingleThreadExecutor();
     private List<Update> updates;
     private static final int BREAK_BEFORE_START = 1000; // milliseconds
     private static final int TRYING_TO_RECONNECT_DELAY = 4000; // milliseconds
@@ -33,16 +39,10 @@ public class UpdatePollingThread implements Runnable {
     private static final int GET_UPDATES_DELAY = 1500; // milliseconds
     private static final int MAX_UPDATES_SIZE = 6;
 
-    public UpdatePollingThread(UpdateReceiverService updateReceiverService,
-                               ActiveRequestService activeRequestService,
-                               WebClient client) {
-        this.updateReceiverService = updateReceiverService;
-        this.activeRequestService = activeRequestService;
-        this.client = client;
-
-        this.thread = new Thread(this);
-        thread.start();
-        executorService = Executors.newCachedThreadPool();
+    @PostConstruct
+    public void startThread() {
+        singleExecutor.execute(this);
+        logger.info("Telegram Bot API initialized successfully.");
     }
 
     @Override
@@ -56,7 +56,7 @@ public class UpdatePollingThread implements Runnable {
                 handleWebClientResponseException(ex);
                 break;
             } catch (WebClientRequestException ex) {
-                handleWebClientRequestException(ex);
+                handleWebClientRequestException();
             }
             executeUpdates();
             sleep(GET_UPDATES_DELAY);
@@ -66,16 +66,9 @@ public class UpdatePollingThread implements Runnable {
     public void executeUpdates() {
         if (updates != null && updates.size() < MAX_UPDATES_SIZE)
             for (Update update : updates) {
-                executorService.execute(() -> updateReceiverService.updateReceiver(update));
+                cachedExecutor.execute(() -> updateReceiverService.updateReceiver(update));
                 sleep(EXECUTING_THREADS_DELAY);
             }
-    }
-
-    public StackTraceElement printLocation() {
-        StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
-        if (stackTrace.length > 2)
-            return stackTrace[2];
-        return null;
     }
 
     public void handleWebClientResponseException(WebClientResponseException ex) {
@@ -86,7 +79,7 @@ public class UpdatePollingThread implements Runnable {
         logger.error("---------------------------");
     }
 
-    public void handleWebClientRequestException(WebClientRequestException ex) {
+    public void handleWebClientRequestException() {
         logger.warn("---------------------------");
         logger.warn("Can't connect to Telegram, check your internet connection.");
         logger.warn("Trying to reconnect...");

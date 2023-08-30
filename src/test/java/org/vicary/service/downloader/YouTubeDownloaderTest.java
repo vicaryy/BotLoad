@@ -14,6 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
+import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
@@ -25,6 +26,8 @@ import org.vicary.service.file_service.YouTubeFileService;
 import org.vicary.service.quick_sender.QuickSender;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -41,6 +44,9 @@ class YouTubeDownloaderTest {
 
     @MockBean
     private YouTubeFileService youTubeFileService;
+
+    @MockBean
+    private Converter converter;
 
     private final static File FILE_DIRECTORY = new File("/Users/vicary/desktop/folder/");
 
@@ -107,6 +113,126 @@ class YouTubeDownloaderTest {
                 "psNARNT1Y2Q",
                 "mp3",
                 "standard");
+    }
+
+    @Test
+    void download_expectEquals_FileAlreadyInRepositoryInMp3() throws IOException {
+        //given
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId("123")
+                .text("siema")
+                .messageId(111)
+                .build();
+        FileRequest givenRequest = FileRequest.builder()
+                .URL("https://youtu.be/psNARNT1Y2Q?si=ApAseIvSQ-xSrnTi")
+                .chatId("1935527130")
+                .extension("mp3")
+                .premium(false)
+                .multiVideoNumber(0)
+                .editMessageText(editMessageText)
+                .build();
+
+        InputFile downloadedFile = InputFile.builder()
+                .fileId("fileId")
+                .build();
+        FileResponse expectedResponse = FileResponse.builder()
+                .URL("https://www.youtube.com/watch?v=psNARNT1Y2Q")
+                .id("psNARNT1Y2Q")
+                .extension("mp3")
+                .premium(false)
+                .title("Bradley Martyn Wrestling Brian Shaw")
+                .duration(20)
+                .size(100000L)
+                .multiVideoNumber(0)
+                .downloadedFile(downloadedFile)
+                .thumbnail(null)
+                .editMessageText(editMessageText)
+                .build();
+
+        YouTubeFileEntity youTubeFileEntity = YouTubeFileEntity.builder()
+                .youtubeId(expectedResponse.getId())
+                .extension(expectedResponse.getExtension())
+                .quality("standard")
+                .size("10,00MB")
+                .fileId("fileId")
+                .build();
+
+        // when
+        when(youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
+                expectedResponse.getId(),
+                expectedResponse.getExtension(),
+                "standard"))
+                .thenReturn(Optional.ofNullable(youTubeFileEntity));
+        when(converter.MBToBytes(youTubeFileEntity.getSize())).thenReturn(100000L);
+
+        FileResponse actualResponse = downloader.download(givenRequest);
+        // then
+        assertEquals(expectedResponse, actualResponse);
+        verify(youTubeFileService).findByYoutubeIdAndExtensionAndQuality(
+                "psNARNT1Y2Q",
+                "mp3",
+                "standard");
+        verify(converter, times(2)).MBToBytes(any());
+    }
+
+    @Test
+    void download_expectNotEquals_FileAlreadyInRepositoryButOver20MBInMp3() throws IOException {
+        //given
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId("123")
+                .text("siema")
+                .messageId(111)
+                .build();
+        FileRequest givenRequest = FileRequest.builder()
+                .URL("https://youtu.be/psNARNT1Y2Q?si=ApAseIvSQ-xSrnTi")
+                .chatId("1935527130")
+                .extension("mp3")
+                .premium(false)
+                .multiVideoNumber(0)
+                .editMessageText(editMessageText)
+                .build();
+
+        InputFile downloadedFile = InputFile.builder()
+                .fileId("fileId")
+                .build();
+        FileResponse expectedResponse = FileResponse.builder()
+                .URL("https://www.youtube.com/watch?v=psNARNT1Y2Q")
+                .id("psNARNT1Y2Q")
+                .extension("mp3")
+                .premium(false)
+                .title("Bradley Martyn Wrestling Brian Shaw")
+                .duration(20)
+                .size(300000L)
+                .multiVideoNumber(0)
+                .downloadedFile(downloadedFile)
+                .thumbnail(null)
+                .editMessageText(editMessageText)
+                .build();
+
+        YouTubeFileEntity youTubeFileEntity = YouTubeFileEntity.builder()
+                .youtubeId(expectedResponse.getId())
+                .extension(expectedResponse.getExtension())
+                .quality("standard")
+                .size("30,00MB")
+                .fileId("fileId")
+                .build();
+
+        // when
+        when(youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
+                expectedResponse.getId(),
+                expectedResponse.getExtension(),
+                "standard"))
+                .thenReturn(Optional.ofNullable(youTubeFileEntity));
+        when(converter.MBToBytes(youTubeFileEntity.getSize())).thenReturn(300000L);
+
+        FileResponse actualResponse = downloader.download(givenRequest);
+        // then
+        assertEquals(expectedResponse, actualResponse);
+        verify(youTubeFileService).findByYoutubeIdAndExtensionAndQuality(
+                "psNARNT1Y2Q",
+                "mp3",
+                "standard");
+        verify(converter, times(2)).MBToBytes(any());
     }
 
     @Test
@@ -217,6 +343,7 @@ class YouTubeDownloaderTest {
                 .album("My Beautiful Dark Twisted Fantasy")
                 .releaseYear("2010")
                 .multiVideoNumber(0)
+                .editMessageText(editMessageText)
                 .build();
 
         // when

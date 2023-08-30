@@ -66,7 +66,7 @@ public class TikTokDownloader implements Downloader {
         FileResponse response = getFileInfo(request, processBuilder);
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
-        response = getFileFromRepository(response);
+        getFileFromRepository(response);
         if (response.getDownloadedFile() != null)
             return response;
 
@@ -118,7 +118,6 @@ public class TikTokDownloader implements Downloader {
                     info.getErrorInDownloading(),
                     String.format("File '%s' has not been downloaded", response.getId()));
         }
-        response.setEditMessageText(editMessageText);
         return response;
     }
 
@@ -188,6 +187,7 @@ public class TikTokDownloader implements Downloader {
         FileResponse response = mapper.map(fileInfo);
         response.setExtension(request.getExtension());
         response.setPremium(request.isPremium());
+        response.setEditMessageText(request.getEditMessageText());
         return response;
     }
 

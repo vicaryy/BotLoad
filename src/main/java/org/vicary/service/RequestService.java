@@ -1,5 +1,6 @@
 package org.vicary.service;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
@@ -24,16 +25,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.util.NoSuchElementException;
 
 @Service
+@RequiredArgsConstructor
 public class RequestService {
     private final WebClient client;
     private final ParameterizedTypeReferences typeReferences;
-
-    @Autowired
-    public RequestService(WebClient client,
-                          ParameterizedTypeReferences typeReferences) {
-        this.client = client;
-        this.typeReferences = typeReferences;
-    }
 
     public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
@@ -126,7 +121,7 @@ public class RequestService {
 
         bodyBuilder.part("parse_mode", sendAudio.getParseMode());
 
-        if (sendAudio.getParseMode().equals("") && sendAudio.getCaptionEntities() != null)
+        if (sendAudio.getParseMode().isEmpty() && sendAudio.getCaptionEntities() != null)
             bodyBuilder.part("caption_entities", sendAudio.getCaptionEntities());
 
         if (sendAudio.getDuration() != null)
@@ -176,7 +171,7 @@ public class RequestService {
 
         bodyBuilder.part("parse_mode", sendDocument.getParseMode());
 
-        if (sendDocument.getParseMode().equals("") && sendDocument.getCaptionEntities() != null)
+        if (sendDocument.getParseMode().isEmpty() && sendDocument.getCaptionEntities() != null)
             bodyBuilder.part("caption_entities", sendDocument.getCaptionEntities());
 
         if (sendDocument.getDisableContentTypeDetection() != null)
@@ -226,7 +221,7 @@ public class RequestService {
 
         bodyBuilder.part("parse_mode", sendVideo.getParseMode());
 
-        if (sendVideo.getParseMode().equals("") && sendVideo.getCaptionEntities() != null)
+        if (sendVideo.getParseMode().isEmpty() && sendVideo.getCaptionEntities() != null)
             bodyBuilder.part("caption_entities", sendVideo.getCaptionEntities());
 
         if (sendVideo.getHasSpoiler() != null)
@@ -279,7 +274,7 @@ public class RequestService {
 
         bodyBuilder.part("parse_mode", sendAnimation.getParseMode());
 
-        if (sendAnimation.getParseMode().equals("") && sendAnimation.getCaptionEntities() != null)
+        if (sendAnimation.getParseMode().isEmpty() && sendAnimation.getCaptionEntities() != null)
             bodyBuilder.part("caption_entities", sendAnimation.getCaptionEntities());
 
         if (sendAnimation.getHasSpoiler() != null)
@@ -317,7 +312,7 @@ public class RequestService {
 
         bodyBuilder.part("parse_mode", sendVoice.getParseMode());
 
-        if (sendVoice.getParseMode().equals("") && sendVoice.getCaptionEntities() != null)
+        if (sendVoice.getParseMode().isEmpty() && sendVoice.getCaptionEntities() != null)
             bodyBuilder.part("caption_entities", sendVoice.getCaptionEntities());
 
         if (sendVoice.getDuration() != null)

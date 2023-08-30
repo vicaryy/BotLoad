@@ -5,6 +5,8 @@ import lombok.*;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Audio implements ApiObject {
     @JsonProperty("file_id")
     private String fileId;
