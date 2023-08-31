@@ -18,9 +18,12 @@ import org.springframework.stereotype.Service;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.Converter;
 import org.vicary.service.FileManager;
+import org.vicary.service.fileManager;
 import org.vicary.service.file_service.YouTubeFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
+import org.vicary.service.response.LinkResponse;
+import org.vicary.service.thread.UpdatePollingThread;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -51,10 +54,12 @@ public class YouTubeDownloader implements Downloader {
 
     private final Converter converter;
 
+    private final FileManager fileManager;
+
     private final List<String> availableExtensions = List.of("mp3");
 
     @Override
-    public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
+    public FileResponse download(FileRequest request) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
         EditMessageText editMessageText = request.getEditMessageText();
@@ -69,62 +74,7 @@ public class YouTubeDownloader implements Downloader {
             return response;
 
         // if file is not in repo then download FILE
-        String fileName = FileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
-        String filePath = commands.getDownloadDestination() + fileName;
-        String fileSizeInProcess = null;
-        boolean fileDownloaded = false;
-        boolean fileConverted = false;
-        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
-        processBuilder.command(commands.getDownloadYouTubeFile(fileName, response.getId(), response.getExtension(), response.isPremium()));
-        Process process = processBuilder.start();
-        logger.info("[download] Downloading YouTube file '{}'", response.getId());
-
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-
-                if (!fileDownloaded) {
-                    editMessageText = updateMessageTextDownload(request.getEditMessageText(), line);
-                    if (request.getEditMessageText().getText().contains("100%")) {
-                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
-                        fileDownloaded = true;
-                    }
-                }
-
-                if (!fileConverted && FileManager.isFileConvertingInProcess(line)) {
-                    quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConverting(request.getExtension()));
-                    logger.info("[convert] Successfully converted to {} file '{}'", response.getExtension(), response.getId());
-                    fileConverted = true;
-                }
-
-                if (fileSizeInProcess == null) {
-                    fileSizeInProcess = FileManager.getFileSizeInProcess(line);
-                    if (fileSizeInProcess != null && !FileManager.checkFileSizeProcess(fileSizeInProcess)) {
-                        process.destroy();
-                        throw new InvalidBotRequestException(
-                                info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
-                    }
-                }
-            }
-        }
-        File downloadedFile = new File(filePath);
-        if (downloadedFile.exists()) {
-            long fileSize = downloadedFile.length();
-            if (!FileManager.isFileSizeValid(fileSize)) {
-                throw new InvalidBotRequestException(
-                        info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
-            }
-            response.setSize(fileSize);
-            response.setDownloadedFile(InputFile.builder()
-                    .file(downloadedFile)
-                    .build());
-        } else {
-            throw new DownloadedFileNotFoundException(
-                    info.getErrorInDownloading(),
-                    String.format("File '%s' has not been downloaded", response.getId()));
-        }
+        downloadFile(response, processBuilder);
 
         // downloading thumbnail
         final String thumbnailName = response.getTitle() + ".jpg";
@@ -132,7 +82,7 @@ public class YouTubeDownloader implements Downloader {
         quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getThumbnailDownloading());
 
         processBuilder.command(commands.getDownloadYouTubeThumbnail(thumbnailName, response.getId()));
-        process = processBuilder.start();
+        Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             logger.info("[download] Downloading thumbnail to file '{}'", response.getId());
             String line;
@@ -155,6 +105,66 @@ public class YouTubeDownloader implements Downloader {
                 .isThumbnail(true)
                 .build());
         return response;
+    }
+
+    public void downloadFile(FileResponse response, ProcessBuilder processBuilder) throws IOException {
+        EditMessageText editMessageText = response.getEditMessageText();
+        String fileName = fileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
+        String filePath = commands.getDownloadDestination() + fileName;
+        String fileSizeInProcess = null;
+        boolean fileDownloaded = false;
+        boolean fileConverted = false;
+        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
+        processBuilder.command(commands.getDownloadYouTubeFile(fileName, response.getId(), response.getExtension(), response.isPremium()));
+        Process process = processBuilder.start();
+        logger.info("[download] Downloading YouTube file '{}'", response.getId());
+
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+
+                if (!fileDownloaded) {
+                    updateMessageTextDownload(editMessageText, line);
+                    if (editMessageText.getText().contains("100%")) {
+                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
+                        fileDownloaded = true;
+                    }
+                }
+
+                if (!fileConverted && fileManager.isFileConvertingInProcess(line)) {
+                    quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConverting(response.getExtension()));
+                    logger.info("[convert] Successfully converted to {} file '{}'", response.getExtension(), response.getId());
+                    fileConverted = true;
+                }
+
+                if (fileSizeInProcess == null) {
+                    fileSizeInProcess = fileManager.getFileSizeInProcess(line);
+                    if (fileSizeInProcess != null && !fileManager.checkFileSizeProcess(fileSizeInProcess)) {
+                        process.destroy();
+                        throw new InvalidBotRequestException(
+                                info.getFileTooBig(),
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
+                    }
+                }
+            }
+        }
+        response.getDownloadedFile().setFile(new File(filePath));
+        if (downloadedFile.exists()) {
+            long fileSize = downloadedFile.length();
+            if (!fileManager.isFileSizeValid(fileSize)) {
+                throw new InvalidBotRequestException(
+                        info.getFileTooBig(),
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
+            }
+            response.setSize(fileSize);
+            response.setDownloadedFile(InputFile.builder()
+                    .file(downloadedFile)
+                    .build());
+        } else {
+            throw new DownloadedFileNotFoundException(
+                    info.getErrorInDownloading(),
+                    String.format("File '%s' has not been downloaded", response.getId()));
+        }
     }
 
     @Override
@@ -220,7 +230,7 @@ public class YouTubeDownloader implements Downloader {
     }
 
     public EditMessageText updateMessageTextDownload(EditMessageText editMessageText, String line) {
-        String progress = FileManager.getDownloadFileProgressInProcess(line);
+        String progress = fileManager.getDownloadFileProgressInProcess(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");

@@ -15,6 +15,7 @@ import org.vicary.service.downloader.Downloader;
 import org.vicary.service.file_service.FileService;
 import org.vicary.service.quick_sender.QuickSender;
 import org.springframework.stereotype.Service;
+import org.vicary.service.thread.UpdatePollingThread;
 
 @Service
 @RequiredArgsConstructor

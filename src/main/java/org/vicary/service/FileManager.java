@@ -11,14 +11,13 @@ import java.util.concurrent.ThreadLocalRandom;
 @Component
 @RequiredArgsConstructor
 public class FileManager {
-    private static Logger logger = LoggerFactory.getLogger(FileManager.class);
 
-    public static boolean isFileSizeValid(long fileSize) {
+    public boolean isFileSizeValid(long fileSize) {
         long sizeInMB = fileSize / (1024 * 1024);
         return sizeInMB <= 50;
     }
 
-    public static String getFileNameFromTitle(String title, String extension) {
+    public String getFileNameFromTitle(String title, String extension) {
         int maxFileNameLength = 59;
         String newTitle = title;
 
@@ -34,7 +33,7 @@ public class FileManager {
         return newTitle + "." + extension;
     }
 
-    public static String getFileSizeInProcess(String line) {
+    public String getFileSizeInProcess(String line) {
         if (line.contains("[download]")) {
             String[] s = line.split(" ");
             for (String a : s)
@@ -44,7 +43,7 @@ public class FileManager {
         return null;
     }
 
-    public static boolean checkFileSizeProcess(String fileSize) {
+    public boolean checkFileSizeProcess(String fileSize) {
         if (fileSize.endsWith("KiB"))
             return true;
         if (!fileSize.endsWith("MiB"))
@@ -60,7 +59,7 @@ public class FileManager {
         return Integer.parseInt(sb.toString()) <= 49;
     }
 
-    public static String getDownloadFileProgressInProcess(String line) {
+    public String getDownloadFileProgressInProcess(String line) {
         if (line.contains("[download]")) {
             String[] s = line.split(" ");
             for (String a : s)
@@ -70,7 +69,7 @@ public class FileManager {
         return null;
     }
 
-    public static boolean isFileConvertingInProcess(String line) {
+    public boolean isFileConvertingInProcess(String line) {
         return line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/");
     }
 }

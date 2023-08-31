@@ -9,6 +9,7 @@ import org.vicary.api_object.ApiObject;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.IOException;
 
 @Data
 @NoArgsConstructor
@@ -25,7 +26,6 @@ public class InputFile implements ApiObject {
      */
     private String fileId;
     private File file;
-    private boolean isExistOnTelegram;
     private boolean isThumbnail;
 
     public void checkValidation(String methodName) {
@@ -41,7 +41,7 @@ public class InputFile implements ApiObject {
             long fileSize = file.length() / (1024 * 1024);
             if (fileSize > 50)
                 throw new IllegalArgumentException("File size cannot be more than 50MB." +
-                        "\n Your file size: " + fileSize + "MB.");
+                                                   "\n Your file size: " + fileSize + "MB.");
             String fileName = file.getName().toLowerCase();
 
             if (methodName.equals("photo"))
@@ -68,51 +68,51 @@ public class InputFile implements ApiObject {
     }
 
 
-    private void photoValidation(String fileName) {
+    public void photoValidation(String fileName) {
         if (!fileName.endsWith(".jpg") && !fileName.endsWith(".jpeg") && !fileName.endsWith(".png"))
             throw new IllegalArgumentException("Wrong file extension for photo. \nFile name: " + fileName);
     }
 
-    private void videoValidation(String fileName) {
+    public void videoValidation(String fileName) {
         if (!fileName.endsWith(".mp4") && !fileName.endsWith(".avi"))
             throw new IllegalArgumentException("Wrong file extension for audio. \nFile name: " + fileName);
     }
 
-    private void audioValidation(String fileName) {
+    public void audioValidation(String fileName) {
         if (!fileName.endsWith(".mp3") && !fileName.endsWith(".m4a"))
             throw new IllegalArgumentException("Wrong file extension for video. \nFile name: " + fileName);
     }
 
-    private void animationValidation(String fileName) {
+    public void animationValidation(String fileName) {
         if (!fileName.endsWith(".gif") && !fileName.endsWith(".mp4"))
             throw new IllegalArgumentException("Wrong file extension for animation. \nFile name: " + fileName);
     }
 
-    private void voiceValidation(String fileName) {
+    public void voiceValidation(String fileName) {
         if (!fileName.endsWith(".ogg"))
             throw new IllegalArgumentException("Wrong file extension for voice. \nFile name: " + fileName);
     }
 
-    private void thumbnailValidation(String fileName) {
+    public void thumbnailValidation(String fileName) {
         if (!fileName.endsWith(".jpg") && !fileName.endsWith(".jpeg"))
             throw new IllegalArgumentException("Wrong file extension for thumbnail. \nFile name: " + fileName);
 
         long fileSize = file.length() / 1024;
         if (fileSize > 200)
             throw new IllegalArgumentException("Size of thumbnail file cannot be more than 200kB." +
-                    " \nFile size: " + fileSize + "kB");
+                                               " \nFile size: " + fileSize + "kB");
 
         try {
             BufferedImage thumbnail = ImageIO.read(file);
             if (thumbnail.getWidth() > 320 || thumbnail.getHeight() > 320)
                 throw new IllegalArgumentException("A thumbnail's width and height should not exceed 320." +
-                        " \nImage width: " + thumbnail.getWidth() +
-                        " \nImage height: " + thumbnail.getHeight());
-        } catch (Exception ignored) {
+                                                   " \nImage width: " + thumbnail.getWidth() +
+                                                   " \nImage height: " + thumbnail.getHeight());
+        } catch (IOException ignored) {
         }
     }
 
-    private void stickerValidation(String fileName) {
+    public void stickerValidation(String fileName) {
         if (!fileName.endsWith(".webp") && !fileName.endsWith(".tgs") && !fileName.endsWith(".webm"))
             throw new IllegalArgumentException("Wrong file extension for sticker. \nFile name: " + fileName);
     }
