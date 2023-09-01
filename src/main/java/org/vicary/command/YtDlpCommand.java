@@ -36,7 +36,7 @@ public class YtDlpCommand {
                 MAX_FILE_SIZE,
                 MAX_FILE_SIZE_IN_MB,
                 PATH,
-                downloadDestination + fileName,
+                fileName,
                 youtubeUrl + youtubeId};
     }
 
@@ -82,7 +82,7 @@ public class YtDlpCommand {
         return new String[]{
                 YT_DLP,
                 PATH,
-                downloadDestination + thumbnailName,
+                thumbnailName,
                 THUMBNAIL_LINK + youtubeId + THUMBNAIL_TYPE};
     }
 

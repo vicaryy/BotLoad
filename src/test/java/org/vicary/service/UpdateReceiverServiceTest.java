@@ -118,7 +118,7 @@ class UpdateReceiverServiceTest {
 
         Downloader expectedDownloader = youtubeDownloader;
         FileService expectedFileService = youtubeFileService;
-        FileRequest expectedFileRequest = FileRequest.builder()
+        FileRequest expectedFileRequest = Filerequest.builder()
                 .URL(expectedURL)
                 .chatId(chatId)
                 .extension(expectedExtension)
@@ -356,7 +356,7 @@ class UpdateReceiverServiceTest {
 
         Update update = new Update();
         update.setMessage(message);
-        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null, new Converter());
+        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null, new Converter(), new FileManager(new Converter()));
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId(update.getChatId())
                 .messageId(messageId)

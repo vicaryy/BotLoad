@@ -10,7 +10,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 
 public interface Downloader {
-    FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException;
+    FileResponse download(FileRequest request) throws IOException;
 
     List<String> getAvailableExtensions();
 

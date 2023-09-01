@@ -46,18 +46,17 @@ public class InstagramDownloader implements Downloader {
 
     private final Converter converter;
 
+    private final FileManager fileManager;
+
     private final List<String> availableExtensions = List.of("mp4");
 
     @Override
-    public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
+    public FileResponse download(FileRequest request) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
-        EditMessageText editMessageText = request.getEditMessageText();
+        quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getConnectingToTwitter());
 
-        // SENDING INFO ABOUT CONNECTING TO TWITTER
-        quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToInstagram());
-
-        // GETTING TWITTER FILE INFO
+        // GETTING FILE INFO
         FileResponse response = getFileInfo(request, processBuilder);
 
         // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
@@ -65,77 +64,12 @@ public class InstagramDownloader implements Downloader {
         if (response.getDownloadedFile() != null)
             return response;
 
-
         // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
-        String fileSizeInProcess = null;
-        String fileName = FileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
-        String filePath = commands.getDownloadDestination() + fileName;
-        boolean fileDownloaded = false;
-        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
+        downloadFile(response, processBuilder);
 
-        processBuilder.command(commands.getDownloadInstagramFile(fileName, response.getURL(), response.getMultiVideoNumber()));
-        Process process = processBuilder.start();
-        // SENDING INFO ABOUT DOWNLOADING FILE
-        logger.info("[download] Downloading Instagram file '{}'", response.getId());
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (!fileDownloaded) {
-                    updateDownloadProgressInMessageText(request.getEditMessageText(), line);
-                    if (request.getEditMessageText().getText().contains("100%")) {
-                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
-                        fileDownloaded = true;
-                    }
-                }
-
-                if (fileSizeInProcess == null) {
-                    fileSizeInProcess = FileManager.getFileSizeInProcess(line);
-                    if (fileSizeInProcess != null && !FileManager.checkFileSizeProcess(fileSizeInProcess)) {
-                        process.destroy();
-                        throw new InvalidBotRequestException(
-                                info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileSizeInProcess));
-                    }
-                }
-
-                if (isFileSizeTooBigInProcess(line)) {
-                    process.destroy();
-                    throw new InvalidBotRequestException(
-                            info.getFileTooBig(),
-                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(getFileSizeInProcess(line))));
-                }
-            }
-        }
-        File downloadedFile = new File(filePath);
-        if (downloadedFile.exists()) {
-            long fileSize = downloadedFile.length();
-            if (!FileManager.isFileSizeValid(fileSize)) {
-                throw new InvalidBotRequestException(
-                        info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
-            }
-            response.setSize(fileSize);
-            response.setDownloadedFile(InputFile.builder()
-                    .file(downloadedFile)
-                    .build());
-        } else {
-            throw new DownloadedFileNotFoundException(
-                    info.getErrorInDownloading(),
-                    String.format("File '%s' has not been downloaded", response.getId()));
-        }
-        response.setEditMessageText(editMessageText);
         return response;
     }
 
-    @Override
-    public List<String> getAvailableExtensions() {
-        return availableExtensions;
-    }
-
-    @Override
-    public String getServiceName() {
-        return "instagram";
-    }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
@@ -176,10 +110,8 @@ public class InstagramDownloader implements Downloader {
                     fileInfoInJson = line;
                 }
             }
-        } catch (IOException ex) {
-            process.destroy();
-            throw new IOException(ex.getMessage());
         }
+
 
         FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
 
@@ -210,6 +142,7 @@ public class InstagramDownloader implements Downloader {
         return fileResponse;
     }
 
+
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<InstagramFileEntity> instagramFileEntity = instagramFileService.findByInstagramId(response.getId());
 
@@ -223,24 +156,59 @@ public class InstagramDownloader implements Downloader {
         return response;
     }
 
-    public boolean isFileSizeTooBigInProcess(String line) {
-        return line.startsWith("[download] File is larger than max-filesize");
-    }
 
-    public Long getFileSizeInProcess(String line) {
-        long size = 0;
-        if (line.startsWith("[download] File is larger than max-filesize")) {
-            String[] arraySplit = line.split("\\(");
-            size = Arrays.stream(arraySplit[1].split(" "))
-                    .findFirst()
-                    .map(Long::parseLong)
-                    .orElse(0L);
+    public FileResponse downloadFile(FileResponse response, ProcessBuilder processBuilder) throws IOException {
+        String fileName = fileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
+        String filePath = commands.getDownloadDestination() + fileName;
+        EditMessageText editMessageText = response.getEditMessageText();
+        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
+
+        logger.info("[download] Downloading Twitter file '{}'", response.getId());
+        processBuilder.command(commands.getDownloadInstagramFile(fileName, response.getURL(), response.getMultiVideoNumber()));
+        Process process = processBuilder.start();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (fileManager.isFileDownloadingInProcess(line)) {
+                    updateDownloadProgressInEditMessageText(editMessageText, line);
+
+                    if (fileManager.isFileDownloadedInProcess(line)) {
+                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
+                    }
+                    if (!fileManager.isFileSizeInProcessValid(line)) {
+                        process.destroy();
+                        throw new InvalidBotRequestException(
+                                info.getFileTooBig(),
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileManager.getFileSizeInProcess(line)));
+                    }
+                }
+            }
         }
-        return size;
+
+        File downloadedFile = new File(filePath);
+        if (downloadedFile.exists()) {
+            long fileSize = downloadedFile.length();
+            if (!fileManager.isFileSizeValid(fileSize)) {
+                throw new InvalidBotRequestException(
+                        info.getFileTooBig(),
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
+            }
+            response.setSize(fileSize);
+            response.setDownloadedFile(InputFile.builder()
+                    .file(downloadedFile)
+                    .build());
+        } else {
+            throw new DownloadedFileNotFoundException(
+                    info.getErrorInDownloading(),
+                    String.format("File '%s' has not been downloaded", response.getId()));
+        }
+        return response;
     }
 
-    public void updateDownloadProgressInMessageText(EditMessageText editMessageText, String line) {
-        String progress = FileManager.getDownloadFileProgressInProcess(line);
+
+
+    public void updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
+        String progress = fileManager.getDownloadFileProgressInProcess(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
@@ -255,5 +223,16 @@ public class InstagramDownloader implements Downloader {
             if (!oldText.contentEquals(newText))
                 quickSender.editMessageText(editMessageText, newText.toString());
         }
+    }
+
+
+    @Override
+    public List<String> getAvailableExtensions() {
+        return availableExtensions;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "instagram";
     }
 }

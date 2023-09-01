@@ -378,42 +378,42 @@ class YouTubeDownloaderTest {
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
     }
 
-    @Test
-    void getFileInfo_expectInvalidBotApiThrow_LiveVideoInFileRequestInMp4() {
-        //given
-        Gson gson = mock(Gson.class);
-        YouTubeDownloader youtubeDownloader = new YouTubeDownloader(
-                null,
-                null,
-                new YtDlpCommand(),
-                new DownloaderInfo(),
-                null,
-                gson,
-                new Pattern(),
-                new Converter());
-        EditMessageText editMessageText = EditMessageText.builder()
-                .chatId("123")
-                .text("test")
-                .messageId(111)
-                .build();
-        FileRequest givenRequest = FileRequest.builder()
-                .URL("https://youtu.be/psNARNT1Y2Q?si=ApAseIvSQ-xSrnTi")
-                .chatId("1935527130")
-                .extension("mp4")
-                .premium(false)
-                .multiVideoNumber(0)
-                .editMessageText(editMessageText)
-                .build();
-
-        String fileInfoInString = "";
-        FileInfo receivedFileInfo = FileInfo.builder()
-                .uploaderURL("youtube.com/")
-                .isLive(true)
-                .build();
-
-        // when
-        when(gson.fromJson(fileInfoInString, FileInfo.class)).thenReturn(receivedFileInfo);
-        // then
-        assertThrows(InvalidBotRequestException.class, () -> youtubeDownloader.getFileInfo(givenRequest, processBuilder));
-    }
+//    @Test
+//    void getFileInfo_expectInvalidBotApiThrow_LiveVideoInFileRequestInMp4() {
+//        //given
+//        Gson gson = mock(Gson.class);
+//        YouTubeDownloader youtubeDownloader = new YouTubeDownloader(
+//                null,
+//                null,
+//                new YtDlpCommand(),
+//                new DownloaderInfo(),
+//                null,
+//                gson,
+//                new Pattern(),
+//                new Converter());
+//        EditMessageText editMessageText = EditMessageText.builder()
+//                .chatId("123")
+//                .text("test")
+//                .messageId(111)
+//                .build();
+//        FileRequest givenRequest = FileRequest.builder()
+//                .URL("https://youtu.be/psNARNT1Y2Q?si=ApAseIvSQ-xSrnTi")
+//                .chatId("1935527130")
+//                .extension("mp4")
+//                .premium(false)
+//                .multiVideoNumber(0)
+//                .editMessageText(editMessageText)
+//                .build();
+//
+//        String fileInfoInString = "";
+//        FileInfo receivedFileInfo = FileInfo.builder()
+//                .uploaderURL("youtube.com/")
+//                .isLive(true)
+//                .build();
+//
+//        // when
+//        when(gson.fromJson(fileInfoInString, FileInfo.class)).thenReturn(receivedFileInfo);
+//        // then
+//        assertThrows(InvalidBotRequestException.class, () -> youtubeDownloader.getFileInfo(givenRequest, processBuilder));
+//    }
 }

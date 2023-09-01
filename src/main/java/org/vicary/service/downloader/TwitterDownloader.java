@@ -25,7 +25,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -49,16 +48,15 @@ public class TwitterDownloader implements Downloader {
 
     private final Converter converter;
 
+    private final FileManager fileManager;
+
     private final List<String> availableExtensions = List.of("mp4");
 
 
-    public FileResponse download(FileRequest request) throws IllegalArgumentException, NoSuchElementException, IOException {
+    public FileResponse download(FileRequest request) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
-        EditMessageText editMessageText = request.getEditMessageText();
-
-        // SENDING INFO ABOUT CONNECTING TO TWITTER
-        quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConnectingToTwitter());
+        quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getConnectingToTwitter());
 
         // GETTING TWITTER FILE INFO
         FileResponse response = getFileInfo(request, processBuilder);
@@ -68,82 +66,12 @@ public class TwitterDownloader implements Downloader {
         if (response.getDownloadedFile() != null)
             return response;
 
-
         // IF FILE DOES NOT EXIST IN REPOSITORY THEN DOWNLOAD
-        String fileSizeInProcess = null;
-        String fileName = FileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
-        String filePath = commands.getDownloadDestination() + fileName;
-        boolean fileDownloaded = false;
-        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
+        downloadFile(response, processBuilder);
 
-        processBuilder.command(commands.getDownloadTwitterFile(fileName, response.getURL(), response.getMultiVideoNumber()));
-        Process process = processBuilder.start();
-        // SENDING INFO ABOUT DOWNLOADING FILE
-        logger.info("[download] Downloading Twitter file '{}'", response.getId());
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (!fileDownloaded) {
-                    updateMessageTextDownload(request.getEditMessageText(), line);
-                    if (request.getEditMessageText().getText().contains("100%")) {
-                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
-                        fileDownloaded = true;
-                    }
-                }
-
-                if (isFileSizeTooBigInProcess(line)) {
-                    process.destroy();
-                    throw new InvalidBotRequestException(
-                            info.getFileTooBig(),
-                            String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(getFileSizeInProcess(line))));
-                }
-            }
-        }
-        File downloadedFile = new File(filePath);
-        if (downloadedFile.exists()) {
-            long fileSize = downloadedFile.length();
-            if (!FileManager.isFileSizeValid(fileSize)) {
-                throw new InvalidBotRequestException(
-                        info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
-            }
-            response.setSize(fileSize);
-            response.setDownloadedFile(InputFile.builder()
-                    .file(downloadedFile)
-                    .build());
-        } else {
-            throw new DownloadedFileNotFoundException(
-                    info.getErrorInDownloading(),
-                    String.format("File '%s' has not been downloaded", response.getId()));
-        }
         return response;
     }
 
-    public boolean isFileSizeTooBigInProcess(String line) {
-        return line.startsWith("[download] File is larger than max-filesize");
-    }
-
-    public Long getFileSizeInProcess(String line) {
-        long size = 0;
-        if (line.startsWith("[download] File is larger than max-filesize")) {
-            String[] arraySplit = line.split("\\(");
-            size = Arrays.stream(arraySplit[1].split(" "))
-                    .findFirst()
-                    .map(Long::parseLong)
-                    .orElse(0L);
-        }
-        return size;
-    }
-
-    @Override
-    public List<String> getAvailableExtensions() {
-        return availableExtensions;
-    }
-
-    @Override
-    public String getServiceName() {
-        return "twitter";
-    }
 
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
@@ -184,9 +112,6 @@ public class TwitterDownloader implements Downloader {
                     fileInfoInJson = line;
                 }
             }
-        } catch (IOException ex) {
-            process.destroy();
-            throw new IOException(ex.getMessage());
         }
 
         if (amountOfFiles == 0) {
@@ -217,6 +142,7 @@ public class TwitterDownloader implements Downloader {
         return fileResponse;
     }
 
+
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<TwitterFileEntity> twitterFileEntity = twitterFileService.findByTwitterId(response.getId());
 
@@ -230,8 +156,58 @@ public class TwitterDownloader implements Downloader {
         return response;
     }
 
-    public void updateMessageTextDownload(EditMessageText editMessageText, String line) {
-        String progress = FileManager.getDownloadFileProgressInProcess(line);
+
+    public FileResponse downloadFile(FileResponse response, ProcessBuilder processBuilder) throws IOException {
+        String fileName = fileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
+        String filePath = commands.getDownloadDestination() + fileName;
+        EditMessageText editMessageText = response.getEditMessageText();
+        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
+
+        logger.info("[download] Downloading Twitter file '{}'", response.getId());
+        processBuilder.command(commands.getDownloadTwitterFile(fileName, response.getURL(), response.getMultiVideoNumber()));
+        Process process = processBuilder.start();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                if (fileManager.isFileDownloadingInProcess(line)) {
+                    updateDownloadProgressInEditMessageText(editMessageText, line);
+
+                    if (fileManager.isFileDownloadedInProcess(line)) {
+                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
+                    }
+                    if (!fileManager.isFileSizeInProcessValid(line)) {
+                        process.destroy();
+                        throw new InvalidBotRequestException(
+                                info.getFileTooBig(),
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileManager.getFileSizeInProcess(line)));
+                    }
+                }
+            }
+        }
+
+        File downloadedFile = new File(filePath);
+        if (downloadedFile.exists()) {
+            long fileSize = downloadedFile.length();
+            if (!fileManager.isFileSizeValid(fileSize)) {
+                throw new InvalidBotRequestException(
+                        info.getFileTooBig(),
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
+            }
+            response.setSize(fileSize);
+            response.setDownloadedFile(InputFile.builder()
+                    .file(downloadedFile)
+                    .build());
+        } else {
+            throw new DownloadedFileNotFoundException(
+                    info.getErrorInDownloading(),
+                    String.format("File '%s' has not been downloaded", response.getId()));
+        }
+        return response;
+    }
+
+
+    public void updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
+        String progress = fileManager.getDownloadFileProgressInProcess(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
@@ -246,5 +222,16 @@ public class TwitterDownloader implements Downloader {
             if (!oldText.contentEquals(newText))
                 quickSender.editMessageText(editMessageText, newText.toString());
         }
+    }
+
+
+    @Override
+    public List<String> getAvailableExtensions() {
+        return availableExtensions;
+    }
+
+    @Override
+    public String getServiceName() {
+        return "twitter";
     }
 }

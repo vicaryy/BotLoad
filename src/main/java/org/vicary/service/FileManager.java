@@ -1,16 +1,16 @@
 package org.vicary.service;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.vicary.format.MarkdownV2;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
 public class FileManager {
+
+    private final Converter converter;
 
     public boolean isFileSizeValid(long fileSize) {
         long sizeInMB = fileSize / (1024 * 1024);
@@ -34,17 +34,28 @@ public class FileManager {
     }
 
     public String getFileSizeInProcess(String line) {
-        if (line.contains("[download]")) {
-            String[] s = line.split(" ");
-            for (String a : s)
-                if (a.contains("MiB") || a.contains("KiB"))
-                    return a;
+        if (line.startsWith("[download] File is larger than max-filesize")) {
+            long size = 0;
+            String[] arraySplit = line.split("\\(");
+            size = Arrays.stream(arraySplit[1].split(" "))
+                    .findFirst()
+                    .map(Long::parseLong)
+                    .orElse(0L);
+            return converter.bytesToMB(size);
         }
-        return null;
+
+        String[] s = line.split(" ");
+        for (String a : s)
+            if (a.contains("MiB") || a.contains("KiB"))
+                return a;
+        return "";
     }
 
-    public boolean checkFileSizeProcess(String fileSize) {
-        if (fileSize.endsWith("KiB"))
+    public boolean isFileSizeInProcessValid(String line) {
+        if (line.startsWith("[download] File is larger than max-filesize"))
+            return false;
+        String fileSize = getFileSizeInProcess(line);
+        if (fileSize.isEmpty() || fileSize.endsWith("KiB"))
             return true;
         if (!fileSize.endsWith("MiB"))
             return false;
@@ -60,16 +71,22 @@ public class FileManager {
     }
 
     public String getDownloadFileProgressInProcess(String line) {
-        if (line.contains("[download]")) {
-            String[] s = line.split(" ");
-            for (String a : s)
-                if (a.contains("%"))
-                    return MarkdownV2.apply(a).get();
-        }
+        String[] s = line.split(" ");
+        for (String a : s)
+            if (a.contains("%"))
+                return MarkdownV2.apply(a).get();
         return null;
     }
 
+    public boolean isFileDownloadingInProcess(String line) {
+        return line.startsWith("[download]");
+    }
+
+    public boolean isFileDownloadedInProcess(String line) {
+        return line.contains("100%");
+    }
+
     public boolean isFileConvertingInProcess(String line) {
-        return line.startsWith("[ExtractAudio] Destination: /Users/vicary/desktop/folder/");
+        return line.startsWith("[ExtractAudio]");
     }
 }
