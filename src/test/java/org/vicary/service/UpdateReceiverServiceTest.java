@@ -118,7 +118,7 @@ class UpdateReceiverServiceTest {
 
         Downloader expectedDownloader = youtubeDownloader;
         FileService expectedFileService = youtubeFileService;
-        FileRequest expectedFileRequest = Filerequest.builder()
+        FileRequest expectedFileRequest = FileRequest.builder()
                 .URL(expectedURL)
                 .chatId(chatId)
                 .extension(expectedExtension)

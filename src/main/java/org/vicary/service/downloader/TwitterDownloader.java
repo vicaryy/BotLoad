@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -175,7 +174,7 @@ public class TwitterDownloader implements Downloader {
                     if (fileManager.isFileDownloadedInProcess(line)) {
                         logger.info("[download] Successfully downloaded file '{}'", response.getId());
                     }
-                    if (!fileManager.isFileSizeInProcessValid(line)) {
+                    if (!fileManager.isFileSizeValidInProcess(line)) {
                         process.destroy();
                         throw new InvalidBotRequestException(
                                 info.getFileTooBig(),

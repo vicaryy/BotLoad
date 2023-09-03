@@ -175,7 +175,7 @@ public class InstagramDownloader implements Downloader {
                     if (fileManager.isFileDownloadedInProcess(line)) {
                         logger.info("[download] Successfully downloaded file '{}'", response.getId());
                     }
-                    if (!fileManager.isFileSizeInProcessValid(line)) {
+                    if (!fileManager.isFileSizeValidInProcess(line)) {
                         process.destroy();
                         throw new InvalidBotRequestException(
                                 info.getFileTooBig(),

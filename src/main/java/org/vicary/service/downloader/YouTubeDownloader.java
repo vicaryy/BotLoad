@@ -82,7 +82,7 @@ public class YouTubeDownloader implements Downloader {
         String fileInfoInJson = "";
         String youtubeId = pattern.getYoutubeId(request.getURL());
 
-        processBuilder.command(commands.getDownloadFileInfo(youtubeId));
+        processBuilder.command(commands.getDownloadYouTubeFileInfo(youtubeId));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -152,7 +152,7 @@ public class YouTubeDownloader implements Downloader {
                     if (fileManager.isFileDownloadedInProcess(line)) {
                         logger.info("[download] Successfully downloaded file '{}'", response.getId());
                     }
-                    if (!fileManager.isFileSizeInProcessValid(line)) {
+                    if (!fileManager.isFileSizeValidInProcess(line)) {
                         process.destroy();
                         throw new InvalidBotRequestException(
                                 info.getFileTooBig(),

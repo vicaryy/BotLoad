@@ -51,7 +51,7 @@ public class FileManager {
         return "";
     }
 
-    public boolean isFileSizeInProcessValid(String line) {
+    public boolean isFileSizeValidInProcess(String line) {
         if (line.startsWith("[download] File is larger than max-filesize"))
             return false;
         String fileSize = getFileSizeInProcess(line);

@@ -93,6 +93,14 @@ public class YtDlpCommand {
                 URL};
     }
 
+    public String[] getDownloadYouTubeFileInfo(String youtubeId) {
+        return new String[]{
+                YT_DLP,
+                FILE_INFO,
+                youtubeUrl,
+                youtubeId};
+    }
+
     public String[] getDownloadFileInfoTwitter(String URL) {
         return new String[]{
                 YT_DLP,
