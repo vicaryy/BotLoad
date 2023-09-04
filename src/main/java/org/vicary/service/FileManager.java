@@ -42,13 +42,13 @@ public class FileManager {
                     .map(Long::parseLong)
                     .orElse(0L);
             return converter.bytesToMB(size);
+        } else {
+            String[] s = line.split(" ");
+            for (String a : s)
+                if (a.contains("MiB") || a.contains("KiB"))
+                    return a;
+            return "";
         }
-
-        String[] s = line.split(" ");
-        for (String a : s)
-            if (a.contains("MiB") || a.contains("KiB"))
-                return a;
-        return "";
     }
 
     public boolean isFileSizeValidInProcess(String line) {

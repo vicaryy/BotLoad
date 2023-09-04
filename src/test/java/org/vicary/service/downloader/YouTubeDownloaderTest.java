@@ -12,6 +12,7 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.YouTubeFileEntity;
+import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
@@ -36,10 +37,10 @@ import static org.mockito.Mockito.*;
 class YouTubeDownloaderTest {
 
     @Autowired
-    private YouTubeDownloader youTubeDownloader;
+    private YouTubeDownloader downloader;
 
     @MockBean
-    YouTubeFileService youTubeFileService;
+    private YouTubeFileService fileService;
 
     @MockBean
     private DownloaderInfo info;
@@ -68,14 +69,19 @@ class YouTubeDownloaderTest {
     private final static ProcessBuilder processBuilder = new ProcessBuilder();
 
     private final static String DESTINATION = "/Users/vicary/desktop/botTestFolder/";
-
-    private static File VALID_FILE_IN_MP3;
+    private static File FILE_MP3_VALID;
+    private static File FILE_MP4_OVER_50MB;
+    private static File FILE_NOT_EXIST;
+    private static File FILE_THUMBNAIL;
 
 
     @BeforeAll
     public static void beforeAll() throws Exception {
         processBuilder.directory(new File(DESTINATION));
-        VALID_FILE_IN_MP3 = new File("/Users/vicary/desktop/botTestFolder/validFile.mp3");
+        FILE_MP3_VALID = new File("/Users/vicary/desktop/botTestFolder/validFile.mp3");
+        FILE_MP4_OVER_50MB = new File("/Users/vicary/desktop/botTestFolder/fileOver50MB.mp4");
+        FILE_NOT_EXIST = new File("/Users/vicary/desktop/botTestFolder/NO FILE");
+        FILE_THUMBNAIL = new File("/Users/vicary/desktop/botTestFolder/thumbnailFile.jpg");
     }
 
 
@@ -127,7 +133,7 @@ class YouTubeDownloaderTest {
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
         when(mapper.map(givenFileInfo)).thenReturn(givenFileResponse);
 
-        FileResponse actualFileResponse = youTubeDownloader.getFileInfo(givenRequest, processBuilder);
+        FileResponse actualFileResponse = downloader.getFileInfo(givenRequest, processBuilder);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
@@ -158,7 +164,7 @@ class YouTubeDownloaderTest {
 
 
         //then
-        assertThrows(InvalidBotRequestException.class, () -> youTubeDownloader.getFileInfo(givenRequest, processBuilder));
+        assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
         verify(pattern).getYoutubeId(givenRequest.getURL());
         verify(commands).getDownloadYouTubeFileInfo("invalid_id");
     }
@@ -198,7 +204,7 @@ class YouTubeDownloaderTest {
 
 
         //then
-        assertThrows(InvalidBotRequestException.class, () -> youTubeDownloader.getFileInfo(givenRequest, processBuilder));
+        assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
         verify(pattern).getYoutubeId(givenRequest.getURL());
         verify(commands).getDownloadYouTubeFileInfo(givenId);
     }
@@ -233,18 +239,18 @@ class YouTubeDownloaderTest {
                 .downloadedFile(InputFile.builder().fileId(givenFileId).build())
                 .build();
         //when
-        when(youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
+        when(fileService.findByYoutubeIdAndExtensionAndQuality(
                 givenFileResponse.getId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard"))
                 .thenReturn(Optional.ofNullable(fileEntity));
         when(converter.MBToBytes(givenSize)).thenReturn(10000000L);
 
-        FileResponse actualFileResponse = youTubeDownloader.getFileFromRepository(givenFileResponse);
+        FileResponse actualFileResponse = downloader.getFileFromRepository(givenFileResponse);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(youTubeFileService).findByYoutubeIdAndExtensionAndQuality(
+        verify(fileService).findByYoutubeIdAndExtensionAndQuality(
                 givenFileResponse.getId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard");
@@ -279,18 +285,18 @@ class YouTubeDownloaderTest {
                 .premium(true)
                 .build();
         //when
-        when(youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
+        when(fileService.findByYoutubeIdAndExtensionAndQuality(
                 givenFileResponse.getId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard"))
                 .thenReturn(Optional.ofNullable(fileEntity));
         when(converter.MBToBytes(givenSize)).thenReturn(30000000L);
 
-        FileResponse actualFileResponse = youTubeDownloader.getFileFromRepository(givenFileResponse);
+        FileResponse actualFileResponse = downloader.getFileFromRepository(givenFileResponse);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(youTubeFileService).findByYoutubeIdAndExtensionAndQuality(
+        verify(fileService).findByYoutubeIdAndExtensionAndQuality(
                 givenFileResponse.getId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard");
@@ -315,17 +321,17 @@ class YouTubeDownloaderTest {
                 .premium(true)
                 .build();
         //when
-        when(youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
+        when(fileService.findByYoutubeIdAndExtensionAndQuality(
                 givenFileResponse.getId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard"))
                 .thenReturn(Optional.ofNullable(fileEntity));
 
-        FileResponse actualFileResponse = youTubeDownloader.getFileFromRepository(givenFileResponse);
+        FileResponse actualFileResponse = downloader.getFileFromRepository(givenFileResponse);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(youTubeFileService).findByYoutubeIdAndExtensionAndQuality(
+        verify(fileService).findByYoutubeIdAndExtensionAndQuality(
                 givenFileResponse.getId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard");
@@ -355,23 +361,183 @@ class YouTubeDownloaderTest {
                 .extension(givenExtension)
                 .premium(true)
                 .size(11688889)
-                .downloadedFile(new InputFile(null, VALID_FILE_IN_MP3, false))
+                .downloadedFile(new InputFile(null, FILE_MP3_VALID, false))
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(VALID_FILE_IN_MP3.getName());
+        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadYouTubeFile(VALID_FILE_IN_MP3.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(VALID_FILE_IN_MP3.length())).thenReturn(true);
+        when(commands.getDownloadYouTubeFile(FILE_MP3_VALID.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
-        FileResponse actualFileResponse = youTubeDownloader.downloadFile(givenFileResponse, processBuilder);
+        FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadYouTubeFile(VALID_FILE_IN_MP3.getName(), givenId, givenExtension, true);
-        verify(fileManager).isFileSizeValid(VALID_FILE_IN_MP3.length());
+        verify(commands).getDownloadYouTubeFile(FILE_MP3_VALID.getName(), givenId, givenExtension, true);
+        verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
+    }
+
+
+    @Test
+    void downloadFile_expectThrowsInvalidBotRequestEx_DownloadingFileOver50MB() {
+        //given
+        String[] givenCommand = {"echo", "[download] File is larger than max-filesize(38248888 bytes...)"};
+        String givenId = "example_id";
+        String givenTitle = "title";
+        String givenExtension = "mp3";
+        String givenFileName = "fileName";
+        EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
+        FileResponse givenFileResponse = FileResponse.builder()
+                .id(givenId)
+                .title(givenTitle)
+                .editMessageText(editMessageText)
+                .extension(givenExtension)
+                .premium(true)
+                .build();
+
+        //when
+        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
+        when(commands.getDownloadYouTubeFile(givenFileName, givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
+        when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
+
+
+        //then
+        assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
+        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(fileManager).isFileDownloadedInProcess(givenCommand[1]);
+    }
+
+
+    @Test
+    void downloadFile_expectThrowsInvalidBotRequestEx_DownloadedFileOver50MB() {
+        //given
+        String[] givenCommand = {"echo", "nothing"};
+        String givenId = "example_id";
+        String givenTitle = "title";
+        String givenExtension = "mp4";
+        EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
+        FileResponse givenFileResponse = FileResponse.builder()
+                .id(givenId)
+                .title(givenTitle)
+                .editMessageText(editMessageText)
+                .extension(givenExtension)
+                .premium(true)
+                .build();
+
+
+        //when
+        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
+        when(commands.getDownloadDestination()).thenReturn(DESTINATION);
+        when(commands.getDownloadYouTubeFile(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
+
+
+        //then
+        assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
+        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(commands).getDownloadDestination();
+        verify(commands).getDownloadYouTubeFile(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true);
+        verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
+    }
+
+
+    @Test
+    void downloadFile_expectThrowsDownloadedFileNotFoundEx_DownloadedFileDoesNotExist() {
+        //given
+        String[] givenCommand = {"echo", "nothing"};
+        String givenId = "example_id";
+        String givenTitle = "title";
+        String givenExtension = "mp3";
+        EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
+        FileResponse givenFileResponse = FileResponse.builder()
+                .id(givenId)
+                .title(givenTitle)
+                .editMessageText(editMessageText)
+                .extension(givenExtension)
+                .premium(true)
+                .build();
+
+
+        //when
+        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
+        when(commands.getDownloadDestination()).thenReturn(DESTINATION);
+        when(commands.getDownloadYouTubeFile(FILE_NOT_EXIST.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
+
+
+        //then
+        assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
+        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(commands).getDownloadDestination();
+        verify(commands).getDownloadYouTubeFile(FILE_NOT_EXIST.getName(), givenId, givenExtension, true);
+    }
+
+
+    @Test
+    void downloadThumbnail_expectEquals_ValidFileResponse() throws IOException {
+        //given
+        String[] givenCommand = {"echo", "nothing"};
+        String givenId = "example_id";
+        String givenTitle = "thumbnailFile";
+        String givenExtension = "mp3";
+        EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
+        FileResponse givenFileResponse = FileResponse.builder()
+                .id(givenId)
+                .title(givenTitle)
+                .editMessageText(editMessageText)
+                .extension(givenExtension)
+                .premium(true)
+                .build();
+
+
+        FileResponse expectedFileResponse = FileResponse.builder()
+                .id(givenId)
+                .title(givenTitle)
+                .editMessageText(editMessageText)
+                .extension(givenExtension)
+                .premium(true)
+                .thumbnail(InputFile.builder().isThumbnail(true).file(FILE_THUMBNAIL).build())
+                .build();
+        //when
+        when(commands.getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId)).thenReturn(givenCommand);
+        when(commands.getDownloadDestination()).thenReturn(DESTINATION);
+
+        FileResponse actualFileResponse = downloader.downloadThumbnail(givenFileResponse, processBuilder);
+
+        //then
+        assertEquals(expectedFileResponse, actualFileResponse);
+        verify(commands).getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId);
+        verify(fileManager).isFileDownloadingInProcess(givenCommand[1]);
+    }
+
+
+    @Test
+    void downloadThumbnail_expectDoesNotThrow_ThumbnailDoesNotGetDownloaded() throws IOException {
+        //given
+        String[] givenCommand = {"echo", "nothing"};
+        String givenId = "example_id";
+        String givenTitle = "NO FILE";
+        String givenExtension = "mp3";
+        EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
+        FileResponse givenFileResponse = FileResponse.builder()
+                .id(givenId)
+                .title(givenTitle)
+                .editMessageText(editMessageText)
+                .extension(givenExtension)
+                .premium(true)
+                .build();
+
+        //when
+        when(commands.getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId)).thenReturn(givenCommand);
+        when(commands.getDownloadDestination()).thenReturn(DESTINATION);
+
+        //then
+        assertDoesNotThrow(() -> downloader.downloadThumbnail(givenFileResponse, processBuilder));
+        verify(commands).getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId);
+        verify(fileManager).isFileDownloadingInProcess(givenCommand[1]);
     }
 }
 
