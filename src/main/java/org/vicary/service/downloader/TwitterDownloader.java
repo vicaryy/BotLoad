@@ -130,7 +130,7 @@ public class TwitterDownloader implements Downloader {
         if (fileInfo.isLive()) {
             throw new InvalidBotRequestException(
                     info.getLiveVideo(),
-                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+                    String.format("Live video in Twitter URL '%s'.", request.getURL()));
         }
 
         FileResponse fileResponse = mapper.map(fileInfo);

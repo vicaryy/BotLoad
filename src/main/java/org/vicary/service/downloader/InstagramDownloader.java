@@ -87,8 +87,8 @@ public class InstagramDownloader implements Downloader {
                 amountOfFiles++;
 
                 FileInfo fileInfo = gson.fromJson(line, FileInfo.class);
-                String webpageURL = fileInfo.getURL();
-                if (webpageURL == null || !webpageURL.contains("instagram.com/")) {
+                String URL = fileInfo.getURL();
+                if (URL == null || !URL.contains("instagram.com/")) {
                     throw new InvalidBotRequestException(
                             info.getNoVideo(),
                             String.format("No video in Instagram URL '%s' and other service URL in description.", request.getURL()));
@@ -112,10 +112,7 @@ public class InstagramDownloader implements Downloader {
             }
         }
 
-
-        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
-
-        if (fileInfo == null) {
+        if (amountOfFiles == 0) {
             throw new InvalidBotRequestException(
                     info.getNoVideo(),
                     String.format("No video in Instagram URL '%s'", request.getURL()));
@@ -127,12 +124,13 @@ public class InstagramDownloader implements Downloader {
                     String.format("No video in multi-video Instagram URL '%s'", request.getURL()));
         }
 
+        FileInfo fileInfo = gson.fromJson(fileInfoInJson, FileInfo.class);
+
         if (fileInfo.isLive()) {
             throw new InvalidBotRequestException(
                     info.getLiveVideo(),
-                    String.format("Live video in TikTok URL '%s'.", request.getURL()));
+                    String.format("Live video in Instagram URL '%s'.", request.getURL()));
         }
-
 
         FileResponse fileResponse = mapper.map(fileInfo);
         fileResponse.setMultiVideoNumber(multiVideoNumber);

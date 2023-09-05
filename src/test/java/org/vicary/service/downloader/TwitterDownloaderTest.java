@@ -72,7 +72,6 @@ class TwitterDownloaderTest {
     private static File FILE_MP3_VALID;
     private static File FILE_MP4_OVER_50MB;
     private static File FILE_NOT_EXIST;
-    private static File FILE_THUMBNAIL;
 
 
     @BeforeAll
@@ -81,7 +80,6 @@ class TwitterDownloaderTest {
         FILE_MP3_VALID = new File("/Users/vicary/desktop/botTestFolder/validFile.mp3");
         FILE_MP4_OVER_50MB = new File("/Users/vicary/desktop/botTestFolder/fileOver50MB.mp4");
         FILE_NOT_EXIST = new File("/Users/vicary/desktop/botTestFolder/NO FILE");
-        FILE_THUMBNAIL = new File("/Users/vicary/desktop/botTestFolder/thumbnailFile.jpg");
     }
 
     @Test
