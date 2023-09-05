@@ -27,7 +27,9 @@ import java.util.NoSuchElementException;
 @Service
 @RequiredArgsConstructor
 public class RequestService {
+
     private final WebClient client;
+
     private final ParameterizedTypeReferences typeReferences;
 
     public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {

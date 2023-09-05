@@ -41,8 +41,8 @@ public class UpdatePollingThread implements Runnable {
 
     @PostConstruct
     public void startThread() {
+        logger.info("Telegram Bot API started successfully.");
         singleExecutor.execute(this);
-        logger.info("Telegram Bot API initialized successfully.");
     }
 
     @Override

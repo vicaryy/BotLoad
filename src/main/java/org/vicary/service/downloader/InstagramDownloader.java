@@ -206,7 +206,7 @@ public class InstagramDownloader implements Downloader {
 
 
     public void updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
-        String progress = fileManager.getDownloadFileProgressInProcess(line);
+        String progress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(line);
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");

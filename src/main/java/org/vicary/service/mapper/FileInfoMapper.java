@@ -8,9 +8,10 @@ import org.vicary.model.FileResponse;
 public class FileInfoMapper {
 
     public FileResponse map(FileInfo fileInfo) {
+        String title = fileInfo.getTitle() == null ? "title" : fileInfo.getTitle().isEmpty() ? "title" : fileInfo.getTitle();
         return FileResponse.builder()
                 .id(fileInfo.getId())
-                .title(fileInfo.getTitle())
+                .title(title)
                 .duration(fileInfo.getDuration())
                 .artist(fileInfo.getArtist())
                 .track(fileInfo.getTrack())

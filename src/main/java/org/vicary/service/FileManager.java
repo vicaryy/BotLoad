@@ -33,8 +33,12 @@ public class FileManager {
         return newTitle + "." + extension;
     }
 
+    final void asd() {
+
+    }
+
     public String getFileSizeInProcess(String line) {
-        if (line.startsWith("[download] File is larger than max-filesize")) {
+        if (line.startsWith("[download] File is larger than max-filesize(")) {
             long size = 0;
             String[] arraySplit = line.split("\\(");
             size = Arrays.stream(arraySplit[1].split(" "))
@@ -55,13 +59,12 @@ public class FileManager {
         if (line.startsWith("[download] File is larger than max-filesize"))
             return false;
         String fileSize = getFileSizeInProcess(line);
-        if (fileSize.isEmpty() || fileSize.endsWith("KiB"))
+        if (fileSize.endsWith("KiB"))
             return true;
         if (!fileSize.endsWith("MiB"))
             return false;
 
         StringBuilder sb = new StringBuilder();
-        sb.append(0);
         for (char c : fileSize.toCharArray()) {
             if (c == '.')
                 break;
@@ -70,7 +73,7 @@ public class FileManager {
         return Integer.parseInt(sb.toString()) <= 49;
     }
 
-    public String getDownloadFileProgressInProcess(String line) {
+    public String getDownloadFileProgressInProcessInMarkdownV2(String line) {
         String[] s = line.split(" ");
         for (String a : s)
             if (a.contains("%"))
