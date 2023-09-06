@@ -17,9 +17,9 @@ public class ResponseInfo {
 
     private final String hellaBigNumber = MarkdownV2.apply("Oh come on, that's hella big number.").toBold().get();
 
-    private final String wrongExtension = "Sorry but I can't identify the extension.";
+    private final String wrongExtension = MarkdownV2.apply("Sorry but I can't identify the extension.").get();
 
-    private final String wrongMultiVideoNumber = "Sorry but your multi-video number is invalid,\n please try again.";
+    private final String wrongMultiVideoNumber = MarkdownV2.apply("Sorry but your multi-video number is invalid,\n please try again.").get();
 
     private final String received = "Here's your file";
 

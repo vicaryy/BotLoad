@@ -326,7 +326,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertFalse(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -337,7 +337,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertFalse(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -348,7 +348,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertFalse(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
     }
 
 

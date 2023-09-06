@@ -101,7 +101,10 @@ public class UpdateReceiverService {
             Downloader downloader = null;
             FileService fileService = null;
             FileRequest fileRequest = null;
+            EditMessageText editMessageText = null;
+
             try {
+
                 if (pattern.isYouTubeURL(URL)) {
                     downloader = youtubeDownloader;
                     fileService = youtubeFileService;
@@ -120,7 +123,9 @@ public class UpdateReceiverService {
                     Message botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
                     quickSender.chatAction(chatId, "typing");
 
-                    fileRequest = getFileRequest(update, downloader, botMessageInfo.getMessageId());
+                    editMessageText = getEditMessageText(chatId, botMessageInfo.getMessageId());
+                    fileRequest = getFileRequest(update, downloader, editMessageText);
+
 
                     linkResponse.sendFile(fileRequest, downloader, fileService);
                 }
@@ -132,13 +137,14 @@ public class UpdateReceiverService {
                 logger.warn("---------------------------");
             } catch (DownloadedFileNotFoundException | InvalidBotRequestException ex) {
                 logger.warn(ex.getLoggerMessage());
-                quickSender.editMessageText(fileRequest.getEditMessageText(), ex.getMessage());
-            } catch (WebClientRequestException | NoSuchElementException | IllegalArgumentException | IOException ex) {
+                quickSender.editMessageText(editMessageText, ex.getMessage());
+            } catch (WebClientRequestException | NoSuchElementException | IllegalArgumentException |
+                     IOException ex) {
                 logger.warn("Expected exception: ", ex);
-                quickSender.editMessageText(fileRequest.getEditMessageText(), info.getError());
+                quickSender.editMessageText(editMessageText, info.getError());
             } catch (Exception ex) {
                 logger.warn("Unexpected exception: ", ex);
-                quickSender.editMessageText(fileRequest.getEditMessageText(), info.getError());
+                quickSender.editMessageText(editMessageText, info.getError());
             } finally {
                 // DELETE USER FROM ACTIVE REQUESTS
                 activeRequestService.deleteById(request.getId());
@@ -151,19 +157,12 @@ public class UpdateReceiverService {
         }
     }
 
-    public FileRequest getFileRequest(Update update, Downloader downloader, int messageId) {
+    public FileRequest getFileRequest(Update update, Downloader downloader, EditMessageText editMessageText) {
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
                 .orElse(false);
-        final EditMessageText editMessageText = EditMessageText.builder()
-                .chatId(update.getChatId())
-                .messageId(messageId)
-                .text(info.getGotTheLink() + info.getHoldOn())
-                .parseMode("MarkdownV2")
-                .disableWebPagePreview(true)
-                .build();
 
         return FileRequest.builder()
                 .URL(getURL(text))
@@ -172,6 +171,16 @@ public class UpdateReceiverService {
                 .multiVideoNumber(getMultiVideoNumber(text))
                 .premium(premium)
                 .editMessageText(editMessageText)
+                .build();
+    }
+
+    public EditMessageText getEditMessageText(String chatId, int messageId) {
+        return EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(true)
                 .build();
     }
 

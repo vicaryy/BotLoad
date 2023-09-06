@@ -59,7 +59,7 @@ public class FileManager {
         if (line.startsWith("[download] File is larger than max-filesize"))
             return false;
         String fileSize = getFileSizeInProcess(line);
-        if (fileSize.endsWith("KiB"))
+        if (fileSize.endsWith("KiB") || fileSize.isEmpty())
             return true;
         if (!fileSize.endsWith("MiB"))
             return false;
