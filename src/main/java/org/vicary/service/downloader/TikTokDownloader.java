@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
+import org.vicary.entity.InstagramFileEntity;
 import org.vicary.entity.TikTokFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
@@ -50,7 +51,7 @@ public class TikTokDownloader implements Downloader {
 
     private final FileManager fileManager;
 
-    private final List<String> availableExtensions = List.of("mp4");
+    private final List<String> availableExtensions = List.of("mp4", "mp3", "m4a", "flac", "wav");
 
 
     @Override
@@ -77,7 +78,7 @@ public class TikTokDownloader implements Downloader {
     public FileResponse getFileInfo(FileRequest request, ProcessBuilder processBuilder) throws IOException {
         String fileInfoInJson = "";
 
-        processBuilder.command(commands.getDownloadFileInfo(request.getURL()));
+        processBuilder.command(commands.fileInfoTikTok(request.getURL()));
         Process process = processBuilder.start();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -117,14 +118,17 @@ public class TikTokDownloader implements Downloader {
 
 
     public FileResponse getFileFromRepository(FileResponse response) {
-        Optional<TikTokFileEntity> tiktokFile = tiktokFileService.findByTikTokId(response.getId());
+        Optional<TikTokFileEntity> tiktokFileEntity = tiktokFileService.findByTiktokIdAndExtensionAndQuality(
+                response.getId(),
+                response.getExtension(),
+                response.isPremium() ? "premium" : "standard");
 
-        if (tiktokFile.isPresent() && converter.MBToBytes(tiktokFile.get().getSize()) < 20000000) {
+        if (tiktokFileEntity.isPresent() && converter.MBToBytes(tiktokFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
-                    .fileId(tiktokFile.get().getFileId())
+                    .fileId(tiktokFileEntity.get().getFileId())
                     .build();
             response.setDownloadedFile(file);
-            response.setSize(converter.MBToBytes(tiktokFile.get().getSize()));
+            response.setSize(converter.MBToBytes(tiktokFileEntity.get().getSize()));
         }
         return response;
     }
@@ -137,7 +141,7 @@ public class TikTokDownloader implements Downloader {
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
         logger.info("[download] Downloading TikTok file '{}'", response.getId());
-        processBuilder.command(commands.getDownloadTikTokFile(fileName, response.getURL()));
+        processBuilder.command(commands.downloadTikTok(fileName, response));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;

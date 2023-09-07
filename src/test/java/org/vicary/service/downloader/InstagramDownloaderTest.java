@@ -498,7 +498,7 @@ class InstagramDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadInstagramFile(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadInstagram(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
@@ -507,7 +507,7 @@ class InstagramDownloaderTest {
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadInstagramFile(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber);
+        verify(commands).downloadInstagram(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber);
         verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
@@ -535,7 +535,7 @@ class InstagramDownloaderTest {
 
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
-        when(commands.getDownloadInstagramFile(givenFileName, givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadInstagram(givenFileName, givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
         when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
         when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
@@ -571,7 +571,7 @@ class InstagramDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadInstagramFile(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadInstagram(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
@@ -579,7 +579,7 @@ class InstagramDownloaderTest {
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadInstagramFile(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber);
+        verify(commands).downloadInstagram(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber);
         verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
@@ -608,13 +608,13 @@ class InstagramDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadInstagramFile(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadInstagram(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadInstagramFile(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber);
+        verify(commands).downloadInstagram(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber);
     }
 }

@@ -129,7 +129,7 @@ class YouTubeDownloaderTest {
                 .build();
         //when
         when(pattern.getYoutubeId(givenRequest.getURL())).thenReturn(givenId);
-        when(commands.getDownloadYouTubeFileInfo(givenId)).thenReturn(givenCommands);
+        when(commands.fileInfoYouTube(givenId)).thenReturn(givenCommands);
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
         when(mapper.map(givenFileInfo)).thenReturn(givenFileResponse);
 
@@ -138,7 +138,7 @@ class YouTubeDownloaderTest {
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(pattern).getYoutubeId(givenRequest.getURL());
-        verify(commands).getDownloadYouTubeFileInfo(givenId);
+        verify(commands).fileInfoYouTube(givenId);
         verify(mapper).map(givenFileInfo);
     }
 
@@ -159,14 +159,14 @@ class YouTubeDownloaderTest {
 
         //when
         when(pattern.getYoutubeId(givenRequest.getURL())).thenReturn("invalid_id");
-        when(commands.getDownloadYouTubeFileInfo("invalid_id")).thenReturn(givenCommands);
+        when(commands.fileInfoYouTube("invalid_id")).thenReturn(givenCommands);
         when(gson.fromJson("nothing", FileInfo.class)).thenReturn(givenFileInfo);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
         verify(pattern).getYoutubeId(givenRequest.getURL());
-        verify(commands).getDownloadYouTubeFileInfo("invalid_id");
+        verify(commands).fileInfoYouTube("invalid_id");
     }
 
 
@@ -199,14 +199,14 @@ class YouTubeDownloaderTest {
 
         //when
         when(pattern.getYoutubeId(givenRequest.getURL())).thenReturn(givenId);
-        when(commands.getDownloadYouTubeFileInfo(givenId)).thenReturn(givenCommands);
+        when(commands.fileInfoYouTube(givenId)).thenReturn(givenCommands);
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
         verify(pattern).getYoutubeId(givenRequest.getURL());
-        verify(commands).getDownloadYouTubeFileInfo(givenId);
+        verify(commands).fileInfoYouTube(givenId);
     }
 
 
@@ -367,7 +367,7 @@ class YouTubeDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadYouTubeFile(FILE_MP3_VALID.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(commands.downloadYouTube(FILE_MP3_VALID.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
@@ -376,7 +376,7 @@ class YouTubeDownloaderTest {
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadYouTubeFile(FILE_MP3_VALID.getName(), givenId, givenExtension, true);
+        verify(commands).downloadYouTube(FILE_MP3_VALID.getName(), givenId, givenExtension, true);
         verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
@@ -400,7 +400,7 @@ class YouTubeDownloaderTest {
 
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
-        when(commands.getDownloadYouTubeFile(givenFileName, givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(commands.downloadYouTube(givenFileName, givenId, givenExtension, true)).thenReturn(givenCommand);
         when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
         when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
@@ -432,7 +432,7 @@ class YouTubeDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadYouTubeFile(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(commands.downloadYouTube(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
@@ -440,7 +440,7 @@ class YouTubeDownloaderTest {
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadYouTubeFile(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true);
+        verify(commands).downloadYouTube(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true);
         verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
@@ -465,14 +465,14 @@ class YouTubeDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadYouTubeFile(FILE_NOT_EXIST.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
+        when(commands.downloadYouTube(FILE_NOT_EXIST.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadYouTubeFile(FILE_NOT_EXIST.getName(), givenId, givenExtension, true);
+        verify(commands).downloadYouTube(FILE_NOT_EXIST.getName(), givenId, givenExtension, true);
     }
 
 
@@ -502,14 +502,14 @@ class YouTubeDownloaderTest {
                 .thumbnail(InputFile.builder().isThumbnail(true).file(FILE_THUMBNAIL).build())
                 .build();
         //when
-        when(commands.getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId)).thenReturn(givenCommand);
+        when(commands.downloadThumbnailYoutube(givenTitle + ".jpg", givenId)).thenReturn(givenCommand);
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
 
         FileResponse actualFileResponse = downloader.downloadThumbnail(givenFileResponse, processBuilder);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(commands).getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId);
+        verify(commands).downloadThumbnailYoutube(givenTitle + ".jpg", givenId);
         verify(fileManager).isFileDownloadingInProcess(givenCommand[1]);
     }
 
@@ -531,12 +531,12 @@ class YouTubeDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId)).thenReturn(givenCommand);
+        when(commands.downloadThumbnailYoutube(givenTitle + ".jpg", givenId)).thenReturn(givenCommand);
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
 
         //then
         assertDoesNotThrow(() -> downloader.downloadThumbnail(givenFileResponse, processBuilder));
-        verify(commands).getDownloadYouTubeThumbnail(givenTitle + ".jpg", givenId);
+        verify(commands).downloadThumbnailYoutube(givenTitle + ".jpg", givenId);
         verify(fileManager).isFileDownloadingInProcess(givenCommand[1]);
     }
 }

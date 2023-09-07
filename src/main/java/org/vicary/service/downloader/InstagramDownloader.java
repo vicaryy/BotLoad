@@ -9,6 +9,7 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.InstagramFileEntity;
+import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.DownloaderInfo;
@@ -48,13 +49,13 @@ public class InstagramDownloader implements Downloader {
 
     private final FileManager fileManager;
 
-    private final List<String> availableExtensions = List.of("mp4");
+    private final List<String> availableExtensions = List.of("mp4", "mp3", "m4a", "flac", "wav");
 
     @Override
     public FileResponse download(FileRequest request) throws IOException {
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.directory(new File(commands.getDownloadDestination()));
-        quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getConnectingToTwitter());
+        quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getConnectingToInstagram());
 
         // GETTING FILE INFO
         FileResponse response = getFileInfo(request, processBuilder);
@@ -78,7 +79,7 @@ public class InstagramDownloader implements Downloader {
         boolean specify = request.getMultiVideoNumber() != 0;
         final int multiVideoMaxAmount = 15;
 
-        processBuilder.command(commands.getDownloadFileInfo(request.getURL()));
+        processBuilder.command(commands.fileInfoInstagram(request.getURL()));
         Process process = processBuilder.start();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -142,7 +143,10 @@ public class InstagramDownloader implements Downloader {
 
 
     public FileResponse getFileFromRepository(FileResponse response) {
-        Optional<InstagramFileEntity> instagramFileEntity = instagramFileService.findByInstagramId(response.getId());
+        Optional<InstagramFileEntity> instagramFileEntity = instagramFileService.findByInstagramIdAndExtensionAndQuality(
+                response.getId(),
+                response.getExtension(),
+                response.isPremium() ? "premium" : "standard");
 
         if (instagramFileEntity.isPresent() && converter.MBToBytes(instagramFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
@@ -162,7 +166,7 @@ public class InstagramDownloader implements Downloader {
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
         logger.info("[download] Downloading Twitter file '{}'", response.getId());
-        processBuilder.command(commands.getDownloadInstagramFile(fileName, response.getURL(), response.getMultiVideoNumber()));
+        processBuilder.command(commands.downloadInstagram(fileName, response));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -202,7 +206,6 @@ public class InstagramDownloader implements Downloader {
         }
         return response;
     }
-
 
 
     public void updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {

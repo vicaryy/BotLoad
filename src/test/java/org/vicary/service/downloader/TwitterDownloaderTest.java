@@ -127,7 +127,7 @@ class TwitterDownloaderTest {
                 .editMessageText(editMessageText)
                 .build();
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
         when(mapper.map(givenFileInfo)).thenReturn(givenFileResponse);
 
@@ -135,7 +135,7 @@ class TwitterDownloaderTest {
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(2)).fromJson(givenJsonText, FileInfo.class);
         verify(mapper).map(givenFileInfo);
     }
@@ -169,13 +169,13 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(1)).fromJson(givenJsonText, FileInfo.class);
     }
 
@@ -208,13 +208,13 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(1)).fromJson(givenJsonText, FileInfo.class);
     }
 
@@ -237,14 +237,14 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(givenFirstJsonText, FileInfo.class)).thenReturn(givenFileInfo);
         when(gson.fromJson(givenSecondJsonText, FileInfo.class)).thenReturn(givenFileInfo);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(1)).fromJson(givenFirstJsonText, FileInfo.class);
     }
 
@@ -267,13 +267,13 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(any(String.class), eq(FileInfo.class))).thenReturn(givenFileInfo);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(16)).fromJson(any(String.class), eq(FileInfo.class));
     }
 
@@ -292,12 +292,12 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(0)).fromJson(givenJsonText, FileInfo.class);
     }
 
@@ -318,12 +318,12 @@ class TwitterDownloaderTest {
         FileInfo givenFileInfo = FileInfo.builder().uploaderURL("twitter.com/").build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(any(String.class), eq(FileInfo.class))).thenReturn(givenFileInfo);
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
     }
 
 
@@ -346,12 +346,12 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(commands.getDownloadFileInfoTwitter(givenURL)).thenReturn(givenCommands);
+        when(commands.fileInfoTwitter(givenURL)).thenReturn(givenCommands);
         when(gson.fromJson(givenJsonText, FileInfo.class)).thenReturn(givenFileInfo);
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.getFileInfo(givenRequest, processBuilder));
-        verify(commands).getDownloadFileInfoTwitter(givenURL);
+        verify(commands).fileInfoTwitter(givenURL);
         verify(gson, times(2)).fromJson(givenJsonText, FileInfo.class);
     }
 
@@ -500,7 +500,7 @@ class TwitterDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadTwitterFile(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadTwitter(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
@@ -509,7 +509,7 @@ class TwitterDownloaderTest {
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadTwitterFile(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber);
+        verify(commands).downloadTwitter(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber);
         verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
@@ -537,7 +537,7 @@ class TwitterDownloaderTest {
 
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
-        when(commands.getDownloadTwitterFile(givenFileName, givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadTwitter(givenFileName, givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
         when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
         when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
@@ -573,7 +573,7 @@ class TwitterDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadTwitterFile(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadTwitter(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
@@ -581,7 +581,7 @@ class TwitterDownloaderTest {
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadTwitterFile(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber);
+        verify(commands).downloadTwitter(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber);
         verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
@@ -610,13 +610,13 @@ class TwitterDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadTwitterFile(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
+        when(commands.downloadTwitter(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadTwitterFile(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber);
+        verify(commands).downloadTwitter(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber);
     }
 }

@@ -3,6 +3,7 @@ package org.vicary.service.file_service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.vicary.entity.TwitterFileEntity;
+import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.model.FileResponse;
 import org.vicary.repository.TwitterFileRepository;
 import org.vicary.service.Converter;
@@ -24,10 +25,13 @@ public class TwitterFileService implements FileService{
         return repository.findByTwitterId(twitterId);
     }
 
-    public boolean existsByTwitterId(String twitterId) {
-        return repository.existsByTwitterId(twitterId);
+    public Optional<TwitterFileEntity> findByTwitterIdAndExtensionAndQuality(String youtubeId, String extension, String quality) {
+        return repository.findByTwitterIdAndExtensionAndQuality(youtubeId, extension, quality);
     }
 
+    public boolean existsByTwitterIdAndExtensionAndQuality(String id, String extension, String quality) {
+        return repository.existsByTwitterIdAndExtensionAndQuality(id, extension, quality);
+    }
     @Override
     public void saveInRepo(FileResponse response) {
         saveEntity(TwitterFileEntity.builder()
@@ -44,6 +48,9 @@ public class TwitterFileService implements FileService{
 
     @Override
     public boolean existsInRepo(FileResponse response) {
-        return existsByTwitterId(response.getId());
+        String id = response.getId();
+        String extension = response.getExtension();
+        String quality = response.isPremium() ? "premium" : "standard";
+        return existsByTwitterIdAndExtensionAndQuality(id, extension, quality);
     }
 }

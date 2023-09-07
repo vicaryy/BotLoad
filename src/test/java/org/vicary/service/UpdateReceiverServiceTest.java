@@ -381,7 +381,7 @@ class UpdateReceiverServiceTest {
                 .build();
 
         //when
-        FileRequest actualFileRequest = updateReceiverService.getFileRequest(update, downloader, messageId);
+        FileRequest actualFileRequest = updateReceiverService.getFileRequest(update, downloader, expectedEMT);
 
         //then
         assertEquals(expectedFileRequest, actualFileRequest);

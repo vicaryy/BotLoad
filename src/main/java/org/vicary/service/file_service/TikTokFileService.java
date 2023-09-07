@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.vicary.entity.TikTokFileEntity;
+import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.model.FileResponse;
 import org.vicary.repository.TikTokFileRepository;
 import org.vicary.service.Converter;
@@ -29,10 +30,13 @@ public class TikTokFileService implements FileService {
         return repository.findByTiktokId(tiktokId);
     }
 
-    public boolean existsByTikTokId(String tiktokId) {
-        return repository.existsByTiktokId(tiktokId);
+    public Optional<TikTokFileEntity> findByTiktokIdAndExtensionAndQuality(String youtubeId, String extension, String quality) {
+        return repository.findByTiktokIdAndExtensionAndQuality(youtubeId, extension, quality);
     }
 
+    public boolean existsByTiktokIdAndExtensionAndQuality(String id, String extension, String quality) {
+        return repository.existsByTiktokIdAndExtensionAndQuality(id, extension, quality);
+    }
     @Override
     public void saveInRepo(FileResponse response) {
         saveEntity(TikTokFileEntity.builder()
@@ -49,6 +53,9 @@ public class TikTokFileService implements FileService {
 
     @Override
     public boolean existsInRepo(FileResponse response) {
-        return existsByTikTokId(response.getId());
+        String id = response.getId();
+        String extension = response.getExtension();
+        String quality = response.isPremium() ? "premium" : "standard";
+        return existsByTiktokIdAndExtensionAndQuality(id, extension, quality);
     }
 }

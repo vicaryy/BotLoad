@@ -52,7 +52,7 @@ public class YouTubeDownloader implements Downloader {
 
     private final FileManager fileManager;
 
-    private final List<String> availableExtensions = List.of("mp3");
+    private final List<String> availableExtensions = List.of("mp3", "m4a", "flac", "wav");
 
     @Override
     public FileResponse download(FileRequest request) throws IOException {
@@ -82,7 +82,7 @@ public class YouTubeDownloader implements Downloader {
         String fileInfoInJson = "";
         String youtubeId = pattern.getYoutubeId(request.getURL());
 
-        processBuilder.command(commands.getDownloadYouTubeFileInfo(youtubeId));
+        processBuilder.command(commands.fileInfoYouTube(youtubeId));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -131,7 +131,6 @@ public class YouTubeDownloader implements Downloader {
     }
 
 
-
     public FileResponse downloadFile(FileResponse response, ProcessBuilder processBuilder) throws IOException {
         EditMessageText editMessageText = response.getEditMessageText();
         String fileName = fileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
@@ -139,7 +138,7 @@ public class YouTubeDownloader implements Downloader {
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
         logger.info("[download] Downloading YouTube file '{}'", response.getId());
-        processBuilder.command(commands.getDownloadYouTubeFile(fileName, response.getId(), response.getExtension(), response.isPremium()));
+        processBuilder.command(commands.downloadYouTube(fileName, response));
         Process process = processBuilder.start();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -188,14 +187,13 @@ public class YouTubeDownloader implements Downloader {
     }
 
 
-
     public FileResponse downloadThumbnail(FileResponse response, ProcessBuilder processBuilder) throws IOException {
         final String thumbnailName = response.getTitle() + ".jpg";
         EditMessageText editMessageText = response.getEditMessageText();
         quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getThumbnailDownloading());
 
         logger.info("[download] Downloading thumbnail to file '{}'", response.getId());
-        processBuilder.command(commands.getDownloadYouTubeThumbnail(thumbnailName, response.getId()));
+        processBuilder.command(commands.downloadThumbnailYoutube(thumbnailName, response.getId()));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -221,7 +219,6 @@ public class YouTubeDownloader implements Downloader {
     }
 
 
-
     public EditMessageText updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
         String progress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(line);
         if (progress != null) {
@@ -240,7 +237,6 @@ public class YouTubeDownloader implements Downloader {
         }
         return editMessageText;
     }
-
 
 
     @Override

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
+import org.vicary.entity.InstagramFileEntity;
 import org.vicary.entity.TwitterFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
@@ -49,7 +50,7 @@ public class TwitterDownloader implements Downloader {
 
     private final FileManager fileManager;
 
-    private final List<String> availableExtensions = List.of("mp4");
+    private final List<String> availableExtensions = List.of("mp4", "mp3", "m4a", "flac", "wav");
 
 
     public FileResponse download(FileRequest request) throws IOException {
@@ -79,7 +80,7 @@ public class TwitterDownloader implements Downloader {
         boolean specify = request.getMultiVideoNumber() != 0;
         final int multiVideoMaxAmount = 15;
 
-        processBuilder.command(commands.getDownloadFileInfoTwitter(request.getURL()));
+        processBuilder.command(commands.fileInfoTwitter(request.getURL()));
         Process process = processBuilder.start();
 
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -143,7 +144,10 @@ public class TwitterDownloader implements Downloader {
 
 
     public FileResponse getFileFromRepository(FileResponse response) {
-        Optional<TwitterFileEntity> twitterFileEntity = twitterFileService.findByTwitterId(response.getId());
+        Optional<TwitterFileEntity> twitterFileEntity = twitterFileService.findByTwitterIdAndExtensionAndQuality(
+                response.getId(),
+                response.getExtension(),
+                response.isPremium() ? "premium" : "standard");
 
         if (twitterFileEntity.isPresent() && converter.MBToBytes(twitterFileEntity.get().getSize()) < 20000000) {
             InputFile file = InputFile.builder()
@@ -163,7 +167,7 @@ public class TwitterDownloader implements Downloader {
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
         logger.info("[download] Downloading Twitter file '{}'", response.getId());
-        processBuilder.command(commands.getDownloadTwitterFile(fileName, response.getURL(), response.getMultiVideoNumber()));
+        processBuilder.command(commands.downloadTwitter(fileName, response));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;

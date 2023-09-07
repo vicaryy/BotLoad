@@ -20,18 +20,18 @@ public class DownloaderInfo {
     private final String thumbnailDownloading = MarkdownV2.apply("Downloading thumbnail... [0.0%]").toItalic().newlineBefore().get();
 
     private final String fileTooBig = MarkdownV2.apply("File is too big!").toBold().newlineAfter(2).get()
-                                      + MarkdownV2.apply("Sorry but i can upload files up to 50MB (Telegrams fault).\nThings may change in time.").get();
+                                      + MarkdownV2.apply("I'm sorry but i can upload files up to 50MB (Telegrams fault).\nThings may change in time.").get();
 
     private final String renaming = MarkdownV2.apply("Renaming...").toItalic().newlineBefore().get();
 
     private final String noVideo = MarkdownV2.apply("No video!").toBold().newlineAfter(2).get()
-                                   + MarkdownV2.apply("Sorry but i can't find video in your link.").get();
+                                   + MarkdownV2.apply("I'm sorry but i can't find video in your link.").get();
 
-    private final String errorInDownloading = MarkdownV2.apply("Sorry but i can't download this file.\n\n").toBold().get()
+    private final String errorInDownloading = MarkdownV2.apply("I'm sorry but i can't download this file.\n\n").toBold().get()
                                               + MarkdownV2.apply("Try again later.").get();
 
     private final String liveVideo = MarkdownV2.apply("Live video!\n\n").toBold().get()
-                                     + MarkdownV2.apply("Sorry but i can't download live videos.").get();
+                                     + MarkdownV2.apply("I'm sorry but i can't download live videos.").get();
 
     private final String multiVideo = MarkdownV2.apply("Multi-video link.").toBold().newlineAfter(2).get()
                                       + MarkdownV2.apply("This link contains multiple videos, you need to specify which one you want to download." +
@@ -40,7 +40,7 @@ public class DownloaderInfo {
                                                          "\n\nPlease try again.").get();
 
     private final String multiVideoAmountTooHigh = MarkdownV2.apply("Too much videos!").toBold().newlineAfter(2).get()
-                                                   + MarkdownV2.apply("Sorry but this multi-video link has too much videos, more than my limit - 15.\nTry another link.").get();
+                                                   + MarkdownV2.apply("I'm sorry but this multi-video link has too much videos, more than my limit - 15.\nTry another link.").get();
 
     public String getConverting(String extension) {
         return MarkdownV2.apply(String.format("Converting to %s...", extension)).toItalic().newlineBefore().get();

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vicary.api_object.message.Message;
 import org.vicary.api_request.send.SendAudio;
+import org.vicary.api_request.send.SendDocument;
 import org.vicary.api_request.send.SendVideo;
 import org.vicary.format.MarkdownV2;
 import org.vicary.info.ResponseInfo;
@@ -45,7 +46,7 @@ public class LinkResponse {
         quickSender.chatAction(chatId, "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
         Message sendFileMessage;
-        if (response.getExtension().equals("mp3")) {
+        if (response.getExtension().equals("mp3") || response.getExtension().equals("m4a")) {
             sendFileMessage = requestService.sendRequest(getSendAudio(response));
             response.setTelegramFileId(sendFileMessage.getAudio().getFileId());
             if (response.getDuration() == 0)
@@ -55,6 +56,9 @@ public class LinkResponse {
             response.setTelegramFileId(sendFileMessage.getVideo().getFileId());
             if (response.getDuration() == 0)
                 response.setDuration(sendFileMessage.getVideo().getDuration());
+        } else {
+            sendFileMessage = requestService.sendRequest(getSendDocument(response));
+            response.setTelegramFileId(sendFileMessage.getDocument().getFileId());
         }
         quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response, downloader.getServiceName()));
         logger.info("[send] File sent successfully.");
@@ -148,6 +152,13 @@ public class LinkResponse {
                 .chatId(response.getChatId())
                 .video(response.getDownloadedFile())
                 .duration(response.getDuration())
+                .build();
+    }
+
+    public SendDocument getSendDocument(FileResponse response) {
+        return SendDocument.builder()
+                .chatId(response.getChatId())
+                .document(response.getDownloadedFile())
                 .build();
     }
 }

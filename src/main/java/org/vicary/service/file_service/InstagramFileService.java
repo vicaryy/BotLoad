@@ -3,10 +3,9 @@ package org.vicary.service.file_service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.vicary.entity.InstagramFileEntity;
-import org.vicary.entity.TwitterFileEntity;
+import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.model.FileResponse;
 import org.vicary.repository.InstagramFileRepository;
-import org.vicary.repository.TwitterFileRepository;
 import org.vicary.service.Converter;
 
 import java.util.Optional;
@@ -26,10 +25,13 @@ public class InstagramFileService implements FileService {
         return repository.findByInstagramId(instagramId);
     }
 
-    public boolean existsByTwitterId(String instagramId) {
-        return repository.existsByInstagramId(instagramId);
+    public Optional<InstagramFileEntity> findByInstagramIdAndExtensionAndQuality(String youtubeId, String extension, String quality) {
+        return repository.findByInstagramIdAndExtensionAndQuality(youtubeId, extension, quality);
     }
 
+    public boolean existsByInstagramIdAndExtensionAndQuality(String id, String extension, String quality) {
+        return repository.existsByInstagramIdAndExtensionAndQuality(id, extension, quality);
+    }
     @Override
     public void saveInRepo(FileResponse response) {
         saveEntity(InstagramFileEntity.builder()
@@ -46,6 +48,9 @@ public class InstagramFileService implements FileService {
 
     @Override
     public boolean existsInRepo(FileResponse response) {
-        return existsByTwitterId(response.getId());
+        String id = response.getId();
+        String extension = response.getExtension();
+        String quality = response.isPremium() ? "premium" : "standard";
+        return existsByInstagramIdAndExtensionAndQuality(id, extension, quality);
     }
 }

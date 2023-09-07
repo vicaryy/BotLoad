@@ -29,8 +29,8 @@ public class YouTubeFileService implements FileService{
         return repository.findByYoutubeIdAndExtensionAndQuality(youtubeId, extension, quality);
     }
 
-    public boolean existsByYoutubeIdAndExtensionAndQuality(String youtubeId, String extension, String quality) {
-        return repository.existsByYoutubeIdAndExtensionAndQuality(youtubeId, extension, quality);
+    public boolean existsByYoutubeIdAndExtensionAndQuality(String id, String extension, String quality) {
+        return repository.existsByYoutubeIdAndExtensionAndQuality(id, extension, quality);
     }
 
     @Override
@@ -47,10 +47,11 @@ public class YouTubeFileService implements FileService{
                 .build());
     }
 
+    @Override
     public boolean existsInRepo(FileResponse response) {
-        String youtubeId = response.getId();
+        String id = response.getId();
         String extension = response.getExtension();
         String quality = response.isPremium() ? "premium" : "standard";
-        return existsByYoutubeIdAndExtensionAndQuality(youtubeId, extension, quality);
+        return existsByYoutubeIdAndExtensionAndQuality(id, extension, quality);
     }
 }

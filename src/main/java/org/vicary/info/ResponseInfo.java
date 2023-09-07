@@ -13,13 +13,13 @@ public class ResponseInfo {
 
     private final String sending = MarkdownV2.apply("Sending...").toItalic().newlineBefore().get();
 
-    private final String error = MarkdownV2.apply("Sorry but something goes wrong.").toBold().get();
+    private final String error = MarkdownV2.apply("I'm sorry but something goes wrong.").toBold().get();
 
     private final String hellaBigNumber = MarkdownV2.apply("Oh come on, that's hella big number.").toBold().get();
 
-    private final String wrongExtension = MarkdownV2.apply("Sorry but I can't identify the extension.").get();
+    private final String wrongExtension = MarkdownV2.apply("I'm sorry but I don't support this extension.").get();
 
-    private final String wrongMultiVideoNumber = MarkdownV2.apply("Sorry but your multi-video number is invalid,\n please try again.").get();
+    private final String wrongMultiVideoNumber = MarkdownV2.apply("I'm sorry but your multi-video number is invalid,\n please try again.").get();
 
     private final String received = "Here's your file";
 

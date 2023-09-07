@@ -7,7 +7,7 @@ import org.vicary.model.FileResponse;
 @Component
 public class YtDlpCommand {
     private final static String YT_DLP = "yt-dlp";
-    private final static String FILE_EXTENSION = "-x";
+    private final static String AUDIO_ONLY = "-x";
     private final static String AUDIO_FORMAT = "--audio-format";
     private final static String AUDIO_QUALITY = "--audio-quality";
     private final static String PATH = "-o";
@@ -24,61 +24,114 @@ public class YtDlpCommand {
     private final String downloadDestination = "/Users/vicary/desktop/folder/";
 
 
-    public String[] getDownloadYouTubeFile(String fileName, String youtubeId, String extension, boolean premium) {
+    public String[] downloadYouTube(String fileName, FileResponse response) {
         return new String[]{
                 YT_DLP,
-                FILE_EXTENSION,
+                AUDIO_ONLY,
                 AUDIO_FORMAT,
-                extension,
+                response.getExtension().equals("ogg") ? "vorbis" : response.getExtension(),
                 AUDIO_QUALITY,
-                premium ? "0" : "5",
+                response.isPremium() ? "0" : "5",
                 EMBED_THUMBNAIL,
                 MAX_FILE_SIZE,
                 MAX_FILE_SIZE_IN_MB,
                 PATH,
                 fileName,
-                youtubeUrl + youtubeId};
+                youtubeUrl + response.getId()};
     }
 
-    public String[] getDownloadTwitterFile(String fileName, String URL, int multiVideoNumber) {
-        return new String[]{
-                YT_DLP,
-                NETRC,
-                PLAYLIST_ITEMS,
-                String.valueOf(multiVideoNumber == 0 ? 1 : multiVideoNumber),
-                EMBED_THUMBNAIL,
-                MAX_FILE_SIZE,
-                MAX_FILE_SIZE_IN_MB,
-                PATH,
-                fileName,
-                URL};
+    public String[] downloadTwitter(String fileName, FileResponse response) {
+        if (response.getExtension().equals("mp4")) {
+            return new String[]{
+                    YT_DLP,
+                    NETRC,
+                    PLAYLIST_ITEMS,
+                    String.valueOf(response.getMultiVideoNumber() == 0 ? 1 : response.getMultiVideoNumber()),
+                    EMBED_THUMBNAIL,
+                    MAX_FILE_SIZE,
+                    MAX_FILE_SIZE_IN_MB,
+                    PATH,
+                    fileName,
+                    response.getURL()};
+        } else {
+            return new String[]{
+                    YT_DLP,
+                    NETRC,
+                    PLAYLIST_ITEMS,
+                    String.valueOf(response.getMultiVideoNumber() == 0 ? 1 : response.getMultiVideoNumber()),
+                    AUDIO_ONLY,
+                    AUDIO_FORMAT,
+                    response.getExtension().equals("ogg") ? "vorbis" : response.getExtension(),
+                    AUDIO_QUALITY,
+                    response.isPremium() ? "0" : "5",
+                    EMBED_THUMBNAIL,
+                    MAX_FILE_SIZE,
+                    MAX_FILE_SIZE_IN_MB,
+                    PATH,
+                    fileName,
+                    response.getURL()};
+        }
     }
 
-    public String[] getDownloadTikTokFile(String fileName, String URL) {
-        return new String[]{
-                YT_DLP,
-                EMBED_THUMBNAIL,
-                MAX_FILE_SIZE,
-                MAX_FILE_SIZE_IN_MB,
-                PATH,
-                fileName,
-                URL};
+    public String[] downloadTikTok(String fileName, FileResponse response) {
+        if (response.getExtension().equals("mp4")) {
+            return new String[]{
+                    YT_DLP,
+                    EMBED_THUMBNAIL,
+                    MAX_FILE_SIZE,
+                    MAX_FILE_SIZE_IN_MB,
+                    PATH,
+                    fileName,
+                    response.getURL()};
+        } else {
+            return new String[]{
+                    YT_DLP,
+                    AUDIO_ONLY,
+                    AUDIO_FORMAT,
+                    response.getExtension().equals("ogg") ? "vorbis" : response.getExtension(),
+                    AUDIO_QUALITY,
+                    response.isPremium() ? "0" : "5",
+                    EMBED_THUMBNAIL,
+                    MAX_FILE_SIZE,
+                    MAX_FILE_SIZE_IN_MB,
+                    PATH,
+                    fileName,
+                    response.getURL()};
+        }
     }
 
-    public String[] getDownloadInstagramFile(String fileName, String URL, int multiVideoNumber) {
-        return new String[]{
-                YT_DLP,
-                PLAYLIST_ITEMS,
-                String.valueOf(multiVideoNumber == 0 ? 1 : multiVideoNumber),
-                EMBED_THUMBNAIL,
-                MAX_FILE_SIZE,
-                MAX_FILE_SIZE_IN_MB,
-                PATH,
-                fileName,
-                URL};
+    public String[] downloadInstagram(String fileName, FileResponse response) {
+        if (response.getExtension().equals("mp4")) {
+            return new String[]{
+                    YT_DLP,
+                    PLAYLIST_ITEMS,
+                    String.valueOf(response.getMultiVideoNumber() == 0 ? 1 : response.getMultiVideoNumber()),
+                    EMBED_THUMBNAIL,
+                    MAX_FILE_SIZE,
+                    MAX_FILE_SIZE_IN_MB,
+                    PATH,
+                    fileName,
+                    response.getURL()};
+        } else {
+            return new String[]{
+                    YT_DLP,
+                    PLAYLIST_ITEMS,
+                    String.valueOf(response.getMultiVideoNumber() == 0 ? 1 : response.getMultiVideoNumber()),
+                    AUDIO_ONLY,
+                    AUDIO_FORMAT,
+                    response.getExtension().equals("ogg") ? "vorbis" : response.getExtension(),
+                    AUDIO_QUALITY,
+                    response.isPremium() ? "0" : "5",
+                    EMBED_THUMBNAIL,
+                    MAX_FILE_SIZE,
+                    MAX_FILE_SIZE_IN_MB,
+                    PATH,
+                    fileName,
+                    response.getURL()};
+        }
     }
 
-    public String[] getDownloadYouTubeThumbnail(String thumbnailName, String youtubeId) {
+    public String[] downloadThumbnailYoutube(String thumbnailName, String youtubeId) {
         return new String[]{
                 YT_DLP,
                 PATH,
@@ -86,14 +139,21 @@ public class YtDlpCommand {
                 THUMBNAIL_LINK + youtubeId + THUMBNAIL_TYPE};
     }
 
-    public String[] getDownloadFileInfo(String URL) {
+    public String[] fileInfoInstagram(String URL) {
         return new String[]{
                 YT_DLP,
                 FILE_INFO,
                 URL};
     }
 
-    public String[] getDownloadYouTubeFileInfo(String youtubeId) {
+    public String[] fileInfoTikTok(String URL) {
+        return new String[]{
+                YT_DLP,
+                FILE_INFO,
+                URL};
+    }
+
+    public String[] fileInfoYouTube(String youtubeId) {
         return new String[]{
                 YT_DLP,
                 FILE_INFO,
@@ -101,7 +161,7 @@ public class YtDlpCommand {
                 youtubeId};
     }
 
-    public String[] getDownloadFileInfoTwitter(String URL) {
+    public String[] fileInfoTwitter(String URL) {
         return new String[]{
                 YT_DLP,
                 NETRC,

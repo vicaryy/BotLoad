@@ -380,7 +380,7 @@ class TikTokDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadTikTokFile(FILE_MP3_VALID.getName(), givenURL)).thenReturn(givenCommand);
+        when(commands.downloadTikTok(FILE_MP3_VALID.getName(), givenURL)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
@@ -389,7 +389,7 @@ class TikTokDownloaderTest {
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadTikTokFile(FILE_MP3_VALID.getName(), givenURL);
+        verify(commands).downloadTikTok(FILE_MP3_VALID.getName(), givenURL);
         verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
@@ -414,7 +414,7 @@ class TikTokDownloaderTest {
 
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
-        when(commands.getDownloadTikTokFile(givenFileName, givenURL)).thenReturn(givenCommand);
+        when(commands.downloadTikTok(givenFileName, givenURL)).thenReturn(givenCommand);
         when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
         when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
@@ -447,7 +447,7 @@ class TikTokDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadTikTokFile(FILE_MP4_OVER_50MB.getName(), givenURL)).thenReturn(givenCommand);
+        when(commands.downloadTikTok(FILE_MP4_OVER_50MB.getName(), givenURL)).thenReturn(givenCommand);
         when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
@@ -455,7 +455,7 @@ class TikTokDownloaderTest {
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadTikTokFile(FILE_MP4_OVER_50MB.getName(), givenURL);
+        verify(commands).downloadTikTok(FILE_MP4_OVER_50MB.getName(), givenURL);
         verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
@@ -482,14 +482,14 @@ class TikTokDownloaderTest {
         //when
         when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
-        when(commands.getDownloadTikTokFile(FILE_NOT_EXIST.getName(), givenURL)).thenReturn(givenCommand);
+        when(commands.downloadTikTok(FILE_NOT_EXIST.getName(), givenURL)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
         verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
-        verify(commands).getDownloadTikTokFile(FILE_NOT_EXIST.getName(), givenURL);
+        verify(commands).downloadTikTok(FILE_NOT_EXIST.getName(), givenURL);
     }
 }
 
