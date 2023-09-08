@@ -157,8 +157,7 @@ public class YtDlpCommand {
         return new String[]{
                 YT_DLP,
                 FILE_INFO,
-                youtubeUrl,
-                youtubeId};
+                youtubeUrl + youtubeId};
     }
 
     public String[] fileInfoTwitter(String URL) {
