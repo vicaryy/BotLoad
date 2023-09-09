@@ -37,7 +37,7 @@ public class YtDlpCommand {
                 MAX_FILE_SIZE_IN_MB,
                 PATH,
                 fileName,
-                youtubeUrl + response.getId()};
+                youtubeUrl + response.getServiceId()};
     }
 
     public String[] downloadTwitter(String fileName, FileResponse response) {

@@ -21,5 +21,7 @@ public class FileRequest {
 
     private int multiVideoNumber;
 
+    private ID3Tag id3Tag;
+
     private EditMessageText editMessageText;
 }

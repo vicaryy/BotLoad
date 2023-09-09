@@ -14,7 +14,7 @@ import org.vicary.api_request.edit_message.EditMessageText;
 public class FileResponse {
     private String URL;
 
-    private String id;
+    private String serviceId;
 
     private String extension;
 
@@ -26,23 +26,17 @@ public class FileResponse {
 
     private long size;
 
-    private String artist;
+    private String telegramFileId;
 
-    private String track;
-
-    private String album;
-
-    private String releaseYear;
+    private String chatId;
 
     private int multiVideoNumber;
+
+    private ID3Tag id3Tag;
 
     private InputFile downloadedFile;
 
     private InputFile thumbnail;
-
-    private String telegramFileId;
-
-    private String chatId;
 
     private EditMessageText editMessageText;
 }

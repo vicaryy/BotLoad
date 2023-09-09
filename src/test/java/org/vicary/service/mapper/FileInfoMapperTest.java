@@ -32,7 +32,7 @@ class FileInfoMapperTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .duration((int) givenDuration)
@@ -63,7 +63,7 @@ class FileInfoMapperTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title("title")
                 .duration((int) givenDuration)
@@ -94,7 +94,7 @@ class FileInfoMapperTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title("title")
                 .duration((int) givenDuration)

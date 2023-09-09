@@ -3,7 +3,6 @@ package org.vicary.service.file_service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.vicary.entity.TwitterFileEntity;
-import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.model.FileResponse;
 import org.vicary.repository.TwitterFileRepository;
 import org.vicary.service.Converter;
@@ -35,7 +34,7 @@ public class TwitterFileService implements FileService{
     @Override
     public void saveInRepo(FileResponse response) {
         saveEntity(TwitterFileEntity.builder()
-                .twitterId(response.getId())
+                .twitterId(response.getServiceId())
                 .extension(response.getExtension())
                 .quality(response.isPremium() ? "premium" : "standard")
                 .size(converter.bytesToMB(response.getSize()))
@@ -48,7 +47,7 @@ public class TwitterFileService implements FileService{
 
     @Override
     public boolean existsInRepo(FileResponse response) {
-        String id = response.getId();
+        String id = response.getServiceId();
         String extension = response.getExtension();
         String quality = response.isPremium() ? "premium" : "standard";
         return existsByTwitterIdAndExtensionAndQuality(id, extension, quality);

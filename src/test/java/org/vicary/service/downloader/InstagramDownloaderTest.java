@@ -103,7 +103,7 @@ class InstagramDownloaderTest {
                 .uploaderURL("instagram.com/")
                 .build();
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .duration(givenDuration)
                 .title(givenTitle)
@@ -119,7 +119,7 @@ class InstagramDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .duration(givenDuration)
                 .title(givenTitle)
@@ -363,7 +363,7 @@ class InstagramDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -376,14 +376,14 @@ class InstagramDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .size(10000000L)
                 .downloadedFile(InputFile.builder().fileId(givenFileId).build())
                 .build();
         //when
-        when(fileService.findByInstagramId(givenFileResponse.getId())).thenReturn(Optional.ofNullable(fileEntity));
+        when(fileService.findByInstagramId(givenFileResponse.getServiceId())).thenReturn(Optional.ofNullable(fileEntity));
         when(converter.MBToBytes(givenSize)).thenReturn(10000000L);
 
         FileResponse actualFileResponse = downloader.getFileFromRepository(givenFileResponse);
@@ -404,7 +404,7 @@ class InstagramDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -417,7 +417,7 @@ class InstagramDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -440,14 +440,14 @@ class InstagramDownloaderTest {
         String givenId = "example_id";
         String givenExtension = "mp3";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
         InstagramFileEntity fileEntity = null;
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -473,7 +473,7 @@ class InstagramDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -484,7 +484,7 @@ class InstagramDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -524,7 +524,7 @@ class InstagramDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -558,7 +558,7 @@ class InstagramDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -595,7 +595,7 @@ class InstagramDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)

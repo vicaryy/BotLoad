@@ -15,6 +15,7 @@ import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
+import org.vicary.model.ID3Tag;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.downloader.*;
 import org.vicary.service.file_service.*;
@@ -160,9 +161,13 @@ public class UpdateReceiverService {
     public FileRequest getFileRequest(Update update, Downloader downloader, EditMessageText editMessageText) {
         final String text = update.getMessage().getText();
         final String userId = update.getMessage().getFrom().getId().toString();
+        final String extension = getExtension(text, downloader.getAvailableExtensions());
+        final int multiVideoNumber = getMultiVideoNumber(text);
+        final ID3Tag id3Tag = getId3Tag(text);
         final boolean premium = userService.findByUserId(userId)
                 .map(UserEntity::getPremium)
                 .orElse(false);
+
 
         return FileRequest.builder()
                 .URL(getURL(text))
@@ -172,6 +177,13 @@ public class UpdateReceiverService {
                 .premium(premium)
                 .editMessageText(editMessageText)
                 .build();
+    }
+
+    public ID3Tag getId3Tag(String text) {
+        if (text.contains("-tag")) {
+            String[] textArray = text.split()
+        }
+        return null;
     }
 
     public EditMessageText getEditMessageText(String chatId, int messageId) {

@@ -9,7 +9,6 @@ import org.vicary.api_request.InputFile;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.InstagramFileEntity;
-import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.DownloaderInfo;
@@ -144,7 +143,7 @@ public class InstagramDownloader implements Downloader {
 
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<InstagramFileEntity> instagramFileEntity = instagramFileService.findByInstagramIdAndExtensionAndQuality(
-                response.getId(),
+                response.getServiceId(),
                 response.getExtension(),
                 response.isPremium() ? "premium" : "standard");
 
@@ -165,7 +164,7 @@ public class InstagramDownloader implements Downloader {
         EditMessageText editMessageText = response.getEditMessageText();
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-        logger.info("[download] Downloading Twitter file '{}'", response.getId());
+        logger.info("[download] Downloading Twitter file '{}'", response.getServiceId());
         processBuilder.command(commands.downloadInstagram(fileName, response));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
@@ -175,13 +174,13 @@ public class InstagramDownloader implements Downloader {
                     updateDownloadProgressInEditMessageText(editMessageText, line);
 
                     if (fileManager.isFileDownloadedInProcess(line)) {
-                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
+                        logger.info("[download] Successfully downloaded file '{}'", response.getServiceId());
                     }
                     if (!fileManager.isFileSizeValidInProcess(line)) {
                         process.destroy();
                         throw new InvalidBotRequestException(
                                 info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileManager.getFileSizeInProcess(line)));
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), fileManager.getFileSizeInProcess(line)));
                     }
                 }
             }
@@ -193,7 +192,7 @@ public class InstagramDownloader implements Downloader {
             if (!fileManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -202,7 +201,7 @@ public class InstagramDownloader implements Downloader {
         } else {
             throw new DownloadedFileNotFoundException(
                     info.getErrorInDownloading(),
-                    String.format("File '%s' has not been downloaded", response.getId()));
+                    String.format("File '%s' has not been downloaded", response.getServiceId()));
         }
         return response;
     }

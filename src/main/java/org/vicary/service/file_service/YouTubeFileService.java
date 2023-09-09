@@ -36,7 +36,7 @@ public class YouTubeFileService implements FileService{
     @Override
     public void saveInRepo(FileResponse response) {
         save(YouTubeFileEntity.builder()
-                .youtubeId(response.getId())
+                .youtubeId(response.getServiceId())
                 .extension(response.getExtension())
                 .quality(response.isPremium() ? "premium" : "standard")
                 .size(converter.bytesToMB(response.getSize()))
@@ -49,7 +49,7 @@ public class YouTubeFileService implements FileService{
 
     @Override
     public boolean existsInRepo(FileResponse response) {
-        String id = response.getId();
+        String id = response.getServiceId();
         String extension = response.getExtension();
         String quality = response.isPremium() ? "premium" : "standard";
         return existsByYoutubeIdAndExtensionAndQuality(id, extension, quality);

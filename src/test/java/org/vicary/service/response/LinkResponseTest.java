@@ -82,7 +82,7 @@ class LinkResponseTest {
         long size = 100000;
         FileResponse fileResponse = FileResponse.builder()
                 .URL("https://www.youtube.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -132,7 +132,7 @@ class LinkResponseTest {
         long size = 100000;
         FileResponse fileResponse = FileResponse.builder()
                 .URL("https://www.youtube.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp4")
                 .premium(false)
                 .title("Title")
@@ -182,7 +182,7 @@ class LinkResponseTest {
         long size = 100000;
         FileResponse fileResponse = FileResponse.builder()
                 .URL("https://www.youtube.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -225,7 +225,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.youtube.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -259,7 +259,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.youtube.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -300,7 +300,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.twitter.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(true)
                 .title("Title")
@@ -334,7 +334,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.twitter.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(true)
                 .title("Title")
@@ -367,7 +367,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.twitter.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -408,7 +408,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.twitter.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -445,7 +445,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.tiktok.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")
@@ -482,7 +482,7 @@ class LinkResponseTest {
         long givenBytes = 10000;
         FileResponse givenFileResponse = FileResponse.builder()
                 .URL("https://www.instagram.com/example__id")
-                .id("example__id")
+                .serviceId("example__id")
                 .extension("mp3")
                 .premium(false)
                 .title("Title")

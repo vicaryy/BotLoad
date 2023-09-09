@@ -101,7 +101,7 @@ class TwitterDownloaderTest {
                 .uploaderURL("twitter.com/")
                 .build();
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .duration(givenDuration)
                 .title(givenTitle)
@@ -117,7 +117,7 @@ class TwitterDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .duration(givenDuration)
                 .title(givenTitle)
@@ -365,7 +365,7 @@ class TwitterDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -378,14 +378,14 @@ class TwitterDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .size(10000000L)
                 .downloadedFile(InputFile.builder().fileId(givenFileId).build())
                 .build();
         //when
-        when(fileService.findByTwitterId(givenFileResponse.getId())).thenReturn(Optional.ofNullable(fileEntity));
+        when(fileService.findByTwitterId(givenFileResponse.getServiceId())).thenReturn(Optional.ofNullable(fileEntity));
         when(converter.MBToBytes(givenSize)).thenReturn(10000000L);
 
         FileResponse actualFileResponse = downloader.getFileFromRepository(givenFileResponse);
@@ -406,7 +406,7 @@ class TwitterDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -419,7 +419,7 @@ class TwitterDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -442,14 +442,14 @@ class TwitterDownloaderTest {
         String givenId = "example_id";
         String givenExtension = "mp3";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
         TwitterFileEntity fileEntity = null;
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -475,7 +475,7 @@ class TwitterDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -486,7 +486,7 @@ class TwitterDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -526,7 +526,7 @@ class TwitterDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -560,7 +560,7 @@ class TwitterDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -597,7 +597,7 @@ class TwitterDownloaderTest {
         int givenMultiVideoNumber = 1;
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)

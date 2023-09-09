@@ -116,7 +116,7 @@ public class YouTubeDownloader implements Downloader {
 
     public FileResponse getFileFromRepository(FileResponse response) {
         Optional<YouTubeFileEntity> youTubeFileEntity = youTubeFileService.findByYoutubeIdAndExtensionAndQuality(
-                response.getId(),
+                response.getServiceId(),
                 response.getExtension(),
                 response.isPremium() ? "premium" : "standard");
 
@@ -137,7 +137,7 @@ public class YouTubeDownloader implements Downloader {
         String filePath = commands.getDownloadDestination() + fileName;
         editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
 
-        logger.info("[download] Downloading YouTube file '{}'", response.getId());
+        logger.info("[download] Downloading YouTube file '{}'", response.getServiceId());
         processBuilder.command(commands.downloadYouTube(fileName, response));
         Process process = processBuilder.start();
 
@@ -149,19 +149,19 @@ public class YouTubeDownloader implements Downloader {
                     updateDownloadProgressInEditMessageText(editMessageText, line);
 
                     if (fileManager.isFileDownloadedInProcess(line)) {
-                        logger.info("[download] Successfully downloaded file '{}'", response.getId());
+                        logger.info("[download] Successfully downloaded file '{}'", response.getServiceId());
                     }
                     if (!fileManager.isFileSizeValidInProcess(line)) {
                         process.destroy();
                         throw new InvalidBotRequestException(
                                 info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), fileManager.getFileSizeInProcess(line)));
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), fileManager.getFileSizeInProcess(line)));
                     }
                 }
 
                 if (fileManager.isFileConvertingInProcess(line)) {
                     quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConverting(response.getExtension()));
-                    logger.info("[convert] Converting file '{}' to {}", response.getId(), response.getExtension());
+                    logger.info("[convert] Converting file '{}' to {}", response.getServiceId(), response.getExtension());
                 }
             }
         }
@@ -172,7 +172,7 @@ public class YouTubeDownloader implements Downloader {
             if (!fileManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
-                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getId(), converter.bytesToMB(fileSize)));
+                        String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), converter.bytesToMB(fileSize)));
             }
             response.setSize(fileSize);
             response.setDownloadedFile(InputFile.builder()
@@ -181,7 +181,7 @@ public class YouTubeDownloader implements Downloader {
         } else {
             throw new DownloadedFileNotFoundException(
                     info.getErrorInDownloading(),
-                    String.format("File '%s' has not been downloaded", response.getId()));
+                    String.format("File '%s' has not been downloaded", response.getServiceId()));
         }
         return response;
     }
@@ -192,8 +192,8 @@ public class YouTubeDownloader implements Downloader {
         EditMessageText editMessageText = response.getEditMessageText();
         quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getThumbnailDownloading());
 
-        logger.info("[download] Downloading thumbnail to file '{}'", response.getId());
-        processBuilder.command(commands.downloadThumbnailYoutube(thumbnailName, response.getId()));
+        logger.info("[download] Downloading thumbnail to file '{}'", response.getServiceId());
+        processBuilder.command(commands.downloadThumbnailYoutube(thumbnailName, response.getServiceId()));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
@@ -207,9 +207,9 @@ public class YouTubeDownloader implements Downloader {
         String thumbnailPath = commands.getDownloadDestination() + thumbnailName;
         File downloadedThumbnail = new File(thumbnailPath);
         if (downloadedThumbnail.exists())
-            logger.info("[download] Successfully downloaded thumbnail to file '{}'", response.getId());
+            logger.info("[download] Successfully downloaded thumbnail to file '{}'", response.getServiceId());
         else
-            logger.warn("Thumbnail to file '{}' did not download.", response.getId());
+            logger.warn("Thumbnail to file '{}' did not download.", response.getServiceId());
 
         response.setThumbnail(InputFile.builder()
                 .file(downloadedThumbnail)

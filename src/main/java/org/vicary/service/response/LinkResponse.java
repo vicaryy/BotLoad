@@ -16,7 +16,7 @@ import org.vicary.service.downloader.Downloader;
 import org.vicary.service.file_service.FileService;
 import org.vicary.service.quick_sender.QuickSender;
 import org.springframework.stereotype.Service;
-import org.vicary.service.thread.UpdatePollingThread;
+
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +33,8 @@ public class LinkResponse {
 
     private final TerminalExecutor terminalExecutor;
 
+    private final ID3TagService id3TagService;
+
 
     public void sendFile(FileRequest request, Downloader downloader, FileService fileService) throws Exception {
         final String chatId = request.getChatId();
@@ -40,9 +42,11 @@ public class LinkResponse {
         FileResponse response = downloader.download(request);
         response.setChatId(chatId);
 
+        if (isFileFullTitledMp3Track(response))
+            id3TagService.addID3Tag(response);
 
         // sending audio to telegram chat
-        logger.info("[send] Sending file '{}' to chatId '{}'", response.getId(), chatId);
+        logger.info("[send] Sending file '{}' to chatId '{}'", response.getServiceId(), chatId);
         quickSender.chatAction(chatId, "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
         Message sendFileMessage;
@@ -73,6 +77,15 @@ public class LinkResponse {
             terminalExecutor.removeFile(response.getDownloadedFile().getFile());
         if (response.getThumbnail() != null)
             terminalExecutor.removeFile(response.getThumbnail().getFile());
+    }
+
+    public boolean isFileFullTitledMp3Track(FileResponse response) {
+        return response.getDownloadedFile().getFile() != null &&
+               response.getExtension().equals("mp3") &&
+               response.getArtist() != null &&
+               response.getTrack() != null &&
+               response.getAlbum() != null &&
+               response.getReleaseYear() != null;
     }
 
     public String getReceivedFileInfo(FileResponse response, String serviceName) {

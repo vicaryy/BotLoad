@@ -103,7 +103,7 @@ class YouTubeDownloaderTest {
                 .URL(givenURL)
                 .build();
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .duration(givenDuration)
                 .title(givenTitle)
@@ -119,7 +119,7 @@ class YouTubeDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .duration(givenDuration)
                 .title(givenTitle)
@@ -219,7 +219,7 @@ class YouTubeDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -232,7 +232,7 @@ class YouTubeDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .size(10000000L)
@@ -240,7 +240,7 @@ class YouTubeDownloaderTest {
                 .build();
         //when
         when(fileService.findByYoutubeIdAndExtensionAndQuality(
-                givenFileResponse.getId(),
+                givenFileResponse.getServiceId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard"))
                 .thenReturn(Optional.ofNullable(fileEntity));
@@ -251,7 +251,7 @@ class YouTubeDownloaderTest {
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileService).findByYoutubeIdAndExtensionAndQuality(
-                givenFileResponse.getId(),
+                givenFileResponse.getServiceId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard");
         verify(converter, times(2)).MBToBytes(givenSize);
@@ -267,7 +267,7 @@ class YouTubeDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -280,13 +280,13 @@ class YouTubeDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
         //when
         when(fileService.findByYoutubeIdAndExtensionAndQuality(
-                givenFileResponse.getId(),
+                givenFileResponse.getServiceId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard"))
                 .thenReturn(Optional.ofNullable(fileEntity));
@@ -297,7 +297,7 @@ class YouTubeDownloaderTest {
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileService).findByYoutubeIdAndExtensionAndQuality(
-                givenFileResponse.getId(),
+                givenFileResponse.getServiceId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard");
         verify(converter, times(1)).MBToBytes(givenSize);
@@ -309,20 +309,20 @@ class YouTubeDownloaderTest {
         String givenId = "example_id";
         String givenExtension = "mp3";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
         YouTubeFileEntity fileEntity = null;
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
         //when
         when(fileService.findByYoutubeIdAndExtensionAndQuality(
-                givenFileResponse.getId(),
+                givenFileResponse.getServiceId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard"))
                 .thenReturn(Optional.ofNullable(fileEntity));
@@ -332,7 +332,7 @@ class YouTubeDownloaderTest {
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(fileService).findByYoutubeIdAndExtensionAndQuality(
-                givenFileResponse.getId(),
+                givenFileResponse.getServiceId(),
                 givenFileResponse.getExtension(),
                 givenFileResponse.isPremium() ? "premium" : "standard");
     }
@@ -346,7 +346,7 @@ class YouTubeDownloaderTest {
         String givenExtension = "mp3";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -355,7 +355,7 @@ class YouTubeDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -391,7 +391,7 @@ class YouTubeDownloaderTest {
         String givenFileName = "fileName";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -421,7 +421,7 @@ class YouTubeDownloaderTest {
         String givenExtension = "mp4";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -454,7 +454,7 @@ class YouTubeDownloaderTest {
         String givenExtension = "mp3";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -485,7 +485,7 @@ class YouTubeDownloaderTest {
         String givenExtension = "mp3";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -494,7 +494,7 @@ class YouTubeDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)
@@ -523,7 +523,7 @@ class YouTubeDownloaderTest {
         String givenExtension = "mp3";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
                 .extension(givenExtension)

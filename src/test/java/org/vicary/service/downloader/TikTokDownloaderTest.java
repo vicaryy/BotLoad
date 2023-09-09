@@ -108,7 +108,7 @@ class TikTokDownloaderTest {
         FileResponse givenFileResponse = FileResponse.builder()
                 .title(givenTitle)
                 .duration((int) givenDuration)
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .build();
 
@@ -118,7 +118,7 @@ class TikTokDownloaderTest {
                 .premium(true)
                 .title(givenTitle)
                 .duration((int) givenDuration)
-                .id(givenId)
+                .serviceId(givenId)
                 .editMessageText(editMessageText)
                 .build();
 
@@ -248,7 +248,7 @@ class TikTokDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -261,14 +261,14 @@ class TikTokDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .size(10000000L)
                 .downloadedFile(InputFile.builder().fileId(givenFileId).build())
                 .build();
         //when
-        when(fileService.findByTikTokId(givenFileResponse.getId())).thenReturn(Optional.ofNullable(fileEntity));
+        when(fileService.findByTikTokId(givenFileResponse.getServiceId())).thenReturn(Optional.ofNullable(fileEntity));
         when(converter.MBToBytes(givenSize)).thenReturn(10000000L);
 
         FileResponse actualFileResponse = downloader.getFileFromRepository(givenFileResponse);
@@ -289,7 +289,7 @@ class TikTokDownloaderTest {
         String givenFileId = "fileId";
         String givenQuality = "premium";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -302,7 +302,7 @@ class TikTokDownloaderTest {
                 .build();
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -325,14 +325,14 @@ class TikTokDownloaderTest {
         String givenId = "example_id";
         String givenExtension = "mp3";
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
         TikTokFileEntity fileEntity = null;
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .extension(givenExtension)
                 .premium(true)
                 .build();
@@ -357,7 +357,7 @@ class TikTokDownloaderTest {
         String givenURL = "https://www.tiktok.com/example_id";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -367,7 +367,7 @@ class TikTokDownloaderTest {
 
 
         FileResponse expectedFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -405,7 +405,7 @@ class TikTokDownloaderTest {
         String givenURL = "https://www.tiktok.com/example_id";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -436,7 +436,7 @@ class TikTokDownloaderTest {
         String givenURL = "https://www.tiktok.com/example_id";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
@@ -470,7 +470,7 @@ class TikTokDownloaderTest {
         String givenURL = "https://www.tiktok.com/example_id";
         EditMessageText editMessageText = new EditMessageText("chatId", 123, "text");
         FileResponse givenFileResponse = FileResponse.builder()
-                .id(givenId)
+                .serviceId(givenId)
                 .URL(givenURL)
                 .title(givenTitle)
                 .editMessageText(editMessageText)
