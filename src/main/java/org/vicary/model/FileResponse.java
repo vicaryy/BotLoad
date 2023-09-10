@@ -32,7 +32,7 @@ public class FileResponse {
 
     private int multiVideoNumber;
 
-    private ID3Tag id3Tag;
+    private ID3TagData id3TagData;
 
     private InputFile downloadedFile;
 

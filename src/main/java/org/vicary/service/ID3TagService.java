@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.vicary.model.FileResponse;
+import org.vicary.model.ID3TagData;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,7 @@ public class ID3TagService {
 
     public FileResponse addID3Tag(FileResponse fileResponse) {
         try {
+            ID3TagData id3TagData = fileResponse.getId3TagData();
             File oldFile = fileResponse.getDownloadedFile().getFile();
             if (new Mp3File(oldFile).hasId3v2Tag()) {
 
@@ -30,10 +32,10 @@ public class ID3TagService {
                 Mp3File mp3File = new Mp3File(oldFile);
                 ID3v2 id3v2Tag;
                 id3v2Tag = mp3File.getId3v2Tag();
-                id3v2Tag.setTitle(fileResponse.getTrack());
-                id3v2Tag.setArtist(fileResponse.getArtist());
-                id3v2Tag.setAlbum(fileResponse.getAlbum());
-                id3v2Tag.setYear(fileResponse.getReleaseYear());
+                id3v2Tag.setTitle(id3TagData.getTitle());
+                id3v2Tag.setArtist(id3TagData.getArtist());
+                id3v2Tag.setAlbum(id3TagData.getAlbum());
+                id3v2Tag.setYear(id3TagData.getReleaseYear());
 
                 mp3File.save(parentFile + "/" + oldFileName);
                 File newFile = new File(parentFile + "/" + oldFileName);

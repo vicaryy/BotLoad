@@ -3,20 +3,27 @@ package org.vicary.service.mapper;
 import org.springframework.stereotype.Component;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileResponse;
+import org.vicary.model.ID3TagData;
 
 @Component
 public class FileInfoMapper {
 
     public FileResponse map(FileInfo fileInfo) {
-        String title = fileInfo.getTitle() == null ? "title" : fileInfo.getTitle().isEmpty() ? "title" : fileInfo.getTitle();
+        String title = fileInfo.getTitle() == null || fileInfo.getTitle().isBlank() ? "title" : fileInfo.getTitle();
+        ID3TagData id3TagData = null;
+        if (fileInfo.getArtist() != null) {
+            id3TagData = ID3TagData.builder()
+                    .artist(fileInfo.getArtist())
+                    .title(fileInfo.getTrack())
+                    .album(fileInfo.getAlbum())
+                    .releaseYear(fileInfo.getReleaseYear())
+                    .build();
+        }
         return FileResponse.builder()
                 .serviceId(fileInfo.getId())
                 .title(title)
                 .duration(fileInfo.getDuration())
-                .artist(fileInfo.getArtist())
-                .track(fileInfo.getTrack())
-                .album(fileInfo.getAlbum())
-                .releaseYear(fileInfo.getReleaseYear())
+                .id3TagData(id3TagData)
                 .URL(fileInfo.getURL())
                 .build();
     }

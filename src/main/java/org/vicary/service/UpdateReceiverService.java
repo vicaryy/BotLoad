@@ -1,5 +1,6 @@
 package org.vicary.service;
 
+import com.mpatric.mp3agic.ID3v1Genres;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +16,7 @@ import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
-import org.vicary.model.ID3Tag;
+import org.vicary.model.ID3TagData;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.downloader.*;
 import org.vicary.service.file_service.*;
@@ -74,7 +75,7 @@ public class UpdateReceiverService {
     public void updateReceiver(Update update) {
         if (update.getMessage() == null) {
             logger.warn("Got update without Message object.");
-            throw new InvalidBotRequestException(null, null);
+            return;
         }
 
         User user = update.getMessage().getFrom();
@@ -94,96 +95,146 @@ public class UpdateReceiverService {
         }
 
         // CHECKING IF USER IS NOT ALREADY IN REQUESTS REPO
-        if (!activeRequestService.existsByUserId(userId)) {
-            // ADDING USER TO ACTIVE REQUESTS REPO
-            var request = activeRequestService.saveActiveUser(new ActiveRequestEntity(userId));
+        if (activeRequestService.existsByUserId(userId)) {
+            quickSender.message(chatId, info.getOneRequestAtTime(), true);
+            return;
+        }
 
-            String URL = getURL(text);
-            Downloader downloader = null;
-            FileService fileService = null;
-            FileRequest fileRequest = null;
-            EditMessageText editMessageText = null;
+        // ADDING USER TO ACTIVE REQUESTS REPO
+        var request = activeRequestService.saveActiveUser(new ActiveRequestEntity(userId));
 
-            try {
+        String URL = getURL(text);
+        Downloader downloader = null;
+        FileService fileService = null;
+        FileRequest fileRequest = null;
+        EditMessageText editMessageText = null;
 
-                if (pattern.isYouTubeURL(URL)) {
-                    downloader = youtubeDownloader;
-                    fileService = youtubeFileService;
-                } else if (pattern.isTwitterURL(URL)) {
-                    downloader = twitterDownloader;
-                    fileService = twitterFileService;
-                } else if (pattern.isTikTokURL(URL)) {
-                    downloader = tiktokDownloader;
-                    fileService = tiktokFileService;
-                } else if (pattern.isInstagramURL(URL)) {
-                    downloader = instagramDownloader;
-                    fileService = instagramFileService;
-                }
+        try {
 
-                if (downloader != null) {
-                    Message botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
-                    quickSender.chatAction(chatId, "typing");
-
-                    editMessageText = getEditMessageText(chatId, botMessageInfo.getMessageId());
-                    fileRequest = getFileRequest(update, downloader, editMessageText);
-
-
-                    linkResponse.sendFile(fileRequest, downloader, fileService);
-                }
-
-            } catch (WebClientResponseException ex) {
-                logger.warn("---------------------------");
-                logger.warn("Status code: " + ex.getStatusCode());
-                logger.warn("Description: " + ex.getStatusText());
-                logger.warn("---------------------------");
-            } catch (DownloadedFileNotFoundException | InvalidBotRequestException ex) {
-                logger.warn(ex.getLoggerMessage());
-                quickSender.editMessageText(editMessageText, ex.getMessage());
-            } catch (WebClientRequestException | NoSuchElementException | IllegalArgumentException |
-                     IOException ex) {
-                logger.warn("Expected exception: ", ex);
-                quickSender.editMessageText(editMessageText, info.getError());
-            } catch (Exception ex) {
-                logger.warn("Unexpected exception: ", ex);
-                quickSender.editMessageText(editMessageText, info.getError());
-            } finally {
-                // DELETE USER FROM ACTIVE REQUESTS
-                activeRequestService.deleteById(request.getId());
+            if (pattern.isYouTubeURL(URL)) {
+                downloader = youtubeDownloader;
+                fileService = youtubeFileService;
+            } else if (pattern.isTwitterURL(URL)) {
+                downloader = twitterDownloader;
+                fileService = twitterFileService;
+            } else if (pattern.isTikTokURL(URL)) {
+                downloader = tiktokDownloader;
+                fileService = tiktokFileService;
+            } else if (pattern.isInstagramURL(URL)) {
+                downloader = instagramDownloader;
+                fileService = instagramFileService;
             }
 
+            if (downloader != null) {
+                Message botMessageInfo = quickSender.messageWithReturn(chatId, info.getGotTheLink() + info.getHoldOn(), true);
+                quickSender.chatAction(chatId, "typing");
 
-            // ADMIN STUFF
-            if (userService.isUserAdmin(userId))
-                adminResponse.response(text, chatId);
+                editMessageText = getEditMessageText(chatId, botMessageInfo.getMessageId());
+                fileRequest = getFileRequest(update, downloader, editMessageText);
+
+
+                linkResponse.sendFile(fileRequest, downloader, fileService);
+            }
+
+        } catch (WebClientResponseException ex) {
+            logger.warn("---------------------------");
+            logger.warn("Status code: " + ex.getStatusCode());
+            logger.warn("Description: " + ex.getStatusText());
+            logger.warn("---------------------------");
+        } catch (DownloadedFileNotFoundException | InvalidBotRequestException ex) {
+            logger.warn(ex.getLoggerMessage());
+            quickSender.editMessageText(editMessageText, ex.getMessage());
+        } catch (WebClientRequestException | NoSuchElementException | IllegalArgumentException |
+                 IOException ex) {
+            logger.warn("Expected exception: ", ex);
+            quickSender.editMessageText(editMessageText, info.getError());
+        } catch (Exception ex) {
+            logger.warn("Unexpected exception: ", ex);
+            quickSender.editMessageText(editMessageText, info.getError());
+        } finally {
+            // DELETE USER FROM ACTIVE REQUESTS
+            activeRequestService.deleteById(request.getId());
         }
+
+
+        // ADMIN STUFF
+        if (userService.isUserAdmin(userId))
+            adminResponse.response(text, chatId);
     }
 
     public FileRequest getFileRequest(Update update, Downloader downloader, EditMessageText editMessageText) {
-        final String text = update.getMessage().getText();
-        final String userId = update.getMessage().getFrom().getId().toString();
-        final String extension = getExtension(text, downloader.getAvailableExtensions());
-        final int multiVideoNumber = getMultiVideoNumber(text);
-        final ID3Tag id3Tag = getId3Tag(text);
-        final boolean premium = userService.findByUserId(userId)
-                .map(UserEntity::getPremium)
-                .orElse(false);
+        String text = update.getMessage().getText();
+        String userId = update.getMessage().getFrom().getId().toString();
+        String extension = downloader.getAvailableExtensions().stream().findFirst().get();
+        int multiVideoNumber = 0;
+        ID3TagData id3TagData = null;
+        boolean premium = getPremium(userId);
 
+        String[] arrayText = text.split("-");
+
+        for (int i = 0; i < arrayText.length; i++) {
+            if (arrayText[i].equals("e"))
+                extension = getExtension(arrayText[i].substring(1).trim().toLowerCase(), downloader.getAvailableExtensions());
+            else if (arrayText[i].equals("m"))
+                multiVideoNumber = getMultiVideoNumber(arrayText[i].substring(1).trim());
+            else if (arrayText[i].equals("tag"))
+                id3TagData = getId3Tag(arrayText[i].substring(3).trim());
+        }
+
+        if (!extension.equals("mp3") && id3TagData != null)
+            throw new InvalidBotRequestException(info.getId3tagOnlyWithMp3(), "[ID3Tag] User tried to add ID3Tag for '" + extension + "' extension.");
 
         return FileRequest.builder()
                 .URL(getURL(text))
                 .chatId(update.getChatId())
-                .extension(getExtension(text, downloader.getAvailableExtensions()))
-                .multiVideoNumber(getMultiVideoNumber(text))
+                .extension(extension)
+                .multiVideoNumber(multiVideoNumber)
                 .premium(premium)
                 .editMessageText(editMessageText)
+                .id3Tag(id3TagData)
                 .build();
     }
 
-    public ID3Tag getId3Tag(String text) {
-        if (text.contains("-tag")) {
-            String[] textArray = text.split()
+
+    public boolean getPremium(String userId) {
+        return userService.findByUserId(userId)
+                .map(UserEntity::getPremium)
+                .orElse(false);
+    }
+
+
+    public ID3TagData getId3Tag(String text) {
+        // -tag artist:title:album:releaseYear:genre
+        if (text.isBlank())
+            return null;
+
+        ID3TagData id3TagData = null;
+        String[] textArray = text.split(":");
+
+        for (int i = 0; i < textArray.length; i++) {
+            if (textArray[i].isBlank())
+                continue;
+
+            if (id3TagData == null)
+                id3TagData = new ID3TagData();
+
+            if (i == 0)
+                id3TagData.setArtist(textArray[i]);
+            else if (i == 1)
+                id3TagData.setTitle(textArray[i]);
+            else if (i == 2)
+                id3TagData.setAlbum(textArray[i]);
+            else if (i == 3)
+                id3TagData.setReleaseYear(textArray[i]);
+            else if (i == 4) {
+                int genre = ID3v1Genres.matchGenreDescription(textArray[i]);
+                if (genre == -1)
+                    throw new InvalidBotRequestException(info.getWrongGenre(), "[ID3Tag] User specified wrong genre.");
+                id3TagData.setGenre(genre);
+            }
         }
-        return null;
+
+        return id3TagData;
     }
 
     public EditMessageText getEditMessageText(String chatId, int messageId) {
@@ -199,37 +250,22 @@ public class UpdateReceiverService {
     public int getMultiVideoNumber(String text) {
         int number = 0;
         try {
-            number = Arrays.stream(text.split(" "))
-                    .limit(3)
-                    .skip(1)
-                    .filter(s -> s.startsWith("#"))
-                    .findFirst()
-                    .map(e -> e.substring(1))
-                    .map(Integer::parseInt)
-                    .get();
+            number = Integer.parseInt(text);
         } catch (NumberFormatException ex) {
             throw new InvalidBotRequestException(
                     info.getWrongMultiVideoNumber(),
                     "User specify wrong multi-video number.");
-        } catch (NoSuchElementException ignored) {
         }
         return Math.max(number, 0);
     }
 
     public String getExtension(String text, List<String> availableExtensions) {
-        String[] textArray = text.toLowerCase().trim().split(" ");
-        if (textArray.length > 1 && !textArray[1].startsWith("#")) {
-            if (availableExtensions.contains(textArray[1]))
-                return textArray[1];
-            else
-                throw new InvalidBotRequestException(
-                        info.getWrongExtension(),
-                        String.format("User specify wrong extension '%s'.", textArray[1]));
-        } else if (textArray.length > 2 && !textArray[2].startsWith("#")) {
-            if (availableExtensions.contains(textArray[2]))
-                return textArray[2];
-        }
-        return availableExtensions.stream().findFirst().get();
+        if (availableExtensions.contains(text))
+            return text;
+        else
+            throw new InvalidBotRequestException(
+                    info.getWrongExtension(),
+                    String.format("User specify wrong extension '%s'.", text));
     }
 
     public String getURL(String text) {

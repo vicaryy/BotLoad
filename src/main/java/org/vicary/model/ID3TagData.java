@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ID3Tag {
+public class ID3TagData {
 
     private String artist;
 

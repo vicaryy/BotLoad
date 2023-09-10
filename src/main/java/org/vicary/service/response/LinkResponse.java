@@ -11,6 +11,7 @@ import org.vicary.format.MarkdownV2;
 import org.vicary.info.ResponseInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
+import org.vicary.model.ID3TagData;
 import org.vicary.service.*;
 import org.vicary.service.downloader.Downloader;
 import org.vicary.service.file_service.FileService;
@@ -42,7 +43,11 @@ public class LinkResponse {
         FileResponse response = downloader.download(request);
         response.setChatId(chatId);
 
-        if (isFileFullTitledMp3Track(response))
+
+        if (request.getId3Tag() != null)
+            response.setId3TagData(request.getId3Tag());
+
+        if (response.getId3TagData() != null)
             id3TagService.addID3Tag(response);
 
         // sending audio to telegram chat
@@ -67,8 +72,9 @@ public class LinkResponse {
         quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response, downloader.getServiceName()));
         logger.info("[send] File sent successfully.");
 
+
         // saving file to repository
-        if (!fileService.existsInRepo(response)) {
+        if (request.getId3Tag() == null && !fileService.existsInRepo(response)) {
             fileService.saveInRepo(response);
         }
 
@@ -79,23 +85,15 @@ public class LinkResponse {
             terminalExecutor.removeFile(response.getThumbnail().getFile());
     }
 
-    public boolean isFileFullTitledMp3Track(FileResponse response) {
-        return response.getDownloadedFile().getFile() != null &&
-               response.getExtension().equals("mp3") &&
-               response.getArtist() != null &&
-               response.getTrack() != null &&
-               response.getAlbum() != null &&
-               response.getReleaseYear() != null;
-    }
 
     public String getReceivedFileInfo(FileResponse response, String serviceName) {
         StringBuilder fileInfo = new StringBuilder();
-
+        ID3TagData id3TagData = response.getId3TagData();
         final String title = response.getTitle();
-        final String artist = response.getArtist();
-        final String track = response.getTrack();
-        final String album = response.getAlbum();
-        final String releaseYear = response.getReleaseYear();
+        final String artist = id3TagData.getArtist();
+        final String track = id3TagData.getTitle();
+        final String album = id3TagData.getAlbum();
+        final String releaseYear = id3TagData.getReleaseYear();
         final String duration = converter.secondsToMinutes(response.getDuration());
         final String size = converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
@@ -103,7 +101,8 @@ public class LinkResponse {
         final boolean youtube = serviceName.equals("youtube");
 
         fileInfo.append(MarkdownV2.apply(info.getReceived()).toItalic().newlineAfter().get());
-        if (youtube) {
+        if (response.getId3TagData() != null) {
+            ID3TagData data = response.getId3TagData();
             if (track == null) {
                 fileInfo.append(info.getTitle());
                 fileInfo.append(MarkdownV2.apply(title).get());
@@ -125,7 +124,8 @@ public class LinkResponse {
                 fileInfo.append(MarkdownV2.apply(releaseYear).get());
             }
         }
-        if (!youtube) {
+
+        if (response.getId3TagData() == null) {
             fileInfo.append(info.getTitle());
             fileInfo.append(MarkdownV2.apply(title).get());
         }
