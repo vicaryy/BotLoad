@@ -8,10 +8,10 @@ import org.vicary.model.ID3TagData;
 @Component
 public class FileInfoMapper {
 
-    public FileResponse map(FileInfo fileInfo) {
+    public FileResponse map(FileInfo fileInfo, String serviceName) {
         String title = fileInfo.getTitle() == null || fileInfo.getTitle().isBlank() ? "title" : fileInfo.getTitle();
         ID3TagData id3TagData = null;
-        if (fileInfo.getArtist() != null) {
+        if (fileInfo.getArtist() != null && serviceName.equals("youtube")) {
             id3TagData = ID3TagData.builder()
                     .artist(fileInfo.getArtist())
                     .title(fileInfo.getTrack())

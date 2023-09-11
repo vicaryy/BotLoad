@@ -19,6 +19,8 @@ public class ID3TagService {
 
     private final TerminalExecutor terminalExecutor;
 
+    private final FileManager fileManager;
+
     public FileResponse addID3Tag(FileResponse fileResponse) {
         try {
             ID3TagData id3TagData = fileResponse.getId3TagData();
@@ -26,9 +28,10 @@ public class ID3TagService {
             if (new Mp3File(oldFile).hasId3v2Tag()) {
 
                 String parentFile = oldFile.getParent();
-                String oldFileName = oldFile.getName();
-                String newFileName = oldFile.getName() + ".mp3";
-                oldFile = terminalExecutor.renameFile(oldFile, newFileName);
+                String newFileName = id3TagData.getTitle() != null ?
+                        fileManager.getFileNameFromTitle(id3TagData.getTitle(), "mp3") :
+                        oldFile.getName();
+                oldFile = terminalExecutor.renameFile(oldFile, oldFile.getName() + ".mp3");
                 Mp3File mp3File = new Mp3File(oldFile);
                 ID3v2 id3v2Tag;
                 id3v2Tag = mp3File.getId3v2Tag();
@@ -37,8 +40,8 @@ public class ID3TagService {
                 id3v2Tag.setAlbum(id3TagData.getAlbum());
                 id3v2Tag.setYear(id3TagData.getReleaseYear());
 
-                mp3File.save(parentFile + "/" + oldFileName);
-                File newFile = new File(parentFile + "/" + oldFileName);
+                mp3File.save(parentFile + "/" + newFileName);
+                File newFile = new File(parentFile + "/" + newFileName);
                 terminalExecutor.removeFile(oldFile);
 
                 fileResponse.getDownloadedFile().setFile(newFile);

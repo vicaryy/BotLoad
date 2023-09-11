@@ -64,7 +64,9 @@ public class YouTubeDownloader implements Downloader {
         FileResponse response = getFileInfo(request, processBuilder);
 
         // checks if file already exists in repository
-        getFileFromRepository(response);
+        if (request.getId3TagData() == null)
+            getFileFromRepository(response);
+
         if (response.getDownloadedFile() != null)
             return response;
 
@@ -106,7 +108,7 @@ public class YouTubeDownloader implements Downloader {
                     String.format("Live video in YouTube URL '%s'.", request.getURL()));
         }
 
-        FileResponse fileResponse = mapper.map(fileInfo);
+        FileResponse fileResponse = mapper.map(fileInfo, getServiceName());
         fileResponse.setPremium(request.isPremium());
         fileResponse.setExtension(request.getExtension());
         fileResponse.setEditMessageText(request.getEditMessageText());

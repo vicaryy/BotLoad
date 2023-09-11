@@ -79,10 +79,12 @@ public class UpdateReceiverService {
         }
 
         User user = update.getMessage().getFrom();
-        String text = update.getMessage().getText().trim();
+        String text = "";
         String userId = user.getId().toString();
         String chatId = update.getChatId();
 
+        if (update.getMessage().getText() != null)
+            text = update.getMessage().getText().trim();
 
         // SAVING MESSAGE TO REPOSITORY
         messageEntityService.save(messageMapper.map(update));
@@ -166,33 +168,76 @@ public class UpdateReceiverService {
         String text = update.getMessage().getText();
         String userId = update.getMessage().getFrom().getId().toString();
         String extension = downloader.getAvailableExtensions().stream().findFirst().get();
+        String URL = getURL(text);
         int multiVideoNumber = 0;
         ID3TagData id3TagData = null;
         boolean premium = getPremium(userId);
 
+        text = removeUrl(text);
+        text = replaceDashesTo11DASH11(text);
+
         String[] arrayText = text.split("-");
 
-        for (int i = 0; i < arrayText.length; i++) {
-            if (arrayText[i].equals("e"))
-                extension = getExtension(arrayText[i].substring(1).trim().toLowerCase(), downloader.getAvailableExtensions());
-            else if (arrayText[i].equals("m"))
-                multiVideoNumber = getMultiVideoNumber(arrayText[i].substring(1).trim());
-            else if (arrayText[i].equals("tag"))
-                id3TagData = getId3Tag(arrayText[i].substring(3).trim());
+        for (String s : arrayText) {
+            if (s.startsWith("ext"))
+                extension = getExtension(s.substring(1).trim().toLowerCase(), downloader.getAvailableExtensions());
+            else if (s.startsWith("mul"))
+                multiVideoNumber = getMultiVideoNumber(s.substring(1).trim());
+            else if (s.startsWith("tag"))
+                id3TagData = getId3Tag(s.substring(3).trim());
         }
+
 
         if (!extension.equals("mp3") && id3TagData != null)
             throw new InvalidBotRequestException(info.getId3tagOnlyWithMp3(), "[ID3Tag] User tried to add ID3Tag for '" + extension + "' extension.");
 
         return FileRequest.builder()
-                .URL(getURL(text))
+                .URL(URL)
                 .chatId(update.getChatId())
                 .extension(extension)
                 .multiVideoNumber(multiVideoNumber)
                 .premium(premium)
                 .editMessageText(editMessageText)
-                .id3Tag(id3TagData)
+                .id3TagData(id3TagData)
                 .build();
+    }
+
+    public String removeUrl(String text) {
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == ' ') {
+                text = text.substring(i).trim();
+                break;
+            }
+        }
+        return text;
+    }
+
+
+    public String replaceDashesTo11DASH11(String text) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '-') {
+                for (int j = 0; j < 4 && j < text.length(); j++) {
+                    sb.append(text.charAt(i + 1 + j));
+                }
+                if (!sb.toString().equals("tag ") && !sb.toString().equals("ext ") && !sb.toString().equals("mul ")) {
+                    sb.setLength(0);
+                    for (int k = 0; k < text.length(); k++) {
+                        if (k == i)
+                            sb.append("11DASH11");
+                        else
+                            sb.append(text.charAt(k));
+                    }
+                    text = sb.toString();
+                    sb.setLength(0);
+                }
+            }
+        }
+        return text;
+    }
+
+    public String replace11DASH11ToDashes(String text) {
+        return text.replaceAll("11DASH11", "-");
     }
 
 
@@ -205,6 +250,7 @@ public class UpdateReceiverService {
 
     public ID3TagData getId3Tag(String text) {
         // -tag artist:title:album:releaseYear:genre
+        text = replace11DASH11ToDashes(text);
         if (text.isBlank())
             return null;
 
@@ -237,6 +283,7 @@ public class UpdateReceiverService {
         return id3TagData;
     }
 
+
     public EditMessageText getEditMessageText(String chatId, int messageId) {
         return EditMessageText.builder()
                 .chatId(chatId)
@@ -246,6 +293,7 @@ public class UpdateReceiverService {
                 .disableWebPagePreview(true)
                 .build();
     }
+
 
     public int getMultiVideoNumber(String text) {
         int number = 0;
@@ -258,6 +306,7 @@ public class UpdateReceiverService {
         }
         return Math.max(number, 0);
     }
+
 
     public String getExtension(String text, List<String> availableExtensions) {
         if (availableExtensions.contains(text))

@@ -26,9 +26,6 @@ public class MessageEntity {
     @Column(name = "USER_ID")
     private String userId;
 
-    @Column(name = "USER_FIRSTNAME")
-    private String userFirstname;
-
     @Column(name = "USER_NICK")
     private String userNick;
 
@@ -37,21 +34,6 @@ public class MessageEntity {
 
     @Column(name = "MESSAGE")
     private String message;
-
-    @Column(name = "IS_DOCUMENT")
-    private Boolean isDocument;
-
-    @Column(name = "IS_PHOTO")
-    private Boolean isPhoto;
-
-    @Column(name = "IS_AUDIO")
-    private Boolean isAudio;
-
-    @Column(name = "IS_ANIMATION")
-    private Boolean isAnimation;
-
-    @Column(name = "IS_VIDEO")
-    private Boolean isVideo;
 
     @Column(name = "FILE_ID")
     private String fileId;

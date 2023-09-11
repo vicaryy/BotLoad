@@ -133,7 +133,7 @@ public class TwitterDownloader implements Downloader {
                     String.format("Live video in Twitter URL '%s'.", request.getURL()));
         }
 
-        FileResponse fileResponse = mapper.map(fileInfo);
+        FileResponse fileResponse = mapper.map(fileInfo, getServiceName());
         fileResponse.setMultiVideoNumber(multiVideoNumber);
         fileResponse.setExtension(request.getExtension());
         fileResponse.setPremium(request.isPremium());

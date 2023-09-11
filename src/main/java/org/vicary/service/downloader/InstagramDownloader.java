@@ -132,7 +132,7 @@ public class InstagramDownloader implements Downloader {
                     String.format("Live video in Instagram URL '%s'.", request.getURL()));
         }
 
-        FileResponse fileResponse = mapper.map(fileInfo);
+        FileResponse fileResponse = mapper.map(fileInfo, getServiceName());
         fileResponse.setMultiVideoNumber(multiVideoNumber);
         fileResponse.setExtension(request.getExtension());
         fileResponse.setPremium(request.isPremium());

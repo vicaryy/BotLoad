@@ -108,7 +108,7 @@ public class TikTokDownloader implements Downloader {
                     String.format("Live video in TikTok URL '%s'.", request.getURL()));
         }
 
-        FileResponse response = mapper.map(fileInfo);
+        FileResponse response = mapper.map(fileInfo, getServiceName());
         response.setExtension(request.getExtension());
         response.setPremium(request.isPremium());
         response.setEditMessageText(request.getEditMessageText());

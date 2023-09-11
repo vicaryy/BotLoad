@@ -16,60 +16,43 @@ import java.util.stream.Collectors;
 public class MessageMapper {
 
     private final DataTime dataTime;
+
     public MessageEntity map(Update update) {
         String chatId = update.getChatId();
         String userId = update.getMessage().getFrom().getId().toString();
-        String userFirstname = update.getMessage().getFrom().getFirstName();
         String userNick = update.getMessage().getFrom().getUsername();
         String nationality = update.getMessage().getFrom().getLanguageCode();
         String text = update.getMessage().getText();
-        boolean isDocument = false;
-        boolean isPhoto = false;
-        boolean isAudio = false;
-        boolean isAnimation = false;
-        boolean isVideo = false;
-        String fileId = null;
-
-        if (update.getMessage().getDocument() != null) {
-            isDocument = true;
-            fileId = update.getMessage().getDocument().getFileId();
-            if (update.getMessage().getDocument().getMimeType().startsWith("image"))
-                isPhoto = true;
-        }
-
-        if (update.getMessage().getAudio() != null) {
-            isAudio = true;
-            if (fileId == null)
-                fileId = update.getMessage().getAudio().getFileId();
-        }
-
-        if (update.getMessage().getAnimation() != null) {
-            isAnimation = true;
-            if (fileId == null)
-                fileId = update.getMessage().getAnimation().getFileId();
-        }
-
-        if (update.getMessage().getVideo() != null) {
-            isVideo = true;
-            if (fileId == null)
-                fileId = update.getMessage().getVideo().getFileId();
-        }
+        String fileId = getFileId(update);
 
         return MessageEntity.builder()
                 .chatId(chatId)
                 .userId(userId)
-                .userFirstname(userFirstname)
                 .userNick(userNick)
                 .nationality(nationality)
                 .message(text)
-                .isDocument(isDocument)
-                .isPhoto(isPhoto)
-                .isAudio(isAudio)
-                .isAnimation(isAnimation)
-                .isVideo(isVideo)
                 .fileId(fileId)
                 .messageDate(dataTime.now())
                 .build();
+    }
+
+    private static String getFileId(Update update) {
+        String fileId = null;
+
+        if (update.getMessage().getDocument() != null) {
+            fileId = update.getMessage().getDocument().getFileId();
+        } else if (update.getMessage().getAudio() != null) {
+            fileId = update.getMessage().getAudio().getFileId();
+        } else if (update.getMessage().getAnimation() != null) {
+            fileId = update.getMessage().getAnimation().getFileId();
+        } else if (update.getMessage().getVideo() != null) {
+            fileId = update.getMessage().getVideo().getFileId();
+        } else if (update.getMessage().getSticker() != null) {
+            fileId = update.getMessage().getSticker().getFileId();
+        } else if (update.getMessage().getVoice() != null) {
+            fileId = update.getMessage().getVoice().getFileId();
+        }
+        return fileId;
     }
 
     public MessageEntityResponse map(MessageEntity messageEntity) {
@@ -77,15 +60,9 @@ public class MessageMapper {
                 .messageId(messageEntity.getMessageId())
                 .chatId(messageEntity.getChatId())
                 .userId(messageEntity.getUserId())
-                .userFirstname(messageEntity.getUserFirstname())
                 .userNick(messageEntity.getUserNick())
                 .nationality(messageEntity.getNationality())
                 .message(messageEntity.getMessage())
-                .isDocument(messageEntity.getIsDocument())
-                .isPhoto(messageEntity.getIsPhoto())
-                .isAudio(messageEntity.getIsAudio())
-                .isAnimation(messageEntity.getIsAnimation())
-                .isVideo(messageEntity.getIsVideo())
                 .fileId(messageEntity.getFileId())
                 .messageDate(messageEntity.getMessageDate())
                 .build();

@@ -19,5 +19,5 @@ public class ID3TagData {
 
     private String releaseYear;
 
-    private int genre;
+    private Integer genre;
 }

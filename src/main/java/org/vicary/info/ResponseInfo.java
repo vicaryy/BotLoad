@@ -39,6 +39,8 @@ public class ResponseInfo {
 
     private final String releaseYear = MarkdownV2.apply("Release year: ").toBold().newlineBefore().get();
 
+    private final String genre = MarkdownV2.apply("Genre: ").toBold().newlineBefore().get();
+
     private final String duration = MarkdownV2.apply("Duration: ").toBold().newlineBefore().get();
 
     private final String size = MarkdownV2.apply("Size: ").toBold().newlineBefore().get();

@@ -35,8 +35,8 @@ public class DownloaderInfo {
 
     private final String multiVideo = MarkdownV2.apply("Multi-video link.").toBold().newlineAfter(2).get()
                                       + MarkdownV2.apply("This link contains multiple videos, you need to specify which one you want to download." +
-                                                         "\n\nFor example: \nhttps://example.com/link/133742069 -m 3" +
-                                                         "\nWhere '-m 3' means that the third video has to be downloaded." +
+                                                         "\n\nFor example: \nhttps://example.com/link/133742069 -mul 3" +
+                                                         "\nWhere '-mul 3' means that the third video has to be downloaded." +
                                                          "\n\nPlease try again.").get();
 
     private final String multiVideoAmountTooHigh = MarkdownV2.apply("Too much videos!").toBold().newlineAfter(2).get()

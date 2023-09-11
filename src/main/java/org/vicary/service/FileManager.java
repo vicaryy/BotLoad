@@ -33,10 +33,6 @@ public class FileManager {
         return newTitle + "." + extension;
     }
 
-    final void asd() {
-
-    }
-
     public String getFileSizeInProcess(String line) {
         if (line.startsWith("[download] File is larger than max-filesize(")) {
             long size = 0;

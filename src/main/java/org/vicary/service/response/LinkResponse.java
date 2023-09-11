@@ -1,5 +1,6 @@
 package org.vicary.service.response;
 
+import com.mpatric.mp3agic.ID3v1Genres;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,8 @@ public class LinkResponse {
         response.setChatId(chatId);
 
 
-        if (request.getId3Tag() != null)
-            response.setId3TagData(request.getId3Tag());
+        if (request.getId3TagData() != null)
+            response.setId3TagData(request.getId3TagData());
 
         if (response.getId3TagData() != null)
             id3TagService.addID3Tag(response);
@@ -69,12 +70,12 @@ public class LinkResponse {
             sendFileMessage = requestService.sendRequest(getSendDocument(response));
             response.setTelegramFileId(sendFileMessage.getDocument().getFileId());
         }
-        quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response, downloader.getServiceName()));
+        quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response));
         logger.info("[send] File sent successfully.");
 
 
         // saving file to repository
-        if (request.getId3Tag() == null && !fileService.existsInRepo(response)) {
+        if (request.getId3TagData() == null && !fileService.existsInRepo(response)) {
             fileService.saveInRepo(response);
         }
 
@@ -86,61 +87,53 @@ public class LinkResponse {
     }
 
 
-    public String getReceivedFileInfo(FileResponse response, String serviceName) {
+    public String getReceivedFileInfo(FileResponse response) {
         StringBuilder fileInfo = new StringBuilder();
-        ID3TagData id3TagData = response.getId3TagData();
         final String title = response.getTitle();
-        final String artist = id3TagData.getArtist();
-        final String track = id3TagData.getTitle();
-        final String album = id3TagData.getAlbum();
-        final String releaseYear = id3TagData.getReleaseYear();
         final String duration = converter.secondsToMinutes(response.getDuration());
         final String size = converter.bytesToMB(response.getSize());
         final String extension = response.getExtension();
         final String quality = response.isPremium() ? "premium" : "standard";
-        final boolean youtube = serviceName.equals("youtube");
 
         fileInfo.append(MarkdownV2.apply(info.getReceived()).toItalic().newlineAfter().get());
         if (response.getId3TagData() != null) {
             ID3TagData data = response.getId3TagData();
-            if (track == null) {
-                fileInfo.append(info.getTitle());
-                fileInfo.append(MarkdownV2.apply(title).get());
-            }
-            if (artist != null) {
+            if (data.getArtist() != null) {
                 fileInfo.append(info.getArtist());
-                fileInfo.append(MarkdownV2.apply(artist).get());
+                fileInfo.append(MarkdownV2.apply(data.getArtist()).get());
             }
-            if (track != null) {
+            if (data.getTitle() != null) {
                 fileInfo.append(info.getTrack());
-                fileInfo.append(MarkdownV2.apply(track).get());
+                fileInfo.append(MarkdownV2.apply(data.getTitle()).get());
             }
-            if (album != null) {
+            if (data.getAlbum() != null) {
                 fileInfo.append(info.getAlbum());
-                fileInfo.append(MarkdownV2.apply(album).get());
+                fileInfo.append(MarkdownV2.apply(data.getAlbum()).get());
             }
-            if (releaseYear != null) {
+            if (data.getReleaseYear() != null) {
                 fileInfo.append(info.getReleaseYear());
-                fileInfo.append(MarkdownV2.apply(releaseYear).get());
+                fileInfo.append(MarkdownV2.apply(data.getReleaseYear()).get());
             }
-        }
-
-        if (response.getId3TagData() == null) {
+            if (data.getGenre() != null) {
+                fileInfo.append(info.getGenre());
+                fileInfo.append(MarkdownV2.apply(ID3v1Genres.GENRES[data.getGenre()]).get());
+            }
+        } else {
             fileInfo.append(info.getTitle());
             fileInfo.append(MarkdownV2.apply(title).get());
         }
+
         if (!duration.equals("0:00")) {
             fileInfo.append(info.getDuration());
             fileInfo.append(MarkdownV2.apply(duration).get());
         }
-        if (size != null) {
-            fileInfo.append(info.getSize());
-            fileInfo.append(MarkdownV2.apply(size).get());
-        }
-        if (extension != null) {
-            fileInfo.append(info.getExtension());
-            fileInfo.append(MarkdownV2.apply(extension).get());
-        }
+
+        fileInfo.append(info.getSize());
+        fileInfo.append(MarkdownV2.apply(size).get());
+
+        fileInfo.append(info.getExtension());
+        fileInfo.append(MarkdownV2.apply(extension).get());
+
         fileInfo.append(info.getQuality());
         fileInfo.append(MarkdownV2.apply(quality).get());
 
@@ -148,11 +141,18 @@ public class LinkResponse {
     }
 
     public SendAudio getSendAudio(FileResponse response) {
+        String title = null;
+        String artist = null;
+        if (response.getId3TagData() != null) {
+            title = response.getId3TagData().getTitle();
+            artist = response.getId3TagData().getArtist();
+        }
+
         SendAudio sendAudio = SendAudio.builder()
                 .chatId(response.getChatId())
                 .audio(response.getDownloadedFile())
-                .title(response.getTrack())
-                .performer(response.getArtist())
+                .title(title)
+                .performer(artist)
                 .duration(response.getDuration())
                 .build();
         if (response.getDownloadedFile().getFileId() == null)
