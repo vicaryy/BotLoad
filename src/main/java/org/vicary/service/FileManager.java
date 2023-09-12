@@ -88,4 +88,5 @@ public class FileManager {
     public boolean isFileConvertingInProcess(String line) {
         return line.startsWith("[ExtractAudio]");
     }
+
 }

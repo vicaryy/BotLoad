@@ -100,6 +100,25 @@ public class YtDlpCommand {
         }
     }
 
+
+    public String[] downloadSoundCloud(String fileName, FileResponse response) {
+        return new String[]{
+                YT_DLP,
+                AUDIO_ONLY,
+                AUDIO_FORMAT,
+                response.getExtension().equals("ogg") ? "vorbis" : response.getExtension(),
+                AUDIO_QUALITY,
+                response.isPremium() ? "0" : "5",
+                PLAYLIST_ITEMS,
+                String.valueOf(response.getMultiVideoNumber() == 0 ? 1 : response.getMultiVideoNumber()),
+                EMBED_THUMBNAIL,
+                MAX_FILE_SIZE,
+                MAX_FILE_SIZE_IN_MB,
+                PATH,
+                fileName,
+                response.getURL()};
+    }
+
     public String[] downloadInstagram(String fileName, FileResponse response) {
         if (response.getExtension().equals("mp4")) {
             return new String[]{
@@ -139,6 +158,14 @@ public class YtDlpCommand {
                 THUMBNAIL_LINK + youtubeId + THUMBNAIL_TYPE};
     }
 
+    public String[] downloadThumbnailSoundCloud(String thumbnailName, String thumbnailURL) {
+        return new String[]{
+                YT_DLP,
+                PATH,
+                thumbnailName,
+                thumbnailURL};
+    }
+
     public String[] fileInfoInstagram(String URL) {
         return new String[]{
                 YT_DLP,
@@ -147,6 +174,13 @@ public class YtDlpCommand {
     }
 
     public String[] fileInfoTikTok(String URL) {
+        return new String[]{
+                YT_DLP,
+                FILE_INFO,
+                URL};
+    }
+
+    public String[] fileInfoSoundCloud(String URL) {
         return new String[]{
                 YT_DLP,
                 FILE_INFO,

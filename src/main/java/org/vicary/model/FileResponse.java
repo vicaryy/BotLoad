@@ -14,6 +14,8 @@ import org.vicary.api_request.edit_message.EditMessageText;
 public class FileResponse {
     private String URL;
 
+    private String thumbnailURL;
+
     private String serviceId;
 
     private String extension;

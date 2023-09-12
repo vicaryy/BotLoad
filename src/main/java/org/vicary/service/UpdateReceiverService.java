@@ -60,6 +60,8 @@ public class UpdateReceiverService {
 
     private final InstagramDownloader instagramDownloader;
 
+    private final SoundCloudDownloader soundcloudDownloader;
+
     private final InstagramFileService instagramFileService;
 
     private final TikTokFileService tiktokFileService;
@@ -67,6 +69,8 @@ public class UpdateReceiverService {
     private final TwitterFileService twitterFileService;
 
     private final YouTubeFileService youtubeFileService;
+
+    private final SoundCloudFileService soundcloudFileService;
 
     private final LinkResponse linkResponse;
 
@@ -125,6 +129,9 @@ public class UpdateReceiverService {
             } else if (pattern.isInstagramURL(URL)) {
                 downloader = instagramDownloader;
                 fileService = instagramFileService;
+            } else if (pattern.isSoundCloudURL(URL)) {
+                downloader = soundcloudDownloader;
+                fileService = soundcloudFileService;
             }
 
             if (downloader != null) {
@@ -173,16 +180,16 @@ public class UpdateReceiverService {
         ID3TagData id3TagData = null;
         boolean premium = getPremium(userId);
 
-        text = removeUrl(text);
+//        text = removeUrl(text);
         text = replaceDashesTo11DASH11(text);
 
         String[] arrayText = text.split("-");
 
         for (String s : arrayText) {
             if (s.startsWith("ext"))
-                extension = getExtension(s.substring(1).trim().toLowerCase(), downloader.getAvailableExtensions());
+                extension = getExtension(s.substring(3).trim().toLowerCase(), downloader.getAvailableExtensions());
             else if (s.startsWith("mul"))
-                multiVideoNumber = getMultiVideoNumber(s.substring(1).trim());
+                multiVideoNumber = getMultiVideoNumber(s.substring(3).trim());
             else if (s.startsWith("tag"))
                 id3TagData = getId3Tag(s.substring(3).trim());
         }

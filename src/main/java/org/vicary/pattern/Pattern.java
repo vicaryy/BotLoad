@@ -28,15 +28,19 @@ public class Pattern {
         return false;
     }
 
-    public boolean isTwitterURL(String twitterURL) {
-        return twitterURL.contains("twitter.com/");
+    public boolean isTwitterURL(String URL) {
+        return URL.contains("twitter.com/") || URL.contains("x.com/");
     }
 
-    public boolean isTikTokURL(String tiktokURL) {
-        return tiktokURL.contains("tiktok.com/");
+    public boolean isTikTokURL(String URL) {
+        return URL.contains("tiktok.com/");
     }
 
-    public boolean isInstagramURL(String instagramURL) {
-        return instagramURL.contains("instagram.com/");
+    public boolean isInstagramURL(String URL) {
+        return URL.contains("instagram.com/");
+    }
+
+    public boolean isSoundCloudURL(String URL) {
+        return URL.contains("soundcloud.com/");
     }
 }

@@ -4,6 +4,8 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 @Builder
 public class FileInfo {
@@ -36,6 +38,12 @@ public class FileInfo {
 
     @SerializedName("webpage_url")
     private String URL;
+
+    @SerializedName("format")
+    private String format;
+
+    @SerializedName("thumbnails")
+    private List<FileInfoThumbnail> thumbnails;
 
     public int getDuration() {
         return (int) Math.round(duration);
