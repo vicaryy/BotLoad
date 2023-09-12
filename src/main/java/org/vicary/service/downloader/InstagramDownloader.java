@@ -11,6 +11,7 @@ import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.InstagramFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
+import org.vicary.format.MarkdownV2;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
@@ -59,8 +60,10 @@ public class InstagramDownloader implements Downloader {
         // GETTING FILE INFO
         FileResponse response = getFileInfo(request, processBuilder);
 
-        // CHECKS IF FILE ALREADY EXISTS IN REPOSITORY
-        getFileFromRepository(response);
+        // checks if file already exists in repository
+        if (request.getId3TagData() == null)
+            getFileFromRepository(response);
+
         if (response.getDownloadedFile() != null)
             return response;
 
@@ -207,8 +210,12 @@ public class InstagramDownloader implements Downloader {
     }
 
 
-    public void updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
-        String progress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(line);
+    public EditMessageText updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
+        String progress = fileManager.getDownloadProgressInProcess(line);
+
+        if (progress != null && !progressDifference(editMessageText.getText(), progress))
+            return editMessageText;
+
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
@@ -216,13 +223,26 @@ public class InstagramDownloader implements Downloader {
 
             for (String s : splitOldText)
                 if (s.equals(splitOldText[splitOldText.length - 1]))
-                    newText.append("\\[").append(progress).append("\\]_");
+                    newText.append(MarkdownV2.apply("[" + progress + "]").get() + "_");
                 else
                     newText.append(s).append(" ");
 
             if (!oldText.contentEquals(newText))
                 quickSender.editMessageText(editMessageText, newText.toString());
         }
+        return editMessageText;
+    }
+
+    public boolean progressDifference(String editMessageTextText, String newProgress) {
+        String[] oldProgressArray = editMessageTextText.split(" ");
+        try {
+            double oldProgressInDouble = Double.parseDouble(oldProgressArray[oldProgressArray.length - 1].replaceAll("[\\\\%_\\[\\]]", ""));
+            double newProgressInDouble = Double.parseDouble(newProgress.substring(0, newProgress.length() - 2));
+            if (newProgressInDouble - oldProgressInDouble > 5 || newProgressInDouble == 100)
+                return true;
+        } catch (NumberFormatException ignored) {
+        }
+        return false;
     }
 
 

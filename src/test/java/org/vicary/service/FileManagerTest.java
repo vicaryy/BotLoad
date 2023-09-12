@@ -371,7 +371,7 @@ class FileManagerTest {
         String expectedFileProgress = "50\\.35%";
 
         //when
-        String actualFileProgress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(givenLine);
+        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);
@@ -386,7 +386,7 @@ class FileManagerTest {
         String expectedFileProgress = null;
 
         //when
-        String actualFileProgress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(givenLine);
+        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);
@@ -401,7 +401,7 @@ class FileManagerTest {
         String expectedFileProgress = "50?lol35%";
 
         //when
-        String actualFileProgress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(givenLine);
+        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);
@@ -416,7 +416,7 @@ class FileManagerTest {
         String expectedFileProgress = null;
 
         //when
-        String actualFileProgress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(givenLine);
+        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);

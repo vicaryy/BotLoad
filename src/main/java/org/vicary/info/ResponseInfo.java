@@ -25,7 +25,7 @@ public class ResponseInfo {
 
     private final String id3tagOnlyWithMp3 = MarkdownV2.apply("I'm sorry but ID3Tag is available only for the mp3 extension.").get();
 
-    private final String wrongMultiVideoNumber = MarkdownV2.apply("I'm sorry but your multi-video number is invalid,\n please try again.").get();
+    private final String wrongMultiVideoNumber = MarkdownV2.apply("I'm sorry but your multi-video number is invalid.\nPlease try again.").get();
 
     private final String received = "Here's your file";
 

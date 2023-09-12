@@ -10,6 +10,7 @@ import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.YouTubeFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
+import org.vicary.format.MarkdownV2;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
@@ -222,7 +223,11 @@ public class YouTubeDownloader implements Downloader {
 
 
     public EditMessageText updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
-        String progress = fileManager.getDownloadFileProgressInProcessInMarkdownV2(line);
+        String progress = fileManager.getDownloadProgressInProcess(line);
+
+        if (progress != null && !progressDifference(editMessageText.getText(), progress))
+            return editMessageText;
+
         if (progress != null) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
@@ -230,7 +235,7 @@ public class YouTubeDownloader implements Downloader {
 
             for (String s : splitOldText)
                 if (s.equals(splitOldText[splitOldText.length - 1]))
-                    newText.append("\\[").append(progress).append("\\]_");
+                    newText.append(MarkdownV2.apply("[" + progress + "]").get() + "_");
                 else
                     newText.append(s).append(" ");
 
@@ -238,6 +243,18 @@ public class YouTubeDownloader implements Downloader {
                 quickSender.editMessageText(editMessageText, newText.toString());
         }
         return editMessageText;
+    }
+
+    public boolean progressDifference(String editMessageTextText, String newProgress) {
+        String[] oldProgressArray = editMessageTextText.split(" ");
+        try {
+            double oldProgressInDouble = Double.parseDouble(oldProgressArray[oldProgressArray.length - 1].replaceAll("[\\\\%_\\[\\]]", ""));
+            double newProgressInDouble = Double.parseDouble(newProgress.substring(0, newProgress.length() - 2));
+            if (newProgressInDouble - oldProgressInDouble > 5 || newProgressInDouble == 100)
+                return true;
+        } catch (NumberFormatException ignored) {
+        }
+        return false;
     }
 
 

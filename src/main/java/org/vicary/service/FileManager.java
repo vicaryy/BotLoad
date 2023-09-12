@@ -2,7 +2,6 @@ package org.vicary.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.vicary.format.MarkdownV2;
 
 import java.util.Arrays;
 
@@ -69,11 +68,11 @@ public class FileManager {
         return Integer.parseInt(sb.toString()) <= 49;
     }
 
-    public String getDownloadFileProgressInProcessInMarkdownV2(String line) {
+    public String getDownloadProgressInProcess(String line) {
         String[] s = line.split(" ");
         for (String a : s)
             if (a.contains("%"))
-                return MarkdownV2.apply(a).get();
+                return a;
         return null;
     }
 

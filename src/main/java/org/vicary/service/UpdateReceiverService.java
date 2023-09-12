@@ -180,7 +180,7 @@ public class UpdateReceiverService {
         ID3TagData id3TagData = null;
         boolean premium = getPremium(userId);
 
-//        text = removeUrl(text);
+        text = removeUrl(text);
         text = replaceDashesTo11DASH11(text);
 
         String[] arrayText = text.split("-");
@@ -236,8 +236,8 @@ public class UpdateReceiverService {
                             sb.append(text.charAt(k));
                     }
                     text = sb.toString();
-                    sb.setLength(0);
                 }
+                sb.setLength(0);
             }
         }
         return text;
