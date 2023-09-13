@@ -266,10 +266,7 @@ public class SoundCloudDownloader implements Downloader {
     public EditMessageText updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
         String progress = fileManager.getDownloadProgressInProcess(line);
 
-        if (progress != null && !progressDifference(editMessageText.getText(), progress))
-            return editMessageText;
-
-        if (progress != null) {
+        if (progress != null && progressDifference(editMessageText.getText(), progress)) {
             String oldText = editMessageText.getText();
             String[] splitOldText = oldText.split(" ");
             StringBuilder newText = new StringBuilder();

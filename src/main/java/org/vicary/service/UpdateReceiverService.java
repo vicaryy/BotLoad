@@ -268,6 +268,9 @@ public class UpdateReceiverService {
             if (textArray[i].isBlank())
                 continue;
 
+            if (textArray[i].length() > 59)
+                throw new InvalidBotRequestException(info.getTooLongStringInTag(), "[ID3Tag] User specified too long String in Tag.");
+
             if (id3TagData == null)
                 id3TagData = new ID3TagData();
 

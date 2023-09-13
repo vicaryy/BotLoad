@@ -103,7 +103,7 @@ public class LinkResponse {
                 fileInfo.append(MarkdownV2.apply(data.getArtist()).get());
             }
             if (data.getTitle() != null) {
-                fileInfo.append(info.getTrack());
+                fileInfo.append(info.getTitle());
                 fileInfo.append(MarkdownV2.apply(data.getTitle()).get());
             }
             if (data.getAlbum() != null) {

@@ -27,13 +27,13 @@ public class ResponseInfo {
 
     private final String wrongMultiVideoNumber = MarkdownV2.apply("I'm sorry but your multi-video number is invalid.\nPlease try again.").get();
 
+    private final String tooLongStringInTag = MarkdownV2.apply("I'm sorry but you have specified too long value in tag.\nPlease try again.").get();
+
     private final String received = "Here's your file";
 
     private final String title = MarkdownV2.apply("Title: ").toBold().newlineBefore().get();
 
     private final String artist = MarkdownV2.apply("Artist: ").toBold().newlineBefore().get();
-
-    private final String track = MarkdownV2.apply("Track: ").toBold().newlineBefore().get();
 
     private final String album = MarkdownV2.apply("Album: ").toBold().newlineBefore().get();
 
