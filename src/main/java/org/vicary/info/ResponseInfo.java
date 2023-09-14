@@ -15,7 +15,7 @@ public class ResponseInfo {
 
     private final String error = MarkdownV2.apply("I'm sorry but something goes wrong.").toBold().get();
 
-    private final String hellaBigNumber = MarkdownV2.apply("Oh come on, that's hella big number.").toBold().get();
+//    private final String hellaBigNumber = MarkdownV2.apply("Oh come on, that's hella big number.").toBold().get();
 
     private final String wrongExtension = MarkdownV2.apply("I'm sorry but I don't support this extension.").get();
 
