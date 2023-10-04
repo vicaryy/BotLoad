@@ -140,7 +140,7 @@ class UpdateReceiverServiceTest {
         verify(activeRequestService).existsByUserId(userId.toString());
         verify(activeRequestService).saveActiveUser(activeRequestEntity);
         try {
-            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+            verify(linkResponse).response(expectedFileRequest, expectedDownloader, expectedFileService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -201,7 +201,7 @@ class UpdateReceiverServiceTest {
         verify(activeRequestService).existsByUserId(userId.toString());
         verify(activeRequestService).saveActiveUser(activeRequestEntity);
         try {
-            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+            verify(linkResponse).response(expectedFileRequest, expectedDownloader, expectedFileService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -262,7 +262,7 @@ class UpdateReceiverServiceTest {
         verify(activeRequestService).existsByUserId(userId.toString());
         verify(activeRequestService).saveActiveUser(activeRequestEntity);
         try {
-            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+            verify(linkResponse).response(expectedFileRequest, expectedDownloader, expectedFileService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -323,7 +323,7 @@ class UpdateReceiverServiceTest {
         verify(activeRequestService).existsByUserId(userId.toString());
         verify(activeRequestService).saveActiveUser(activeRequestEntity);
         try {
-            verify(linkResponse).sendFile(expectedFileRequest, expectedDownloader, expectedFileService);
+            verify(linkResponse).response(expectedFileRequest, expectedDownloader, expectedFileService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -356,7 +356,7 @@ class UpdateReceiverServiceTest {
 
         Update update = new Update();
         update.setMessage(message);
-        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null, new Converter(), new FileManager(new Converter()));
+        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null, new Converter(), new DownloaderManager(new Converter()));
         EditMessageText editMessageText = EditMessageText.builder()
                 .chatId(update.getChatId())
                 .messageId(messageId)

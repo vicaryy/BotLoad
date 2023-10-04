@@ -29,7 +29,7 @@ public class UpdatePollingThread implements Runnable {
 
     private final ActiveRequestService activeRequestService;
 
-    private final WebClient client;
+    private final WebClient client = WebClient.create();
     private final ExecutorService cachedExecutor = Executors.newCachedThreadPool();
     private final ExecutorService singleExecutor = Executors.newSingleThreadExecutor();
     private List<Update> updates;
@@ -90,8 +90,7 @@ public class UpdatePollingThread implements Runnable {
     public void sleep(int milliseconds) {
         try {
             Thread.sleep(milliseconds);
-        } catch (InterruptedException e) {
-            System.err.println(e.getMessage());
+        } catch (InterruptedException ignored) {
         }
     }
 
@@ -106,7 +105,7 @@ public class UpdatePollingThread implements Runnable {
                 })
                 .block();
 
-        if (response.getResult().isEmpty())
+        if (response == null || response.getResult().isEmpty())
             return null;
 
         int offset = response.getResult().get(response.getResult().size() - 1).getUpdateId() + 1;
@@ -133,7 +132,7 @@ public class UpdatePollingThread implements Runnable {
                 })
                 .block();
 
-        if (response.getResult().isEmpty())
+        if (response == null || response.getResult().isEmpty())
             return;
 
         int offset = (response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;

@@ -11,13 +11,11 @@ import org.vicary.command.YtDlpCommand;
 import org.vicary.entity.InstagramFileEntity;
 import org.vicary.exception.DownloadedFileNotFoundException;
 import org.vicary.exception.InvalidBotRequestException;
-import org.vicary.format.MarkdownV2;
 import org.vicary.info.DownloaderInfo;
 import org.vicary.model.FileInfo;
 import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.service.Converter;
-import org.vicary.service.FileManager;
 import org.vicary.service.file_service.InstagramFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
@@ -47,7 +45,7 @@ public class InstagramDownloader implements Downloader {
 
     private final Converter converter;
 
-    private final FileManager fileManager;
+    private final DownloaderManager downloaderManager;
 
     private final List<String> availableExtensions = List.of("mp4", "mp3", "m4a", "flac", "wav");
 
@@ -162,10 +160,10 @@ public class InstagramDownloader implements Downloader {
 
 
     public FileResponse downloadFile(FileResponse response, ProcessBuilder processBuilder) throws IOException {
-        String fileName = fileManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
+        String fileName = downloaderManager.getFileNameFromTitle(response.getTitle(), response.getExtension());
         String filePath = commands.getDownloadDestination() + fileName;
         EditMessageText editMessageText = response.getEditMessageText();
-        editMessageText.setText(editMessageText.getText() + info.getFileDownloading());
+        quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getFileDownloading());
 
         logger.info("[download] Downloading Twitter file '{}'", response.getServiceId());
         processBuilder.command(commands.downloadInstagram(fileName, response));
@@ -173,18 +171,23 @@ public class InstagramDownloader implements Downloader {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
             String line;
             while ((line = br.readLine()) != null) {
-                if (fileManager.isFileDownloadingInProcess(line)) {
-                    updateDownloadProgressInEditMessageText(editMessageText, line);
+                if (downloaderManager.isFileDownloadingInProcess(line)) {
+                    downloaderManager.updateDownloadProgressInEditMessageText(editMessageText, line);
 
-                    if (fileManager.isFileDownloadedInProcess(line)) {
+                    if (downloaderManager.isFileDownloadedInProcess(line)) {
                         logger.info("[download] Successfully downloaded file '{}'", response.getServiceId());
                     }
-                    if (!fileManager.isFileSizeValidInProcess(line)) {
+                    if (!downloaderManager.isFileSizeValidInProcess(line)) {
                         process.destroy();
                         throw new InvalidBotRequestException(
                                 info.getFileTooBig(),
-                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), fileManager.getFileSizeInProcess(line)));
+                                String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), downloaderManager.getFileSizeInProcess(line)));
                     }
+                }
+
+                if (downloaderManager.isFileConvertingInProcess(line)) {
+                    quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getConverting(response.getExtension()));
+                    logger.info("[convert] Converting file '{}' to {}", response.getServiceId(), response.getExtension());
                 }
             }
         }
@@ -192,7 +195,7 @@ public class InstagramDownloader implements Downloader {
         File downloadedFile = new File(filePath);
         if (downloadedFile.exists()) {
             long fileSize = downloadedFile.length();
-            if (!fileManager.isFileSizeValid(fileSize)) {
+            if (!downloaderManager.isFileSizeValid(fileSize)) {
                 throw new InvalidBotRequestException(
                         info.getFileTooBig(),
                         String.format("Size of file '%s' is too big. File Size: '%s'", response.getServiceId(), converter.bytesToMB(fileSize)));
@@ -207,39 +210,6 @@ public class InstagramDownloader implements Downloader {
                     String.format("File '%s' has not been downloaded", response.getServiceId()));
         }
         return response;
-    }
-
-
-    public EditMessageText updateDownloadProgressInEditMessageText(EditMessageText editMessageText, String line) {
-        String progress = fileManager.getDownloadProgressInProcess(line);
-
-        if (progress != null && progressDifference(editMessageText.getText(), progress)) {
-            String oldText = editMessageText.getText();
-            String[] splitOldText = oldText.split(" ");
-            StringBuilder newText = new StringBuilder();
-
-            for (String s : splitOldText)
-                if (s.equals(splitOldText[splitOldText.length - 1]))
-                    newText.append(MarkdownV2.apply("[" + progress + "]").get() + "_");
-                else
-                    newText.append(s).append(" ");
-
-            if (!oldText.contentEquals(newText))
-                quickSender.editMessageText(editMessageText, newText.toString());
-        }
-        return editMessageText;
-    }
-
-    public boolean progressDifference(String editMessageTextText, String newProgress) {
-        String[] oldProgressArray = editMessageTextText.split(" ");
-        try {
-            double oldProgressInDouble = Double.parseDouble(oldProgressArray[oldProgressArray.length - 1].replaceAll("[\\\\%_\\[\\]]", ""));
-            double newProgressInDouble = Double.parseDouble(newProgress.substring(0, newProgress.length() - 2));
-            if (newProgressInDouble - oldProgressInDouble > 5 || newProgressInDouble == 100)
-                return true;
-        } catch (NumberFormatException ignored) {
-        }
-        return false;
     }
 
 

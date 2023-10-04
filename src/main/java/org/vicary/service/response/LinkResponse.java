@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vicary.api_object.message.Message;
+import org.vicary.api_request.ApiRequest;
 import org.vicary.api_request.send.SendAudio;
 import org.vicary.api_request.send.SendDocument;
 import org.vicary.api_request.send.SendVideo;
@@ -38,41 +39,27 @@ public class LinkResponse {
     private final ID3TagService id3TagService;
 
 
-    public void sendFile(FileRequest request, Downloader downloader, FileService fileService) throws Exception {
+    public void response(FileRequest request, Downloader downloader, FileService fileService) throws Exception {
         final String chatId = request.getChatId();
         // getting file
         FileResponse response = downloader.download(request);
         response.setChatId(chatId);
 
-
-        if (request.getId3TagData() != null)
+        // add id3tag
+        if (request.getId3TagData() != null) {
             response.setId3TagData(request.getId3TagData());
-
-        if (response.getId3TagData() != null)
             id3TagService.addID3Tag(response);
+        }
 
         // sending audio to telegram chat
         logger.info("[send] Sending file '{}' to chatId '{}'", response.getServiceId(), chatId);
         quickSender.chatAction(chatId, "upload_document");
         quickSender.editMessageText(request.getEditMessageText(), request.getEditMessageText().getText() + info.getSending());
-        Message sendFileMessage;
-        if (response.getExtension().equals("mp3") || response.getExtension().equals("m4a")) {
-            sendFileMessage = requestService.sendRequest(getSendAudio(response));
-            response.setTelegramFileId(sendFileMessage.getAudio().getFileId());
-            if (response.getDuration() == 0)
-                response.setDuration(sendFileMessage.getAudio().getDuration());
-        } else if (response.getExtension().equals("mp4")) {
-            sendFileMessage = requestService.sendRequest(getSendVideo(response));
-            response.setTelegramFileId(sendFileMessage.getVideo().getFileId());
-            if (response.getDuration() == 0)
-                response.setDuration(sendFileMessage.getVideo().getDuration());
-        } else {
-            sendFileMessage = requestService.sendRequest(getSendDocument(response));
-            response.setTelegramFileId(sendFileMessage.getDocument().getFileId());
-        }
+
+        sendFile(response);
+
         quickSender.editMessageText(request.getEditMessageText(), getReceivedFileInfo(response));
         logger.info("[send] File sent successfully.");
-
 
         // saving file to repository
         if (request.getId3TagData() == null && !fileService.existsInRepo(response)) {
@@ -84,6 +71,54 @@ public class LinkResponse {
             terminalExecutor.removeFile(response.getDownloadedFile().getFile());
         if (response.getThumbnail() != null)
             terminalExecutor.removeFile(response.getThumbnail().getFile());
+    }
+
+
+    public FileResponse sendFile(FileResponse response) {
+        String extension = response.getExtension();
+        Message sendFileMessage;
+
+        if (extension.equals("mp3") || extension.equals("m4a"))
+            sendFileMessage = requestService.sendRequest(getSendAudio(response));
+
+        else if (response.getExtension().equals("mp4"))
+            sendFileMessage = requestService.sendRequest(getSendVideo(response));
+
+        else
+            sendFileMessage = requestService.sendRequest(getSendDocument(response));
+
+
+        String telegramFileId = getTelegramFileId(sendFileMessage);
+        response.setTelegramFileId(telegramFileId);
+
+        if (response.getDuration() == 0) {
+            int duration = getDuration(sendFileMessage);
+            response.setDuration(duration);
+        }
+
+        return response;
+
+    }
+
+    public int getDuration(Message message) {
+        if (message.getVideo() != null)
+            return message.getVideo().getDuration();
+
+        else if (message.getAudio() != null)
+            return message.getAudio().getDuration();
+
+        else
+            return 0;
+    }
+
+    public String getTelegramFileId(Message message) {
+        if (message.getVideo() != null)
+            return message.getVideo().getFileId();
+
+        if (message.getAudio() != null)
+            return message.getAudio().getFileId();
+
+        return message.getDocument().getFileId();
     }
 
 
@@ -139,6 +174,7 @@ public class LinkResponse {
 
         return fileInfo.toString();
     }
+
 
     public SendAudio getSendAudio(FileResponse response) {
         String title = null;

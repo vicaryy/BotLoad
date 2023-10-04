@@ -20,7 +20,6 @@ import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.Converter;
-import org.vicary.service.FileManager;
 import org.vicary.service.file_service.YouTubeFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
@@ -64,7 +63,7 @@ class YouTubeDownloaderTest {
     private Converter converter;
 
     @MockBean
-    private FileManager fileManager;
+    private DownloaderManager downloaderManager;
 
     private final static ProcessBuilder processBuilder = new ProcessBuilder();
 
@@ -365,19 +364,19 @@ class YouTubeDownloaderTest {
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadYouTube(FILE_MP3_VALID.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
+        when(downloaderManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadYouTube(FILE_MP3_VALID.getName(), givenId, givenExtension, true);
-        verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
+        verify(downloaderManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
 
@@ -399,16 +398,16 @@ class YouTubeDownloaderTest {
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
         when(commands.downloadYouTube(givenFileName, givenId, givenExtension, true)).thenReturn(givenCommand);
-        when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
-        when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
+        when(downloaderManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
+        when(downloaderManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
-        verify(fileManager).isFileDownloadedInProcess(givenCommand[1]);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).isFileDownloadedInProcess(givenCommand[1]);
     }
 
 
@@ -430,18 +429,18 @@ class YouTubeDownloaderTest {
 
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadYouTube(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
+        when(downloaderManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadYouTube(FILE_MP4_OVER_50MB.getName(), givenId, givenExtension, true);
-        verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
+        verify(downloaderManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
 
@@ -463,14 +462,14 @@ class YouTubeDownloaderTest {
 
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadYouTube(FILE_NOT_EXIST.getName(), givenId, givenExtension, true)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadYouTube(FILE_NOT_EXIST.getName(), givenId, givenExtension, true);
     }
@@ -510,7 +509,7 @@ class YouTubeDownloaderTest {
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
         verify(commands).downloadThumbnailYoutube(givenTitle + ".jpg", givenId);
-        verify(fileManager).isFileDownloadingInProcess(givenCommand[1]);
+        verify(downloaderManager).isFileDownloadingInProcess(givenCommand[1]);
     }
 
 
@@ -537,7 +536,7 @@ class YouTubeDownloaderTest {
         //then
         assertDoesNotThrow(() -> downloader.downloadThumbnail(givenFileResponse, processBuilder));
         verify(commands).downloadThumbnailYoutube(givenTitle + ".jpg", givenId);
-        verify(fileManager).isFileDownloadingInProcess(givenCommand[1]);
+        verify(downloaderManager).isFileDownloadingInProcess(givenCommand[1]);
     }
 }
 

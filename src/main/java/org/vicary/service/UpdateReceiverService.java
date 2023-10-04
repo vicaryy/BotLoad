@@ -142,7 +142,7 @@ public class UpdateReceiverService {
                 fileRequest = getFileRequest(update, downloader, editMessageText);
 
 
-                linkResponse.sendFile(fileRequest, downloader, fileService);
+                linkResponse.response(fileRequest, downloader, fileService);
             }
 
         } catch (WebClientResponseException ex) {

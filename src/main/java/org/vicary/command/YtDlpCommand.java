@@ -1,10 +1,13 @@
 package org.vicary.command;
 
 import lombok.Getter;
-import org.springframework.stereotype.Component;
+import lombok.Setter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 import org.vicary.model.FileResponse;
 
-@Component
+@Configuration
+@ConfigurationProperties("yt-dlp-commands")
 public class YtDlpCommand {
     private final static String YT_DLP = "yt-dlp";
     private final static String AUDIO_ONLY = "-x";
@@ -19,9 +22,11 @@ public class YtDlpCommand {
     private final static String MAX_FILE_SIZE_IN_MB = "45M";
     private final static String FILE_INFO = "-j";
     private final static String NETRC = "--netrc";
-    private final String PLAYLIST_ITEMS = "--playlist-items";
+    private final static String PLAYLIST_ITEMS = "--playlist-items";
+
     @Getter
-    private final String downloadDestination = "/Users/vicary/desktop/folder/";
+    @Setter
+    private String downloadDestination;
 
 
     public String[] downloadYouTube(String fileName, FileResponse response) {

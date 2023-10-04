@@ -6,15 +6,16 @@ import org.junit.runner.Runner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.vicary.service.downloader.DownloaderManager;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(Runner.class)
 @SpringBootTest
-class FileManagerTest {
+class DownloaderManagerTest {
     @Autowired
-    private FileManager fileManager;
+    private DownloaderManager downloaderManager;
 
     @MockBean
     private Converter converter;
@@ -27,7 +28,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValid(givenFileSize));
+        assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
 
@@ -38,7 +39,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValid(givenFileSize));
+        assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
     @Test
@@ -48,7 +49,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValid(givenFileSize));
+        assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
     @Test
@@ -58,7 +59,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertFalse(fileManager.isFileSizeValid(givenFileSize));
+        assertFalse(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
     @Test
@@ -70,7 +71,7 @@ class FileManagerTest {
         String expectedFileName = "title.mp3";
 
         //when
-        String actualFileName = fileManager.getFileNameFromTitle(givenTitle, givenExtension);
+        String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
         assertEquals(expectedFileName, actualFileName);
@@ -86,7 +87,7 @@ class FileManagerTest {
         String expectedFileName = "title1 title2 title3 title4 title5 title6 title7 title8 tit.mp3";
 
         //when
-        String actualFileName = fileManager.getFileNameFromTitle(givenTitle, givenExtension);
+        String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
         assertEquals(expectedFileName, actualFileName);
@@ -101,7 +102,7 @@ class FileManagerTest {
         String expectedFileName = "title and and.mp3";
 
         //when
-        String actualFileName = fileManager.getFileNameFromTitle(givenTitle, givenExtension);
+        String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
         assertEquals(expectedFileName, actualFileName);
@@ -116,7 +117,7 @@ class FileManagerTest {
         String expectedFileName = "title - - - - - - - -.mp3";
 
         //when
-        String actualFileName = fileManager.getFileNameFromTitle(givenTitle, givenExtension);
+        String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
         assertEquals(expectedFileName, actualFileName);
@@ -132,7 +133,7 @@ class FileManagerTest {
         String expectedFileName = "titleand titleand titleand titleand titleand title- title- .mp3";
 
         //when
-        String actualFileName = fileManager.getFileNameFromTitle(givenTitle, givenExtension);
+        String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
         assertEquals(expectedFileName, actualFileName);
@@ -147,7 +148,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertThrows(NullPointerException.class, () -> fileManager.getFileNameFromTitle(givenTitle, givenExtension));
+        assertThrows(NullPointerException.class, () -> downloaderManager.getFileNameFromTitle(givenTitle, givenExtension));
     }
 
 
@@ -162,7 +163,7 @@ class FileManagerTest {
         //when
         when(converter.bytesToMB(givenBytes)).thenReturn("10.00MB");
 
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -177,7 +178,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertThrows(NumberFormatException.class, () -> fileManager.getFileSizeInProcess(givenLine));
+        assertThrows(NumberFormatException.class, () -> downloaderManager.getFileSizeInProcess(givenLine));
     }
 
 
@@ -192,7 +193,7 @@ class FileManagerTest {
         //when
         when(converter.bytesToMB(givenBytes)).thenReturn("-10.00MB");
 
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -208,7 +209,7 @@ class FileManagerTest {
         String expectedFileSize = "10.00MiB";
 
         //when
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -223,7 +224,7 @@ class FileManagerTest {
         String expectedFileSize = "10.00KiB";
 
         //when
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -238,7 +239,7 @@ class FileManagerTest {
         String expectedFileSize = "";
 
         //when
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -253,7 +254,7 @@ class FileManagerTest {
         String expectedFileSize = "";
 
         //when
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -268,7 +269,7 @@ class FileManagerTest {
         String expectedFileSize = "";
 
         //when
-        String actualFileSize = fileManager.getFileSizeInProcess(givenLine);
+        String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
         assertEquals(expectedFileSize, actualFileSize);
@@ -282,7 +283,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
     @Test
@@ -292,7 +293,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertFalse(fileManager.isFileSizeValidInProcess(givenLine));
+        assertFalse(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -304,7 +305,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertFalse(fileManager.isFileSizeValidInProcess(givenLine));
+        assertFalse(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -315,7 +316,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -326,7 +327,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -337,7 +338,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -348,7 +349,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -359,7 +360,7 @@ class FileManagerTest {
 
         //when
         //then
-        assertTrue(fileManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -371,7 +372,7 @@ class FileManagerTest {
         String expectedFileProgress = "50\\.35%";
 
         //when
-        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
+        String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);
@@ -386,7 +387,7 @@ class FileManagerTest {
         String expectedFileProgress = null;
 
         //when
-        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
+        String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);
@@ -401,7 +402,7 @@ class FileManagerTest {
         String expectedFileProgress = "50?lol35%";
 
         //when
-        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
+        String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);
@@ -416,7 +417,7 @@ class FileManagerTest {
         String expectedFileProgress = null;
 
         //when
-        String actualFileProgress = fileManager.getDownloadProgressInProcess(givenLine);
+        String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
         assertEquals(expectedFileProgress, actualFileProgress);

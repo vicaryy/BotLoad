@@ -105,7 +105,7 @@ class LinkResponseTest {
         when(converter.bytesToMB(size)).thenReturn("1,00MB");
         when(givenFileService.existsInRepo(fileResponse)).thenReturn(false);
 
-        linkResponse.sendFile(givenFileRequest, givenDownloader, givenFileService);
+        linkResponse.response(givenFileRequest, givenDownloader, givenFileService);
 
         //then
         verify(givenDownloader).download(givenFileRequest);
@@ -155,7 +155,7 @@ class LinkResponseTest {
         when(converter.bytesToMB(size)).thenReturn("1,00MB");
         when(givenFileService.existsInRepo(fileResponse)).thenReturn(false);
 
-        linkResponse.sendFile(givenFileRequest, givenDownloader, givenFileService);
+        linkResponse.response(givenFileRequest, givenDownloader, givenFileService);
 
         //then
         verify(givenDownloader).download(givenFileRequest);
@@ -205,7 +205,7 @@ class LinkResponseTest {
         when(converter.bytesToMB(size)).thenReturn("1,00MB");
         when(givenFileService.existsInRepo(fileResponse)).thenReturn(true);
 
-        linkResponse.sendFile(givenFileRequest, givenDownloader, givenFileService);
+        linkResponse.response(givenFileRequest, givenDownloader, givenFileService);
 
         //then
         verify(givenDownloader).download(givenFileRequest);

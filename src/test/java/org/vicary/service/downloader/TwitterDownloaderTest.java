@@ -20,7 +20,6 @@ import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.Converter;
-import org.vicary.service.FileManager;
 import org.vicary.service.file_service.TwitterFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
@@ -64,7 +63,7 @@ class TwitterDownloaderTest {
     private Converter converter;
 
     @MockBean
-    private FileManager fileManager;
+    private DownloaderManager downloaderManager;
 
     private final static ProcessBuilder processBuilder = new ProcessBuilder();
 
@@ -498,19 +497,19 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadTwitter(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
+        when(downloaderManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadTwitter(FILE_MP3_VALID.getName(), givenURL, givenMultiVideoNumber);
-        verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
+        verify(downloaderManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
 
@@ -536,16 +535,16 @@ class TwitterDownloaderTest {
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
         when(commands.downloadTwitter(givenFileName, givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
-        when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
-        when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
+        when(downloaderManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
+        when(downloaderManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
-        verify(fileManager).isFileDownloadedInProcess(givenCommand[1]);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).isFileDownloadedInProcess(givenCommand[1]);
     }
 
 
@@ -571,18 +570,18 @@ class TwitterDownloaderTest {
 
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadTwitter(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
+        when(downloaderManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadTwitter(FILE_MP4_OVER_50MB.getName(), givenURL, givenMultiVideoNumber);
-        verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
+        verify(downloaderManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
 
@@ -608,14 +607,14 @@ class TwitterDownloaderTest {
 
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadTwitter(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadTwitter(FILE_NOT_EXIST.getName(), givenURL, givenMultiVideoNumber);
     }

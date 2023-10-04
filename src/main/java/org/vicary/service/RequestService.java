@@ -2,7 +2,6 @@ package org.vicary.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.client.RestClientException;
-import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -14,7 +13,6 @@ import org.vicary.api_request.*;
 import org.vicary.api_request.send.*;
 import org.vicary.configuration.BotInfo;
 import org.vicary.configuration.ParameterizedTypeReferences;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.MultipartBodyBuilder;
@@ -28,15 +26,14 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class RequestService {
 
-    private final WebClient client;
-
     private final ParameterizedTypeReferences typeReferences;
 
     public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
-        RequestResponse response = (RequestResponse) client
+        WebClient webClient = WebClient.create();
+        RequestResponse response = (RequestResponse) webClient
                 .post()
                 .uri(url)
                 .bodyValue(request)
@@ -50,7 +47,8 @@ public class RequestService {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
-        RequestResponseList response = (RequestResponseList) client
+        WebClient webClient = WebClient.create();
+        RequestResponseList response = (RequestResponseList) webClient
                 .post()
                 .uri(url)
                 .bodyValue(request)
@@ -403,7 +401,8 @@ public class RequestService {
 
 
     public Message sendRequest(String url, MultipartBodyBuilder bodyBuilder) throws WebClientRequestException, WebClientResponseException {
-        RequestResponse response = (RequestResponse) client
+        WebClient webClient = WebClient.create();
+        RequestResponse response = (RequestResponse) webClient
                 .post()
                 .uri(url)
                 .contentType(MediaType.MULTIPART_FORM_DATA)

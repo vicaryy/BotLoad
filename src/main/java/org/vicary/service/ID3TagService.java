@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.vicary.model.FileResponse;
 import org.vicary.model.ID3TagData;
+import org.vicary.service.downloader.DownloaderManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,7 +20,7 @@ public class ID3TagService {
 
     private final TerminalExecutor terminalExecutor;
 
-    private final FileManager fileManager;
+    private final DownloaderManager downloaderManager;
 
     public FileResponse addID3Tag(FileResponse fileResponse) {
         try {
@@ -29,7 +30,7 @@ public class ID3TagService {
 
                 String parentFile = oldFile.getParent();
                 String newFileName = id3TagData.getTitle() != null ?
-                        fileManager.getFileNameFromTitle(id3TagData.getTitle(), "mp3") :
+                        downloaderManager.getFileNameFromTitle(id3TagData.getTitle(), "mp3") :
                         oldFile.getName();
                 oldFile = terminalExecutor.renameFile(oldFile, oldFile.getName() + ".mp3");
                 Mp3File mp3File = new Mp3File(oldFile);

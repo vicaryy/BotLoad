@@ -20,7 +20,6 @@ import org.vicary.model.FileRequest;
 import org.vicary.model.FileResponse;
 import org.vicary.pattern.Pattern;
 import org.vicary.service.Converter;
-import org.vicary.service.FileManager;
 import org.vicary.service.file_service.TikTokFileService;
 import org.vicary.service.mapper.FileInfoMapper;
 import org.vicary.service.quick_sender.QuickSender;
@@ -64,7 +63,7 @@ class TikTokDownloaderTest {
     private Converter converter;
 
     @MockBean
-    private FileManager fileManager;
+    private DownloaderManager downloaderManager;
 
     private final static ProcessBuilder processBuilder = new ProcessBuilder();
 
@@ -92,7 +91,7 @@ class TikTokDownloaderTest {
         String givenTitle = "title";
         double givenDuration = 10;
         String givenId = "example_id";
-        EditMessageText editMessageText = new EditMessageText(givenChatId, 111, "text");
+        EditMessageText editMessageText = new EditMessageText(givenChatId, 999, "text");
         FileRequest givenFileRequest = FileRequest.builder()
                 .URL(givenURL)
                 .extension(givenExtension)
@@ -378,19 +377,19 @@ class TikTokDownloaderTest {
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP3_VALID.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadTikTok(FILE_MP3_VALID.getName(), givenURL)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
+        when(downloaderManager.isFileSizeValid(FILE_MP3_VALID.length())).thenReturn(true);
 
         FileResponse actualFileResponse = downloader.downloadFile(givenFileResponse, processBuilder);
 
         //then
         assertEquals(expectedFileResponse, actualFileResponse);
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadTikTok(FILE_MP3_VALID.getName(), givenURL);
-        verify(fileManager).isFileSizeValid(FILE_MP3_VALID.length());
+        verify(downloaderManager).isFileSizeValid(FILE_MP3_VALID.length());
     }
 
 
@@ -413,16 +412,16 @@ class TikTokDownloaderTest {
                 .build();
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(givenFileName);
         when(commands.downloadTikTok(givenFileName, givenURL)).thenReturn(givenCommand);
-        when(fileManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
-        when(fileManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
+        when(downloaderManager.isFileDownloadingInProcess(givenCommand[1])).thenReturn(true);
+        when(downloaderManager.isFileSizeValidInProcess(givenCommand[1])).thenReturn(false);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
-        verify(fileManager).isFileDownloadedInProcess(givenCommand[1]);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).isFileDownloadedInProcess(givenCommand[1]);
     }
 
 
@@ -445,18 +444,18 @@ class TikTokDownloaderTest {
 
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_MP4_OVER_50MB.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadTikTok(FILE_MP4_OVER_50MB.getName(), givenURL)).thenReturn(givenCommand);
-        when(fileManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
+        when(downloaderManager.isFileSizeValid(FILE_MP4_OVER_50MB.length())).thenReturn(false);
 
 
         //then
         assertThrows(InvalidBotRequestException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadTikTok(FILE_MP4_OVER_50MB.getName(), givenURL);
-        verify(fileManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
+        verify(downloaderManager).isFileSizeValid(FILE_MP4_OVER_50MB.length());
     }
 
 
@@ -480,14 +479,14 @@ class TikTokDownloaderTest {
 
 
         //when
-        when(fileManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
+        when(downloaderManager.getFileNameFromTitle(givenTitle, givenExtension)).thenReturn(FILE_NOT_EXIST.getName());
         when(commands.getDownloadDestination()).thenReturn(DESTINATION);
         when(commands.downloadTikTok(FILE_NOT_EXIST.getName(), givenURL)).thenReturn(givenCommand);
 
 
         //then
         assertThrows(DownloadedFileNotFoundException.class, () -> downloader.downloadFile(givenFileResponse, processBuilder));
-        verify(fileManager).getFileNameFromTitle(givenTitle, givenExtension);
+        verify(downloaderManager).getFileNameFromTitle(givenTitle, givenExtension);
         verify(commands).getDownloadDestination();
         verify(commands).downloadTikTok(FILE_NOT_EXIST.getName(), givenURL);
     }
