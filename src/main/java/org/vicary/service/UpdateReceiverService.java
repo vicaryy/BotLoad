@@ -8,7 +8,9 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import org.vicary.api_object.Update;
 import org.vicary.api_object.User;
+import org.vicary.api_object.bot.bot_command.BotCommand;
 import org.vicary.api_object.message.Message;
+import org.vicary.api_request.commands.GetMyCommands;
 import org.vicary.api_request.edit_message.EditMessageText;
 import org.vicary.entity.ActiveRequestEntity;
 import org.vicary.entity.UserEntity;
@@ -47,6 +49,8 @@ public class UpdateReceiverService {
     private final UserService userService;
 
     private final AdminResponse adminResponse;
+
+    private final CommandResponse commandResponse;
 
     private final MessageMapper messageMapper;
 
@@ -165,6 +169,10 @@ public class UpdateReceiverService {
             activeRequestService.deleteById(request.getId());
         }
 
+
+        // COMMAND RESPONSE
+        if (text.startsWith("/"))
+            commandResponse.response(text, chatId);
 
         // ADMIN STUFF
         if (userService.isUserAdmin(userId))

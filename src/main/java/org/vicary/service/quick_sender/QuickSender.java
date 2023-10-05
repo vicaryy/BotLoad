@@ -26,6 +26,7 @@ public class QuickSender {
                     .chatId(chatId)
                     .text(text)
                     .parseMode(markdownV2 ? "MarkdownV2" : "")
+                    .disableWebPagePreview(true)
                     .build();
             requestService.sendRequestAsync(sendMessage);
         } catch (Exception ex) {

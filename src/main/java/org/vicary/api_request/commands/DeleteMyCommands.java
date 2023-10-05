@@ -30,24 +30,31 @@ public class DeleteMyCommands implements ApiRequest<Boolean> {
     public void setScopeOnDefault() {
         scope = new BotCommandScopeDefault();
     }
+
     public void setScopeOnAllPrivateChats() {
         scope = new BotCommandScopeAllPrivateChats();
     }
+
     public void setScopeOnAllGroupChats() {
         scope = new BotCommandScopeAllGroupChats();
     }
+
     public void setScopeOnAllChatAdministrators() {
         scope = new BotCommandScopeAllChatAdministrators();
     }
+
     public void setScopeOnChat() {
         scope = new BotCommandScopeChat();
     }
+
     public void setScopeOnChatAdministrators() {
         scope = new BotCommandScopeChatAdministrators();
     }
+
     public void setScopeOnChatMember() {
         scope = new BotCommandScopeChatMember();
     }
+
     @Override
     public Boolean getReturnObject() {
         return true;
@@ -60,6 +67,8 @@ public class DeleteMyCommands implements ApiRequest<Boolean> {
 
     @Override
     public void checkValidation() {
-        if(scope == null) scope = new BotCommandScopeDefault();
+        if (scope == null) scope = new BotCommandScopeDefault();
+
+        if (languageCode == null) languageCode = "";
     }
 }

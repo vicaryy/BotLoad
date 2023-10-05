@@ -65,6 +65,7 @@ public enum EndPoint {
     UNHIDE_GENERAL_FORUM_TOPIC("/unhideGeneralForumTopic"),
     ANSWER_CALLBACK_QUERY("/answerCallbackQuery"),
     SET_MY_COMMANDS("/setMyCommands"),
+    GET_MY_COMMANDS("/getMyCommands"),
     DELETE_MY_COMMANDS("/deleteMyCommands"),
     SET_MY_NAME("/setMyName"),
     GET_MY_NAME("/getMyName"),

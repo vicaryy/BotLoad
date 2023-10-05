@@ -1,6 +1,7 @@
 package org.vicary.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 
 @Service
@@ -43,7 +45,7 @@ public class RequestService {
         return (ReturnObject) response.getResult();
     }
 
-    public <Request extends ApiRequestList<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {
+    public <Request extends ApiRequestList<? extends ReturnObject>, ReturnObject> List<ReturnObject> sendRequestList(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
         String url = BotInfo.GET_URL() + request.getEndPoint();
 
@@ -55,7 +57,7 @@ public class RequestService {
                 .retrieve()
                 .bodyToMono(typeReferences.get(request.getReturnObject().getClass()))
                 .block();
-        return (ReturnObject) response.getResult();
+        return (List<ReturnObject>) response.getResult();
     }
 
     public <Request extends ApiRequest> void sendRequestAsync(Request request) throws RestClientException {

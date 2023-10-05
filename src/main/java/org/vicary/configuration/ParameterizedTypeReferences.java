@@ -2,8 +2,10 @@ package org.vicary.configuration;
 
 import org.vicary.api_object.File;
 import org.vicary.api_object.RequestResponse;
+import org.vicary.api_object.RequestResponseList;
 import org.vicary.api_object.User;
 import org.vicary.api_object.bot.BotShortDescription;
+import org.vicary.api_object.bot.bot_command.BotCommand;
 import org.vicary.api_object.chat.ChatAdministratorRights;
 import org.vicary.api_object.chat.ChatInviteLink;
 import org.vicary.api_object.games.GameHighScore;
@@ -49,6 +51,8 @@ public class ParameterizedTypeReferences {
         types.put(SentWebAppMessage.class, new ParameterizedTypeReference<RequestResponse<SentWebAppMessage>>() {
         });
         types.put(GameHighScore.class, new ParameterizedTypeReference<RequestResponse<GameHighScore>>() {
+        });
+        types.put(BotCommand.class, new ParameterizedTypeReference<RequestResponseList<BotCommand>>() {
         });
     }
 

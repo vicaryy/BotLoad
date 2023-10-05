@@ -71,16 +71,14 @@ public class SetMyCommands implements ApiRequest<Boolean> {
 
     @Override
     public void checkValidation() {
-        if (commands.isEmpty()) throw new IllegalArgumentException("commands list cannot be null or empty.");
-
-        if(languageCode == null) languageCode = "";
+        if (languageCode == null) languageCode = "";
 
         if (scope == null) scope = new BotCommandScopeDefault();
 
         for (BotCommand bot : commands) {
             bot.setCommand(bot.getCommand().toLowerCase());
-            String command = bot.getCommand();
-            if (!command.startsWith("/")) bot.setCommand("/" + bot.getCommand());
+            if (bot.getCommand().startsWith("/"))
+                bot.setCommand(bot.getCommand().substring(1));
         }
     }
 }

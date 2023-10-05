@@ -30,24 +30,31 @@ public class GetMyCommands implements ApiRequestList<BotCommand> {
     public void setScopeOnDefault() {
         scope = new BotCommandScopeDefault();
     }
+
     public void setScopeOnAllPrivateChats() {
         scope = new BotCommandScopeAllPrivateChats();
     }
+
     public void setScopeOnAllGroupChats() {
         scope = new BotCommandScopeAllGroupChats();
     }
+
     public void setScopeOnAllChatAdministrators() {
         scope = new BotCommandScopeAllChatAdministrators();
     }
+
     public void setScopeOnChat() {
         scope = new BotCommandScopeChat();
     }
+
     public void setScopeOnChatAdministrators() {
         scope = new BotCommandScopeChatAdministrators();
     }
+
     public void setScopeOnChatMember() {
         scope = new BotCommandScopeChatMember();
     }
+
     @Override
     public BotCommand getReturnObject() {
         return new BotCommand();
@@ -55,11 +62,12 @@ public class GetMyCommands implements ApiRequestList<BotCommand> {
 
     @Override
     public String getEndPoint() {
-        return EndPoint.DELETE_MY_COMMANDS.getPath();
+        return EndPoint.GET_MY_COMMANDS.getPath();
     }
 
     @Override
     public void checkValidation() {
-        if(scope == null) scope = new BotCommandScopeDefault();
+        if (scope == null) scope = new BotCommandScopeDefault();
+        if (languageCode == null || languageCode.length() != 2) languageCode = "";
     }
 }
