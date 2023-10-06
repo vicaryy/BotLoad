@@ -168,9 +168,9 @@ public class LinkResponse {
 
         fileInfo.append(info.getExtension());
         fileInfo.append(MarkdownV2.apply(extension).get());
-
-        fileInfo.append(info.getQuality());
-        fileInfo.append(MarkdownV2.apply(quality).get());
+//
+//        fileInfo.append(info.getQuality());
+//        fileInfo.append(MarkdownV2.apply(quality).get());
 
         return fileInfo.toString();
     }

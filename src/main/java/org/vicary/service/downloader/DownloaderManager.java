@@ -39,7 +39,7 @@ public class DownloaderManager {
     }
 
     public String getFileSizeInProcess(String line) {
-        if (line.startsWith("[download] File is larger than max-filesize(")) {
+        if (line.startsWith("[download] File is larger than max-filesize")) {
             long size = 0;
             String[] arraySplit = line.split("\\(");
             size = Arrays.stream(arraySplit[1].split(" "))

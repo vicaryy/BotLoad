@@ -19,7 +19,7 @@ public class YtDlpCommand {
     private final static String youtubeUrl = "https://youtu.be/";
     private final static String EMBED_THUMBNAIL = "--embed-thumbnail";
     private final static String MAX_FILE_SIZE = "--max-filesize";
-    private final static String MAX_FILE_SIZE_IN_MB = "45M";
+    private final static String MAX_FILE_SIZE_IN_MB = "47M";
     private final static String FILE_INFO = "-j";
     private final static String NETRC = "--netrc";
     private final static String PLAYLIST_ITEMS = "--playlist-items";
