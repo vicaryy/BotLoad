@@ -1,7 +1,7 @@
 package org.vicary.service.mapper;
 
 import lombok.RequiredArgsConstructor;
-import org.vicary.DataTime;
+import org.vicary.configuration.DataTime;
 import org.vicary.api_object.Update;
 import org.vicary.entity.MessageEntity;
 import org.vicary.service.dto.MessageEntityResponse;

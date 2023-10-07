@@ -1,7 +1,6 @@
 package org.vicary.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.reactive.function.client.WebClientRequestException;
@@ -32,7 +31,7 @@ public class RequestService {
 
     public <Request extends ApiRequest<? extends ReturnObject>, ReturnObject> ReturnObject sendRequest(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
-        String url = BotInfo.GET_URL() + request.getEndPoint();
+        String url = BotInfo.getURL() + request.getEndPoint();
 
         WebClient webClient = WebClient.create();
         RequestResponse response = (RequestResponse) webClient
@@ -47,7 +46,7 @@ public class RequestService {
 
     public <Request extends ApiRequestList<? extends ReturnObject>, ReturnObject> List<ReturnObject> sendRequestList(Request request) throws WebClientRequestException, WebClientResponseException {
         request.checkValidation();
-        String url = BotInfo.GET_URL() + request.getEndPoint();
+        String url = BotInfo.getURL() + request.getEndPoint();
 
         WebClient webClient = WebClient.create();
         RequestResponseList response = (RequestResponseList) webClient
@@ -62,7 +61,7 @@ public class RequestService {
 
     public <Request extends ApiRequest> void sendRequestAsync(Request request) throws RestClientException {
         request.checkValidation();
-        String url = BotInfo.GET_URL() + request.getEndPoint();
+        String url = BotInfo.getURL() + request.getEndPoint();
 
         RestTemplate restTemplate = new RestTemplate();
         restTemplate.postForEntity(url, request, null);
@@ -70,7 +69,7 @@ public class RequestService {
 
     public Message sendRequest(SendPhoto sendPhoto) {
         sendPhoto.checkValidation();
-        String url = BotInfo.GET_URL() + sendPhoto.getEndPoint();
+        String url = BotInfo.getURL() + sendPhoto.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendPhoto.getChatId());
@@ -108,7 +107,7 @@ public class RequestService {
 
     public Message sendRequest(SendAudio sendAudio) {
         sendAudio.checkValidation();
-        String url = BotInfo.GET_URL() + sendAudio.getEndPoint();
+        String url = BotInfo.getURL() + sendAudio.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendAudio.getChatId());
@@ -155,7 +154,7 @@ public class RequestService {
 
     public Message sendRequest(SendDocument sendDocument) {
         sendDocument.checkValidation();
-        String url = BotInfo.GET_URL() + sendDocument.getEndPoint();
+        String url = BotInfo.getURL() + sendDocument.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendDocument.getChatId());
@@ -196,7 +195,7 @@ public class RequestService {
 
     public Message sendRequest(SendVideo sendVideo) {
         sendVideo.checkValidation();
-        String url = BotInfo.GET_URL() + sendVideo.getEndPoint();
+        String url = BotInfo.getURL() + sendVideo.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendVideo.getChatId());
@@ -249,7 +248,7 @@ public class RequestService {
 
     public Message sendRequest(SendAnimation sendAnimation) {
         sendAnimation.checkValidation();
-        String url = BotInfo.GET_URL() + sendAnimation.getEndPoint();
+        String url = BotInfo.getURL() + sendAnimation.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendAnimation.getChatId());
@@ -299,7 +298,7 @@ public class RequestService {
 
     public Message sendRequest(SendVoice sendVoice) {
         sendVoice.checkValidation();
-        String url = BotInfo.GET_URL() + sendVoice.getEndPoint();
+        String url = BotInfo.getURL() + sendVoice.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendVoice.getChatId());
@@ -337,7 +336,7 @@ public class RequestService {
 
     public Message sendRequest(SendVideoNote sendVideoNote) {
         sendVideoNote.checkValidation();
-        String url = BotInfo.GET_URL() + sendVideoNote.getEndPoint();
+        String url = BotInfo.getURL() + sendVideoNote.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendVideoNote.getChatId());
@@ -373,7 +372,7 @@ public class RequestService {
 
     public Message sendSticker(SendSticker sendSticker) {
         sendSticker.checkValidation();
-        String url = BotInfo.GET_URL() + sendSticker.getEndPoint();
+        String url = BotInfo.getURL() + sendSticker.getEndPoint();
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
 
         bodyBuilder.part("chat_id", sendSticker.getChatId());

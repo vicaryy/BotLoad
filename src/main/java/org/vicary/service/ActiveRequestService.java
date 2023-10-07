@@ -29,4 +29,8 @@ public class ActiveRequestService {
     public void deleteAllActiveUsers() {
         repository.deleteAll();
     }
+
+    public int countActiveUsers() {
+        return (int) repository.count();
+    }
 }

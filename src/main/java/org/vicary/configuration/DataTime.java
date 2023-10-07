@@ -1,4 +1,4 @@
-package org.vicary;
+package org.vicary.configuration;
 
 import org.springframework.stereotype.Component;
 

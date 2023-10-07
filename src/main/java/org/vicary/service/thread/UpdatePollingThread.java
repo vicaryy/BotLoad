@@ -40,7 +40,7 @@ public class UpdatePollingThread implements Runnable {
     private static final int MAX_UPDATES_SIZE = 6;
 
     @PostConstruct
-    public void startThread() {
+    private void startThread() {
         logger.info("Telegram Bot API started successfully.");
         singleExecutor.execute(this);
     }
@@ -95,7 +95,7 @@ public class UpdatePollingThread implements Runnable {
     }
 
     public List<Update> getUpdates() throws WebClientResponseException, WebClientRequestException {
-        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
+        String pollUrl = BotInfo.getURL() + EndPoint.GET_UPDATES.getPath();
 
         UpdateResponse<Update> response = client
                 .get()
@@ -110,7 +110,7 @@ public class UpdatePollingThread implements Runnable {
 
         int offset = response.getResult().get(response.getResult().size() - 1).getUpdateId() + 1;
 
-        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
+        String deletePollUrl = BotInfo.getURL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
 
 
         client.get()
@@ -122,7 +122,7 @@ public class UpdatePollingThread implements Runnable {
     }
 
     public void resetUpdates() throws WebClientResponseException, WebClientRequestException {
-        String pollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES.getPath();
+        String pollUrl = BotInfo.getURL() + EndPoint.GET_UPDATES.getPath();
 
         UpdateResponse<Update> response = client
                 .get()
@@ -137,7 +137,7 @@ public class UpdatePollingThread implements Runnable {
 
         int offset = (response.getResult().get(response.getResult().size() - 1)).getUpdateId() + 1;
 
-        String deletePollUrl = BotInfo.GET_URL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
+        String deletePollUrl = BotInfo.getURL() + EndPoint.GET_UPDATES_OFFSET.getPath() + offset;
 
         client.get()
                 .uri(deletePollUrl)
