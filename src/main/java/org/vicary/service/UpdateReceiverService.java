@@ -150,7 +150,7 @@ public class UpdateReceiverService {
                 editMessageText = getEditMessageText(chatId, botMessageInfo.getMessageId());
                 fileRequest = getFileRequest(update, downloader, editMessageText);
 
-
+                System.out.println("Actual Downloader: " + downloader);
                 linkResponse.response(fileRequest, downloader, fileService);
             }
 
@@ -199,12 +199,12 @@ public class UpdateReceiverService {
         String[] arrayText = text.split("-");
 
         for (String s : arrayText) {
-            if (s.startsWith("ext"))
-                extension = getExtension(s.substring(3).trim().toLowerCase(), downloader.getAvailableExtensions());
-            else if (s.startsWith("mul"))
-                multiVideoNumber = getMultiVideoNumber(s.substring(3).trim());
-            else if (s.startsWith("tag"))
-                id3TagData = getId3Tag(s.substring(3).trim());
+            if (s.startsWith("ext "))
+                extension = getExtension(s, downloader.getAvailableExtensions());
+            else if (s.startsWith("mul "))
+                multiVideoNumber = getMultiVideoNumber(s);
+            else if (s.startsWith("tag "))
+                id3TagData = getId3Tag(s);
         }
 
 
@@ -232,28 +232,24 @@ public class UpdateReceiverService {
         return text;
     }
 
-
     public String replaceDashesTo11DASH11(String text) {
         StringBuilder sb = new StringBuilder();
+        int textLength = text.length();
+
         for (int i = 0; i < text.length(); i++) {
-            if (text.charAt(i) == '-') {
-                for (int j = 0; j < 4 && j < text.length(); j++) {
-                    sb.append(text.charAt(i + 1 + j));
-                }
-                if (!sb.toString().equals("tag ") && !sb.toString().equals("ext ") && !sb.toString().equals("mul ")) {
-                    sb.setLength(0);
-                    for (int k = 0; k < text.length(); k++) {
-                        if (k == i)
-                            sb.append("11DASH11");
-                        else
-                            sb.append(text.charAt(k));
-                    }
-                    text = sb.toString();
-                }
-                sb.setLength(0);
-            }
+            if (text.charAt(i) == '-' && textLength >= (i + 5)) {
+                String substring = text.substring(i + 1, i + 5);
+
+                if (substring.equals("ext ") || substring.equals("tag ") || substring.equals("mul "))
+                    sb.append(text.charAt(i));
+                else
+                    sb.append("11DASH11");
+            } else if (text.charAt(i) == '-' && textLength < (i + 5))
+                sb.append("11DASH11");
+            else
+                sb.append(text.charAt(i));
         }
-        return text;
+        return sb.toString();
     }
 
     public String replace11DASH11ToDashes(String text) {
@@ -270,9 +266,7 @@ public class UpdateReceiverService {
 
     public ID3TagData getId3Tag(String text) {
         // -tag artist:title:album:releaseYear:genre
-        text = replace11DASH11ToDashes(text);
-        if (text.isBlank())
-            return null;
+        text = replace11DASH11ToDashes(text).substring(3).trim();
 
         ID3TagData id3TagData = null;
         String[] textArray = text.split(":");
@@ -319,6 +313,7 @@ public class UpdateReceiverService {
 
 
     public int getMultiVideoNumber(String text) {
+        text = text.substring(3).trim();
         int number = 0;
         try {
             number = Integer.parseInt(text);
@@ -332,6 +327,7 @@ public class UpdateReceiverService {
 
 
     public String getExtension(String text, List<String> availableExtensions) {
+        text = text.substring(3).trim().toLowerCase();
         if (availableExtensions.contains(text))
             return text;
         else
