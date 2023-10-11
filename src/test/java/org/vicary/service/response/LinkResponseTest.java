@@ -2,8 +2,6 @@ package org.vicary.service.response;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,12 +24,8 @@ import org.vicary.service.TerminalExecutor;
 import org.vicary.service.downloader.*;
 import org.vicary.service.file_service.*;
 import org.vicary.service.quick_sender.QuickSender;
-import org.vicary.service.response.LinkResponse;
 
 import java.io.File;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 @SpringBootTest
 class LinkResponseTest {

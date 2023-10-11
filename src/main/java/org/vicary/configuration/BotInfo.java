@@ -2,22 +2,18 @@ package org.vicary.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.vicary.command.YtDlpCommand;
 
 @Component
 public class BotInfo {
     private static ApiBotConfiguration apiBotConfiguration;
-    private static YtDlpCommand command;
 
     @Autowired
-    public BotInfo(ApiBotConfiguration apiBotConfiguration,
-                   YtDlpCommand command) {
+    public BotInfo(ApiBotConfiguration apiBotConfiguration) {
         BotInfo.apiBotConfiguration = apiBotConfiguration;
-        BotInfo.command = command;
     }
 
     public static String getDownloadDestination() {
-        return command.getDownloadDestination();
+        return apiBotConfiguration.getDownloadDestination();
     }
 
     public static String getURL() {

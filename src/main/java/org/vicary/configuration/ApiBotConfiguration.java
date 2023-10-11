@@ -12,4 +12,5 @@ public class ApiBotConfiguration {
     private String apiUrl;
     private String botUsername;
     private String botToken;
+    private String downloadDestination;
 }

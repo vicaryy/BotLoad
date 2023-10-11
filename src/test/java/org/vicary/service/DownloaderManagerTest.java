@@ -8,7 +8,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.vicary.service.Converter;
 import org.vicary.service.downloader.DownloaderManager;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,7 +30,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
+        assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
 
@@ -42,7 +41,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
+        assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
     @Test
@@ -52,7 +51,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
+        assertTrue(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
     @Test
@@ -62,7 +61,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertFalse(downloaderManager.isFileSizeValid(givenFileSize));
+        assertFalse(downloaderManager.isFileSizeValid(givenFileSize));
     }
 
     @Test
@@ -77,7 +76,7 @@ class DownloaderManagerTest {
         String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
-        Assertions.assertEquals(expectedFileName, actualFileName);
+        assertEquals(expectedFileName, actualFileName);
     }
 
 
@@ -93,7 +92,7 @@ class DownloaderManagerTest {
         String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
-        Assertions.assertEquals(expectedFileName, actualFileName);
+        assertEquals(expectedFileName, actualFileName);
     }
 
     @Test
@@ -108,7 +107,7 @@ class DownloaderManagerTest {
         String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
-        Assertions.assertEquals(expectedFileName, actualFileName);
+        assertEquals(expectedFileName, actualFileName);
     }
 
     @Test
@@ -123,7 +122,7 @@ class DownloaderManagerTest {
         String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
-        Assertions.assertEquals(expectedFileName, actualFileName);
+        assertEquals(expectedFileName, actualFileName);
     }
 
 
@@ -139,7 +138,7 @@ class DownloaderManagerTest {
         String actualFileName = downloaderManager.getFileNameFromTitle(givenTitle, givenExtension);
 
         //then
-        Assertions.assertEquals(expectedFileName, actualFileName);
+        assertEquals(expectedFileName, actualFileName);
     }
 
 
@@ -151,7 +150,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertThrows(NullPointerException.class, () -> downloaderManager.getFileNameFromTitle(givenTitle, givenExtension));
+        assertThrows(NullPointerException.class, () -> downloaderManager.getFileNameFromTitle(givenTitle, givenExtension));
     }
 
 
@@ -169,7 +168,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
         Mockito.verify(converter).bytesToMB(givenBytes);
     }
 
@@ -181,7 +180,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertThrows(NumberFormatException.class, () -> downloaderManager.getFileSizeInProcess(givenLine));
+        assertThrows(NumberFormatException.class, () -> downloaderManager.getFileSizeInProcess(givenLine));
     }
 
 
@@ -199,7 +198,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
         Mockito.verify(converter).bytesToMB(givenBytes);
     }
 
@@ -215,7 +214,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
     }
 
 
@@ -230,7 +229,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
     }
 
 
@@ -245,7 +244,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
     }
 
 
@@ -260,7 +259,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
     }
 
 
@@ -275,7 +274,7 @@ class DownloaderManagerTest {
         String actualFileSize = downloaderManager.getFileSizeInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileSize, actualFileSize);
+        assertEquals(expectedFileSize, actualFileSize);
     }
 
 
@@ -286,7 +285,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
     @Test
@@ -296,7 +295,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertFalse(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertFalse(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -308,7 +307,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertFalse(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertFalse(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -319,7 +318,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -330,7 +329,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -341,7 +340,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -352,7 +351,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -363,7 +362,7 @@ class DownloaderManagerTest {
 
         //when
         //then
-        Assertions.assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
+        assertTrue(downloaderManager.isFileSizeValidInProcess(givenLine));
     }
 
 
@@ -378,7 +377,7 @@ class DownloaderManagerTest {
         String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileProgress, actualFileProgress);
+        assertEquals(expectedFileProgress, actualFileProgress);
     }
 
 
@@ -393,7 +392,7 @@ class DownloaderManagerTest {
         String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileProgress, actualFileProgress);
+        assertEquals(expectedFileProgress, actualFileProgress);
     }
 
 
@@ -408,7 +407,7 @@ class DownloaderManagerTest {
         String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileProgress, actualFileProgress);
+        assertEquals(expectedFileProgress, actualFileProgress);
     }
 
 
@@ -423,7 +422,7 @@ class DownloaderManagerTest {
         String actualFileProgress = downloaderManager.getDownloadProgressInProcess(givenLine);
 
         //then
-        Assertions.assertEquals(expectedFileProgress, actualFileProgress);
+        assertEquals(expectedFileProgress, actualFileProgress);
     }
 }
 

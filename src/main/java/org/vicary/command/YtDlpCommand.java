@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.vicary.configuration.BotInfo;
 import org.vicary.model.FileResponse;
 
 @Configuration
@@ -23,10 +24,6 @@ public class YtDlpCommand {
     private final static String FILE_INFO = "-j";
     private final static String NETRC = "--netrc";
     private final static String PLAYLIST_ITEMS = "--playlist-items";
-
-    @Getter
-    @Setter
-    private String downloadDestination;
 
 
     public String[] downloadYouTube(String fileName, FileResponse response) {
@@ -205,5 +202,9 @@ public class YtDlpCommand {
                 NETRC,
                 FILE_INFO,
                 URL};
+    }
+
+    public String getDownloadDestination() {
+        return BotInfo.getDownloadDestination();
     }
 }

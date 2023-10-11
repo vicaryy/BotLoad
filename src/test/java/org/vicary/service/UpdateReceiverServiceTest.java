@@ -2,7 +2,6 @@ package org.vicary.service;
 
 import com.mpatric.mp3agic.ID3v1Genres;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -318,6 +317,7 @@ class UpdateReceiverServiceTest {
         updateReceiverService.updateReceiver(update);
 
         //then
+        verify(pattern).isInstagramURL(expectedURL);
         verify(messageEntityService).save(messageEntity);
         verify(userService).existsByUserId(userId.toString());
         verify(activeRequestService).existsByUserId(userId.toString());
@@ -332,59 +332,68 @@ class UpdateReceiverServiceTest {
         Update update = new Update();
         //when
         //then
-        assertDoesNotThrow(() -> new Exception());
+        assertDoesNotThrow(() -> updateReceiverService.updateReceiver(update));
+
+        verify(messageEntityService, never()).save(any());
     }
 
-//    @Test
-//    void getFileRequest_expectEquals_ValidParams() {
-//        //given
-//        String text = "https://www.URL.com mp4 #4";
-//        String chatId = "123456";
-//        Long userId = 123L;
-//        int messageId = 321;
-//        User user = new User();
-//        user.setId(userId);
-//        Chat chat = new Chat();
-//        chat.setId(Integer.parseInt(chatId));
-//        Message message = new Message();
-//        message.setText(text);
-//        message.setFrom(user);
-//        message.setChat(chat);
-//
-//        Update update = new Update();
-//        update.setMessage(message);
-//        Downloader downloader = new TwitterDownloader(null, null, null, null, null, null, new Converter(), new DownloaderManager(new Converter()));
-//        EditMessageText editMessageText = EditMessageText.builder()
-//                .chatId(update.getChatId())
-//                .messageId(messageId)
-//                .text(info.getGotTheLink() + info.getHoldOn())
-//                .parseMode("MarkdownV2")
-//                .disableWebPagePreview(true)
-//                .build();
-//
-//        String expectedUrl = "https://www.URL.com";
-//        String expectedChatId = "123456";
-//        String expectedExtension = "mp4";
-//        int expectedMultiVideoNumber = 4;
-//        boolean expectedPremium = false;
-//        EditMessageText expectedEMT = editMessageText;
-//        FileRequest expectedFileRequest = FileRequest.builder()
-//                .URL(expectedUrl)
-//                .chatId(expectedChatId)
-//                .extension(expectedExtension)
-//                .multiVideoNumber(expectedMultiVideoNumber)
-//                .premium(expectedPremium)
-//                .editMessageText(expectedEMT)
-//                .build();
-//
-//        //when
-//        FileRequest actualFileRequest = updateReceiverService.getFileRequest(update, downloader, expectedEMT);
-//
-//        //then
-//        Assertions.assertEquals(expectedFileRequest, actualFileRequest);
-//        Mockito.verify(userService).findByUserId(userId.toString());
-//
-//    }
+    @Test
+    void getFileRequest_expectVerify_NoURLInMessage() throws Exception {
+        String text = "hello";
+        String expectedURL = "hello";
+        String chatId = "123456";
+        Long userId = 123L;
+        int messageId = 321;
+        User user = new User();
+        user.setId(userId);
+        Chat chat = new Chat();
+        chat.setId(Integer.parseInt(chatId));
+        Message message = new Message();
+        message.setText(text);
+        message.setFrom(user);
+        message.setChat(chat);
+
+        EditMessageText editMessageText = EditMessageText.builder()
+                .chatId(chatId)
+                .messageId(messageId)
+                .text(info.getGotTheLink() + info.getHoldOn())
+                .parseMode("MarkdownV2")
+                .disableWebPagePreview(true)
+                .build();
+
+        Update update = new Update();
+        update.setMessage(message);
+
+        MessageEntity messageEntity = MessageEntity.builder().message(text).build();
+        ActiveRequestEntity activeRequestEntity = new ActiveRequestEntity(userId.toString());
+
+        //when
+        when(messageMapper.map(update)).thenReturn(messageEntity);
+        when(activeRequestService.saveActiveUser(activeRequestEntity)).thenReturn(activeRequestEntity);
+        when(pattern.isInstagramURL(expectedURL)).thenReturn(false);
+        when(pattern.isYouTubeURL(expectedURL)).thenReturn(false);
+        when(pattern.isTwitterURL(expectedURL)).thenReturn(false);
+        when(pattern.isSoundCloudURL(expectedURL)).thenReturn(false);
+        when(pattern.isTikTokURL(expectedURL)).thenReturn(false);
+        when(quickSender.messageWithReturn(chatId, editMessageText.getText(), true)).thenReturn(Message.builder().messageId(messageId).build());
+
+        updateReceiverService.updateReceiver(update);
+
+        //then
+        verify(pattern).isInstagramURL(expectedURL);
+        verify(messageEntityService).save(messageEntity);
+        verify(userService).existsByUserId(userId.toString());
+        verify(activeRequestService).existsByUserId(userId.toString());
+        verify(activeRequestService).saveActiveUser(activeRequestEntity);
+        verify(activeRequestService).deleteById(null);
+        verify(pattern).isInstagramURL(expectedURL);
+        verify(pattern).isYouTubeURL(expectedURL);
+        verify(pattern).isSoundCloudURL(expectedURL);
+        verify(pattern).isTwitterURL(expectedURL);
+        verify(pattern).isTikTokURL(expectedURL);
+        verify(linkResponse, times(0)).response(any(), any(), any());
+
+    }
 
     @Test
     void getMultiVideoNumber_expectEquals_ValidNumber() {
