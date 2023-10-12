@@ -135,8 +135,6 @@ class UpdateReceiverServiceTest {
         when(quickSender.messageWithReturn(chatId, editMessageText.getText(), true)).thenReturn(Message.builder().messageId(messageId).build());
         when(expectedDownloader.getAvailableExtensions()).thenReturn(List.of("mp3", "mp4", "flac"));
 
-        System.out.println("Expected downloader: " + expectedDownloader);
-
         updateReceiverService.updateReceiver(update);
 
         //then

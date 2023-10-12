@@ -144,7 +144,6 @@ public class SoundCloudDownloader implements Downloader {
                     String.format("Live in SoundCloud URL '%s'.", request.getURL()));
         }
 
-        System.out.println(fileInfo);
         FileResponse fileResponse = mapper.map(fileInfo, getServiceName());
         fileResponse.setThumbnailURL(getProperThumbnailURL(fileInfo.getThumbnails()));
         fileResponse.setMultiVideoNumber(multiVideoNumber);

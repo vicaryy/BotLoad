@@ -1,24 +1,51 @@
 package org.vicary.api_request;
 
+import org.aspectj.util.FileUtil;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class InputFileTest {
 
-    private static InputFile inputFile;
+    private static File FILE_NORMAL;
+    private static File FILE_OVER_50MB;
+    private static File FILE_THUMBNAIL;
 
     @BeforeAll
-    static void beforeAll() {
-        File file = mock(File.class);
-        inputFile = new InputFile();
-        inputFile.setFile(file);
+    public static void beforeAll() throws Exception {
+        FILE_NORMAL = new File("file_normal.mp3");
+        byte[] bytesForNormalFile = new byte[1000000];
+        try (OutputStream outputStream = new FileOutputStream(FILE_NORMAL)) {
+            outputStream.write(bytesForNormalFile);
+        }
+
+        FILE_OVER_50MB = new File("file_over_50MB.mp3");
+        byte[] bytesForOver50MBFile = new byte[55000000];
+        try (OutputStream outputStream = new FileOutputStream(FILE_OVER_50MB)) {
+            outputStream.write(bytesForOver50MBFile);
+        }
+
+        FILE_THUMBNAIL = new File("file_thumbnail.jpg");
+        byte[] bytesForThumbnailFile = new byte[100];
+        try (OutputStream outputStream = new FileOutputStream(FILE_THUMBNAIL)) {
+            outputStream.write(bytesForThumbnailFile);
+        }
+    }
+
+    @AfterAll
+    public static void afterAll() {
+        FileUtil.deleteContents(FILE_NORMAL);
+        FileUtil.deleteContents(FILE_OVER_50MB);
+        FileUtil.deleteContents(FILE_THUMBNAIL);
     }
 
     @Test
@@ -38,7 +65,7 @@ class InputFileTest {
         //given
         String methodName = "audio";
         InputFile inputFile = InputFile.builder()
-                .file(new File("/someFileInMp3.mp3"))
+                .file(FILE_NORMAL)
                 .build();
 
         //when
@@ -51,7 +78,7 @@ class InputFileTest {
         //given
         String methodName = "audio";
         InputFile inputFile = InputFile.builder()
-                .file(new File("/someFileInMp3.mp3"))
+                .file(FILE_NORMAL)
                 .fileId("fileId")
                 .build();
 
@@ -92,9 +119,11 @@ class InputFileTest {
     void checkValidation_expectThrowIllegalArgumentEx_FileTooBigOver50MB() {
         //given
         String methodName = "video";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_OVER_50MB)
+                .build();
 
         //when
-        when(inputFile.getFile().length()).thenReturn(100000000L);
         //then
         assertThrows(IllegalArgumentException.class, () -> inputFile.checkValidation(methodName));
     }
@@ -103,6 +132,9 @@ class InputFileTest {
     void photoValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "photo123.jpg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -113,7 +145,9 @@ class InputFileTest {
     void photoValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "photo123.mp4";
-
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
         //when
         //then
         assertThrows(IllegalArgumentException.class, () -> inputFile.photoValidation(fileName));
@@ -123,6 +157,9 @@ class InputFileTest {
     void videoValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "video123.avi";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -133,6 +170,9 @@ class InputFileTest {
     void videoValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "video.jpeg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -144,6 +184,9 @@ class InputFileTest {
     void audioValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "audio123.mp3";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -154,6 +197,9 @@ class InputFileTest {
     void audioValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "audio.ogg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -165,6 +211,9 @@ class InputFileTest {
     void animationValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "animation123.gif";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -175,6 +224,9 @@ class InputFileTest {
     void animationValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "animation.jpeg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -186,6 +238,9 @@ class InputFileTest {
     void voiceValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "voice123.ogg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -196,6 +251,9 @@ class InputFileTest {
     void voiceValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "voice.jpeg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -207,6 +265,9 @@ class InputFileTest {
     void stickerValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "sticker123.webm";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -217,6 +278,9 @@ class InputFileTest {
     void stickerValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "sticker.mp3";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -227,9 +291,11 @@ class InputFileTest {
     void thumbnailValidation_expectDoesNotThrow_ValidFileName() {
         //given
         String fileName = "thumbnail123.jpg";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_THUMBNAIL)
+                .build();
 
         //when
-        when(inputFile.getFile().length()).thenReturn(1L);
         //then
         assertDoesNotThrow(() -> inputFile.thumbnailValidation(fileName));
     }
@@ -238,6 +304,9 @@ class InputFileTest {
     void thumbnailValidation_expectThrowIllegalArgumentEx_InvalidFileName() {
         //given
         String fileName = "thumbnail.mp3";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_NORMAL)
+                .build();
 
         //when
         //then
@@ -248,9 +317,10 @@ class InputFileTest {
     void thumbnailValidation_expectThrowIllegalArgumentEx_ThumbnailTooBigOver200kB() {
         //given
         String fileName = "thumbnail.mp3";
+        InputFile inputFile = InputFile.builder()
+                .file(FILE_OVER_50MB)
+                .build();
 
-        //when
-        when(inputFile.getFile().length()).thenReturn(400000L);
         //then
         assertThrows(IllegalArgumentException.class, () -> inputFile.thumbnailValidation(fileName));
     }

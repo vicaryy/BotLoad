@@ -12,8 +12,6 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-@RunWith(Runner.class)
 @SpringBootTest
 class TerminalExecutorTest {
     @Autowired

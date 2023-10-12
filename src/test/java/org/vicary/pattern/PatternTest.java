@@ -11,7 +11,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(Runner.class)
 @SpringBootTest
 class PatternTest {
     @Autowired

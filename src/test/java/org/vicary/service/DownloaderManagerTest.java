@@ -1,9 +1,6 @@
 package org.vicary.service;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.junit.runner.RunWith;
-import org.junit.runner.Runner;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,7 +10,7 @@ import org.vicary.service.downloader.DownloaderManager;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@RunWith(Runner.class)
+
 @SpringBootTest
 class DownloaderManagerTest {
     @Autowired

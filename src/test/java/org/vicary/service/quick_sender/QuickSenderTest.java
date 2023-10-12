@@ -16,7 +16,6 @@ import org.vicary.service.quick_sender.QuickSender;
 
 import static org.mockito.Mockito.*;
 
-@RunWith(Runner.class)
 @SpringBootTest
 class QuickSenderTest {
 

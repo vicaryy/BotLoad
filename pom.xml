@@ -16,7 +16,7 @@
 
         <lombok.version>1.18.30</lombok.version>
         <postgresql.version>42.6.0</postgresql.version>
-        <spring.version>3.1.2</spring.version>
+        <spring.version>3.1.4</spring.version>
         <logback.version>1.4.8</logback.version>
 
     </properties>
@@ -147,26 +147,5 @@
 
         </plugins>
     </build>
-
-<!--    <profiles>-->
-<!--        <profile>-->
-<!--            <id>local</id>-->
-<!--            <activation>-->
-<!--                <activeByDefault>true</activeByDefault>-->
-<!--            </activation>-->
-<!--            <properties>-->
-<!--                <spring.profiles.active>local</spring.profiles.active>-->
-<!--            </properties>-->
-<!--        </profile>-->
-<!--        -->
-<!--        <profile>-->
-<!--            <id>aws</id>-->
-<!--            <properties>-->
-<!--                <maven.test.skip>true</maven.test.skip>-->
-<!--                <spring.profiles.active>aws</spring.profiles.active>-->
-<!--            </properties>-->
-<!--        </profile>-->
-
-<!--    </profiles>-->
 
 </project>

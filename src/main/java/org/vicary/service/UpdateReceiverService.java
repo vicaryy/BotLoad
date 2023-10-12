@@ -150,7 +150,6 @@ public class UpdateReceiverService {
                 editMessageText = getEditMessageText(chatId, botMessageInfo.getMessageId());
                 fileRequest = getFileRequest(update, downloader, editMessageText);
 
-                System.out.println("Actual Downloader: " + downloader);
                 linkResponse.response(fileRequest, downloader, fileService);
             }
 

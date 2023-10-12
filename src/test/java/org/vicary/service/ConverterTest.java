@@ -9,7 +9,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.vicary.service.Converter;
 
 import static org.junit.jupiter.api.Assertions.*;
-@RunWith(Runner.class)
 @SpringBootTest
 class ConverterTest {
     @Autowired

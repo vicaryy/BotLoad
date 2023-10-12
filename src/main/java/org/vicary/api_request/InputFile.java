@@ -108,7 +108,7 @@ public class InputFile implements ApiObject {
                 throw new IllegalArgumentException("A thumbnail's width and height should not exceed 320." +
                                                    " \nImage width: " + thumbnail.getWidth() +
                                                    " \nImage height: " + thumbnail.getHeight());
-        } catch (IOException ignored) {
+        } catch (Exception ignored) {
         }
     }
 
