@@ -11,7 +11,7 @@ import org.vicary.api_object.message.Message;
 @Data
 public class Chat implements ApiObject {
     @JsonProperty("id")
-    private Integer id;
+    private String id;
 
     @JsonProperty("type")
     private String type;

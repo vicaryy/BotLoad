@@ -5,7 +5,7 @@ import lombok.*;
 @Data
 public class User implements ApiObject {
     @JsonProperty("id")
-    private Long id;
+    private String id;
 
     @JsonProperty("is_bot")
     private Boolean isBot;

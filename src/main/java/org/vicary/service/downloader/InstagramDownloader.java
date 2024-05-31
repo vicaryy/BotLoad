@@ -165,7 +165,7 @@ public class InstagramDownloader implements Downloader {
         EditMessageText editMessageText = response.getEditMessageText();
         quickSender.editMessageText(editMessageText, editMessageText.getText() + info.getFileDownloading());
 
-        logger.info("[download] Downloading Twitter file '{}'", response.getServiceId());
+        logger.info("[download] Downloading Instagram file '{}'", response.getServiceId());
         processBuilder.command(commands.downloadInstagram(fileName, response));
         Process process = processBuilder.start();
         try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
